@@ -38,3 +38,6 @@ sessions/
 
 # App Store artifacts (lokale Tarballs)
 *.tar.gz
+
+# Vite build intermediate (final output goes to js/ and css/)
+dist/
