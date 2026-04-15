@@ -1,0 +1,40 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Build output
+# (NC-Apps: js/ MUSS committed werden, nicht ignorieren!)
+# dist/ und build/ gibts hier nicht, webpack schreibt nach js/
+
+# Environment
+.env
+.env.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Testing
+coverage/
+.phpunit.cache/
+test-results/
+
+# OS
+.DS_Store
+._*
+
+# Logs
+*.log
+
+# Secrets
+*.pem
+*.key
+*.crt
+credentials.json
+
+# Sessions / temp docs (nicht committen)
+sessions/
+
+# App Store artifacts (lokale Tarballs)
+*.tar.gz
