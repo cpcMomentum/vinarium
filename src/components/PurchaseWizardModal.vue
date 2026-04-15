@@ -3,7 +3,7 @@
 		<div class="wizard">
 			<h2 class="wizard__title">{{ titles[step] }}</h2>
 			<div class="wizard__stepper">
-				<span v-for="s in 3" :key="s" :class="['step', { active: step === s, done: step > s }]">{{ s }}</span>
+				<span v-for="s in 4" :key="s" :class="['step', { active: step === s, done: step > s }]">{{ s }}</span>
 			</div>
 
 			<!-- Step 1: Producer -->
@@ -97,11 +97,46 @@
 				</fieldset>
 			</section>
 
+			<!-- Step 4: Purchase -->
+			<section v-else-if="step === 4" class="wizard__section">
+				<p class="hint">
+					Hier landet der eigentliche Kauf: <em>Anzahl Flaschen</em>, Flaschengröße, optional Händler/Preis.
+					Die Flaschen kommen automatisch in die Parkzone, von dort weist du sie ins Regal zu.
+				</p>
+				<fieldset class="fieldset">
+					<legend>Kauf-Daten</legend>
+					<div class="field-row">
+						<label class="field"><span>Kaufdatum *</span><input v-model="newPurchase.purchasedAt" type="date" class="input" /></label>
+						<label class="field"><span>Anzahl Flaschen *</span><input v-model.number="newPurchase.quantity" type="number" min="1" class="input" /></label>
+					</div>
+					<div class="field-row">
+						<label class="field"><span>Flaschengröße *</span>
+							<select v-model.number="newPurchase.bottleSizeMl" class="input">
+								<option v-for="size in BOTTLE_SIZES" :key="size" :value="size">{{ BOTTLE_SIZE_LABELS[size] }}</option>
+							</select>
+						</label>
+						<label class="field"><span>Händler</span><input v-model="newPurchase.vendor" class="input" placeholder="z. B. Weinhandlung Müller" /></label>
+					</div>
+					<div class="field-row">
+						<label class="field"><span>Stückpreis</span><input v-model.number="newPurchase.unitPrice" type="number" step="0.01" class="input" placeholder="z. B. 24.50" /></label>
+						<label class="field"><span>Währung</span>
+							<select v-model="newPurchase.currency" class="input">
+								<option value="EUR">EUR</option>
+								<option value="USD">USD</option>
+								<option value="CHF">CHF</option>
+								<option value="GBP">GBP</option>
+							</select>
+						</label>
+					</div>
+					<label class="field"><span>Notizen</span><textarea v-model="newPurchase.notes" class="input" rows="2" /></label>
+				</fieldset>
+			</section>
+
 			<div class="wizard__actions">
 				<NcButton @click="cancel">Abbrechen</NcButton>
 				<NcButton v-if="step > 1" @click="step--">Zurück</NcButton>
-				<NcButton v-if="step < 3" type="primary" :disabled="!canAdvance" @click="step++">Weiter</NcButton>
-				<NcButton v-if="step === 3" type="primary" :disabled="!vintageId" @click="complete">Fertig</NcButton>
+				<NcButton v-if="step < 4" type="primary" :disabled="!canAdvance" @click="step++">Weiter</NcButton>
+				<NcButton v-if="step === 4" type="primary" :disabled="!isValidPurchase || saving" @click="complete">Fertig (Kauf erfassen)</NcButton>
 			</div>
 		</div>
 	</NcModal>
@@ -111,13 +146,14 @@
 import { computed, ref, watch } from 'vue'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import { WINE_COLORS, WINE_COLOR_LABELS, type WineColor } from '@/types/api'
+import { BOTTLE_SIZES, BOTTLE_SIZE_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleSizeMl, type WineColor } from '@/types/api'
 import { useWineStore } from '@/stores/wineStore'
+import { createPurchaseWithBottles } from '@/api/purchases'
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{
 	(e: 'close'): void
-	(e: 'complete', payload: { vintageId: number }): void
+	(e: 'complete', payload: { purchaseId: number; bottleCount: number }): void
 }>()
 
 const store = useWineStore()
@@ -145,7 +181,30 @@ const newVintage = ref({
 	description: '',
 })
 
-const titles = { 1: 'Schritt 1: Weingut', 2: 'Schritt 2: Wein', 3: 'Schritt 3: Jahrgang' } as const
+const titles = {
+	1: 'Schritt 1: Weingut',
+	2: 'Schritt 2: Wein',
+	3: 'Schritt 3: Jahrgang',
+	4: 'Schritt 4: Kauf',
+} as const
+
+const newPurchase = ref<{
+	purchasedAt: string
+	vendor: string
+	unitPrice: number | null
+	currency: string
+	quantity: number
+	bottleSizeMl: BottleSizeMl
+	notes: string
+}>({
+	purchasedAt: new Date().toISOString().substring(0, 10),
+	vendor: '',
+	unitPrice: null,
+	currency: 'EUR',
+	quantity: 6,
+	bottleSizeMl: 750,
+	notes: '',
+})
 
 const winesForProducer = computed(() => (producerId.value ? store.winesByProducer(producerId.value) : []))
 const vintagesForWine = computed(() => (wineId.value ? store.vintagesByWine(wineId.value) : []))
@@ -153,6 +212,7 @@ const vintagesForWine = computed(() => (wineId.value ? store.vintagesByWine(wine
 const canAdvance = computed(() => {
 	if (step.value === 1) return producerId.value !== null
 	if (step.value === 2) return wineId.value !== null
+	if (step.value === 3) return vintageId.value !== null
 	return true
 })
 
@@ -160,6 +220,13 @@ const isValidYear = computed(() => {
 	const y = newVintage.value.year
 	return typeof y === 'number' && y >= 1900 && y <= new Date().getFullYear() + 2
 })
+
+const isValidPurchase = computed(() =>
+	vintageId.value !== null
+	&& newPurchase.value.quantity >= 1
+	&& BOTTLE_SIZES.includes(newPurchase.value.bottleSizeMl)
+	&& newPurchase.value.purchasedAt !== '',
+)
 
 watch(() => props.open, async (isOpen) => {
 	if (isOpen) {
@@ -258,10 +325,27 @@ function cancel() {
 	emit('close')
 }
 
-function complete() {
-	if (vintageId.value) {
-		emit('complete', { vintageId: vintageId.value })
+async function complete() {
+	if (!vintageId.value || !isValidPurchase.value) return
+	saving.value = true
+	try {
+		const result = await createPurchaseWithBottles({
+			vintageId: vintageId.value,
+			purchasedAt: newPurchase.value.purchasedAt,
+			vendor: newPurchase.value.vendor || null,
+			unitPrice: newPurchase.value.unitPrice,
+			currency: newPurchase.value.currency,
+			quantity: newPurchase.value.quantity,
+			bottleSizeMl: newPurchase.value.bottleSizeMl,
+			notes: newPurchase.value.notes || null,
+		})
+		emit('complete', {
+			purchaseId: result.purchase.id,
+			bottleCount: result.bottles.length,
+		})
 		emit('close')
+	} finally {
+		saving.value = false
 	}
 }
 </script>
