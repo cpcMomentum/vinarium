@@ -21,6 +21,8 @@ use OCP\DB\Types;
  * @method void setYear(int $year)
  * @method ?float getAlcoholPercent()
  * @method void setAlcoholPercent(?float $alcoholPercent)
+ * @method ?string getGrapeVarieties()
+ * @method void setGrapeVarieties(?string $grapeVarieties)
  * @method ?DateTime getDrinkFrom()
  * @method void setDrinkFrom(?DateTime $drinkFrom)
  * @method ?DateTime getDrinkUntil()
@@ -38,6 +40,7 @@ class Vintage extends Entity implements JsonSerializable {
 	protected ?int $wineId = null;
 	protected ?int $year = null;
 	protected ?float $alcoholPercent = null;
+	protected ?string $grapeVarieties = null;
 	protected ?DateTime $drinkFrom = null;
 	protected ?DateTime $drinkUntil = null;
 	protected ?float $externalRating = null;
@@ -49,6 +52,7 @@ class Vintage extends Entity implements JsonSerializable {
 		$this->addType('wineId', Types::INTEGER);
 		$this->addType('year', Types::INTEGER);
 		$this->addType('alcoholPercent', Types::FLOAT);
+		$this->addType('grapeVarieties', Types::TEXT);
 		$this->addType('drinkFrom', Types::DATETIME);
 		$this->addType('drinkUntil', Types::DATETIME);
 		$this->addType('externalRating', Types::FLOAT);
@@ -63,6 +67,7 @@ class Vintage extends Entity implements JsonSerializable {
 			'wineId' => $this->getWineId(),
 			'year' => $this->getYear(),
 			'alcoholPercent' => $this->getAlcoholPercent(),
+			'grapeVarieties' => $this->getGrapeVarieties(),
 			'drinkFrom' => $this->getDrinkFrom()?->format(DateTime::ATOM),
 			'drinkUntil' => $this->getDrinkUntil()?->format(DateTime::ATOM),
 			'externalRating' => $this->getExternalRating(),

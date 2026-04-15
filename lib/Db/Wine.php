@@ -20,8 +20,6 @@ use OCP\DB\Types;
  * @method void setName(string $name)
  * @method string getColor()
  * @method void setColor(string $color)
- * @method ?string getGrapeVarieties()
- * @method void setGrapeVarieties(?string $grapeVarieties)
  * @method ?string getAppellation()
  * @method void setAppellation(?string $appellation)
  * @method ?string getNotes()
@@ -45,7 +43,6 @@ class Wine extends Entity implements JsonSerializable {
 	protected ?int $producerId = null;
 	protected ?string $name = null;
 	protected ?string $color = null;
-	protected ?string $grapeVarieties = null;
 	protected ?string $appellation = null;
 	protected ?string $notes = null;
 	protected ?string $barcode = null;
@@ -54,7 +51,6 @@ class Wine extends Entity implements JsonSerializable {
 		$this->addType('producerId', Types::INTEGER);
 		$this->addType('name', Types::STRING);
 		$this->addType('color', Types::STRING);
-		$this->addType('grapeVarieties', Types::TEXT);
 		$this->addType('appellation', Types::STRING);
 		$this->addType('notes', Types::TEXT);
 		$this->addType('barcode', Types::STRING);
@@ -66,7 +62,6 @@ class Wine extends Entity implements JsonSerializable {
 			'producerId' => $this->getProducerId(),
 			'name' => $this->getName(),
 			'color' => $this->getColor(),
-			'grapeVarieties' => $this->getGrapeVarieties(),
 			'appellation' => $this->getAppellation(),
 			'notes' => $this->getNotes(),
 			'barcode' => $this->getBarcode(),
