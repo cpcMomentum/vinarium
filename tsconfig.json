@@ -1,8 +1,12 @@
 {
   "extends": "@vue/tsconfig/tsconfig.json",
-  "include": ["src/**/*", "vite.config.js"],
+  "include": ["src/**/*", "vite.config.js", "vitest.config.ts"],
   "compilerOptions": {
     "allowJs": true,
-    "outDir": "dist"
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
   }
 }

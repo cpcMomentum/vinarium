@@ -1,9 +1,11 @@
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 import App from './App.vue'
+import { router } from './router'
 
-// Wait until the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    const app = createApp(App)
-    // Mount to the container from templates/index.php
-    app.mount('.app-vinarium')
+	const app = createApp(App)
+	app.use(createPinia())
+	app.use(router)
+	app.mount('.app-vinarium')
 })

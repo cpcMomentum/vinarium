@@ -43,7 +43,6 @@ class WineService {
 		$wine->setProducerId($producerId);
 		$wine->setName($name);
 		$wine->setColor($color);
-		$wine->setGrapeVarieties($data['grapeVarieties'] ?? null);
 		$wine->setAppellation($data['appellation'] ?? null);
 		$wine->setNotes($data['notes'] ?? null);
 		$wine->setBarcode($data['barcode'] ?? null);
@@ -59,9 +58,6 @@ class WineService {
 			$color = (string)$data['color'];
 			$this->assertValidColor($color);
 			$wine->setColor($color);
-		}
-		if (array_key_exists('grapeVarieties', $data)) {
-			$wine->setGrapeVarieties($data['grapeVarieties'] !== null ? (string)$data['grapeVarieties'] : null);
 		}
 		if (array_key_exists('appellation', $data)) {
 			$wine->setAppellation($data['appellation'] !== null ? (string)$data['appellation'] : null);

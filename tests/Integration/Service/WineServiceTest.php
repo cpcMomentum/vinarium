@@ -33,7 +33,7 @@ class WineServiceTest extends IntegrationTestCase {
 		$producer = $this->producerService->create($userId, 'P');
 
 		$wine = $this->service->create($userId, $producer->getId(), 'Riesling', Wine::COLOR_WHITE, [
-			'grapeVarieties' => 'Riesling 100%',
+			'appellation' => 'Mosel',
 		]);
 
 		$fetched = $this->service->get($wine->getId(), $userId);
