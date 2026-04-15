@@ -1,0 +1,169 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * SPDX-FileCopyrightText: 2026 cpcMomentum
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+namespace OCA\Vinarium\Tests\Integration\Service;
+
+use DateTime;
+use OCA\Vinarium\Db\Bottle;
+use OCA\Vinarium\Db\BottleMapper;
+use OCA\Vinarium\Db\Cellar;
+use OCA\Vinarium\Db\CellarMapper;
+use OCA\Vinarium\Db\Compartment;
+use OCA\Vinarium\Db\CompartmentMapper;
+use OCA\Vinarium\Db\Producer;
+use OCA\Vinarium\Db\ProducerMapper;
+use OCA\Vinarium\Db\Purchase;
+use OCA\Vinarium\Db\PurchaseMapper;
+use OCA\Vinarium\Db\Shelf;
+use OCA\Vinarium\Db\ShelfMapper;
+use OCA\Vinarium\Db\Slot;
+use OCA\Vinarium\Db\SlotMapper;
+use OCA\Vinarium\Db\Vintage;
+use OCA\Vinarium\Db\VintageMapper;
+use OCA\Vinarium\Db\Wine;
+use OCA\Vinarium\Db\WineMapper;
+use OCA\Vinarium\Exception\NotFoundException;
+use OCA\Vinarium\Exception\PermissionDeniedException;
+use OCA\Vinarium\Service\CellarService;
+use OCA\Vinarium\Tests\Integration\IntegrationTestCase;
+
+class CellarServiceTest extends IntegrationTestCase {
+	private CellarService $service;
+	private CellarMapper $cellarMapper;
+	private ShelfMapper $shelfMapper;
+	private CompartmentMapper $compartmentMapper;
+	private SlotMapper $slotMapper;
+	private BottleMapper $bottleMapper;
+	private ProducerMapper $producerMapper;
+	private WineMapper $wineMapper;
+	private VintageMapper $vintageMapper;
+	private PurchaseMapper $purchaseMapper;
+
+	protected function setUp(): void {
+		parent::setUp();
+		$this->cellarMapper = new CellarMapper($this->db);
+		$this->shelfMapper = new ShelfMapper($this->db);
+		$this->compartmentMapper = new CompartmentMapper($this->db);
+		$this->slotMapper = new SlotMapper($this->db);
+		$this->bottleMapper = new BottleMapper($this->db);
+		$this->producerMapper = new ProducerMapper($this->db);
+		$this->wineMapper = new WineMapper($this->db);
+		$this->vintageMapper = new VintageMapper($this->db);
+		$this->purchaseMapper = new PurchaseMapper($this->db);
+
+		$this->service = new CellarService(
+			$this->cellarMapper,
+			$this->shelfMapper,
+			$this->compartmentMapper,
+			$this->slotMapper,
+			$this->bottleMapper,
+			$this->db,
+		);
+	}
+
+	public function testCreateDefaultCellarCreates234Slots(): void {
+		$userId = $this->uniqueId('user');
+		$cellar = $this->service->createDefaultCellar($userId);
+
+		$this->assertSame($userId, $cellar->getOwnerUserId());
+
+		$shelves = $this->shelfMapper->findByCellar($cellar->getId());
+		$this->assertCount(1, $shelves);
+
+		$compartments = $this->compartmentMapper->findByShelf($shelves[0]->getId());
+		$this->assertCount(6, $compartments);
+
+		$totalSlots = 0;
+		foreach ($compartments as $comp) {
+			$totalSlots += count($this->slotMapper->findByCompartment($comp->getId()));
+		}
+		$this->assertSame(234, $totalSlots);
+	}
+
+	public function testGetActiveCellarReturnsNested(): void {
+		$userId = $this->uniqueId('user');
+		$this->service->createDefaultCellar($userId);
+
+		$result = $this->service->getActiveCellar($userId);
+
+		$this->assertInstanceOf(Cellar::class, $result['cellar']);
+		$this->assertCount(1, $result['shelves']);
+		$this->assertCount(6, $result['shelves'][0]['compartments']);
+	}
+
+	public function testGetActiveCellarThrowsWhenMissing(): void {
+		$this->expectException(NotFoundException::class);
+		$this->service->getActiveCellar($this->uniqueId('user'));
+	}
+
+	public function testReconfigureCompartmentMovesBottlesToParkzone(): void {
+		$userId = $this->uniqueId('user');
+		$this->service->createDefaultCellar($userId);
+		$activeCellar = $this->service->getActiveCellar($userId);
+		$comp = $activeCellar['shelves'][0]['compartments'][0];
+
+		$slots = $this->slotMapper->findByCompartment($comp->getId());
+		$this->assertGreaterThanOrEqual(2, count($slots));
+
+		$purchaseId = $this->seedPurchase($userId);
+		$bottleIds = [];
+		foreach ([$slots[0], $slots[1]] as $slot) {
+			$bottle = new Bottle();
+			$bottle->setPurchaseId($purchaseId);
+			$bottle->setSlotId($slot->getId());
+			$bottle->setStatus(Bottle::STATUS_IN_STORAGE);
+			$bottleIds[] = $this->bottleMapper->insert($bottle)->getId();
+		}
+
+		$moved = $this->service->reconfigureCompartment($comp->getId(), 2, 3, 3, $userId);
+
+		$this->assertSame(2, $moved);
+		foreach ($bottleIds as $id) {
+			$this->assertNull($this->bottleMapper->find($id)->getSlotId());
+		}
+
+		$newSlots = $this->slotMapper->findByCompartment($comp->getId());
+		$this->assertCount(2 * (3 + 3), $newSlots);
+	}
+
+	public function testReconfigureRejectsForeignOwner(): void {
+		$userId = $this->uniqueId('user');
+		$this->service->createDefaultCellar($userId);
+		$active = $this->service->getActiveCellar($userId);
+		$comp = $active['shelves'][0]['compartments'][0];
+
+		$this->expectException(PermissionDeniedException::class);
+		$this->service->reconfigureCompartment($comp->getId(), 3, 6, 7, $this->uniqueId('intruder'));
+	}
+
+	private function seedPurchase(string $userId): int {
+		$producer = new Producer();
+		$producer->setOwnerUserId($userId);
+		$producer->setName('P');
+		$producer = $this->producerMapper->insert($producer);
+
+		$wine = new Wine();
+		$wine->setProducerId($producer->getId());
+		$wine->setName('W');
+		$wine->setColor(Wine::COLOR_RED);
+		$wine = $this->wineMapper->insert($wine);
+
+		$vintage = new Vintage();
+		$vintage->setWineId($wine->getId());
+		$vintage->setYear(2020);
+		$vintage = $this->vintageMapper->insert($vintage);
+
+		$purchase = new Purchase();
+		$purchase->setVintageId($vintage->getId());
+		$purchase->setPurchasedAt(new DateTime());
+		$purchase->setQuantity(1);
+		$purchase->setBottleSizeMl(750);
+		return $this->purchaseMapper->insert($purchase)->getId();
+	}
+}
