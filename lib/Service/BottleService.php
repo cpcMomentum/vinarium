@@ -1,0 +1,128 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * SPDX-FileCopyrightText: 2026 cpcMomentum
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+namespace OCA\Vinarium\Service;
+
+use OCA\Vinarium\Db\Bottle;
+use OCA\Vinarium\Db\BottleMapper;
+use OCA\Vinarium\Db\CellarMapper;
+use OCA\Vinarium\Db\CompartmentMapper;
+use OCA\Vinarium\Db\Purchase;
+use OCA\Vinarium\Db\ShelfMapper;
+use OCA\Vinarium\Db\SlotMapper;
+use OCA\Vinarium\Exception\NotFoundException;
+use OCA\Vinarium\Exception\PermissionDeniedException;
+use OCA\Vinarium\Exception\SlotOccupiedException;
+use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\IDBConnection;
+use Throwable;
+
+class BottleService {
+
+	public function __construct(
+		private readonly BottleMapper $bottleMapper,
+		private readonly SlotMapper $slotMapper,
+		private readonly CompartmentMapper $compartmentMapper,
+		private readonly ShelfMapper $shelfMapper,
+		private readonly CellarMapper $cellarMapper,
+		private readonly PurchaseService $purchaseService,
+		private readonly IDBConnection $db,
+	) {
+	}
+
+	/**
+	 * Bulk-create N bottles for a purchase, all parked (slot_id = NULL, status = in_storage).
+	 *
+	 * @return Bottle[]
+	 */
+	public function createBottlesForPurchase(int $purchaseId, string $userId): array {
+		$purchase = $this->purchaseService->get($purchaseId, $userId);
+		$count = $purchase->getQuantity();
+
+		$this->db->beginTransaction();
+		try {
+			$bottles = [];
+			for ($i = 0; $i < $count; $i++) {
+				$bottle = new Bottle();
+				$bottle->setPurchaseId($purchase->getId());
+				$bottle->setStatus(Bottle::STATUS_IN_STORAGE);
+				$bottles[] = $this->bottleMapper->insert($bottle);
+			}
+			$this->db->commit();
+			return $bottles;
+		} catch (Throwable $e) {
+			$this->db->rollBack();
+			throw $e;
+		}
+	}
+
+	public function get(int $id, string $userId): Bottle {
+		$bottle = $this->findBottle($id);
+		$this->purchaseService->get($bottle->getPurchaseId(), $userId);
+		return $bottle;
+	}
+
+	public function moveBottle(int $bottleId, ?int $slotId, string $userId): Bottle {
+		$bottle = $this->get($bottleId, $userId);
+
+		if ($slotId !== null) {
+			$this->assertSlotOwnership($slotId, $userId);
+			if ($this->bottleMapper->isSlotOccupied($slotId, $bottleId)) {
+				throw new SlotOccupiedException(sprintf('Slot %d is already occupied', $slotId));
+			}
+		}
+
+		$bottle->setSlotId($slotId);
+		return $this->bottleMapper->update($bottle);
+	}
+
+	public function consumeBottle(int $id, string $userId): Bottle {
+		$bottle = $this->get($id, $userId);
+		$bottle->setStatus(Bottle::STATUS_CONSUMED);
+		$bottle->setSlotId(null);
+		return $this->bottleMapper->update($bottle);
+	}
+
+	/** @return Bottle[] */
+	public function getParkedBottles(string $userId): array {
+		return $this->bottleMapper->findByOwnerParked($userId);
+	}
+
+	/** @return array<int, array<string, mixed>> */
+	public function getFilteredBottles(string $userId, array $filter = []): array {
+		return $this->bottleMapper->findFilteredByOwner($userId, $filter);
+	}
+
+	public function delete(int $id, string $userId): Bottle {
+		$bottle = $this->get($id, $userId);
+		return $this->bottleMapper->delete($bottle);
+	}
+
+	private function assertSlotOwnership(int $slotId, string $userId): void {
+		try {
+			$slot = $this->slotMapper->find($slotId);
+			$comp = $this->compartmentMapper->find($slot->getCompartmentId());
+			$shelf = $this->shelfMapper->find($comp->getShelfId());
+			$cellar = $this->cellarMapper->find($shelf->getCellarId());
+		} catch (DoesNotExistException $e) {
+			throw new NotFoundException('Slot hierarchy incomplete', 0, $e);
+		}
+		if ($cellar->getOwnerUserId() !== $userId) {
+			throw new PermissionDeniedException('Slot not owned by user');
+		}
+	}
+
+	private function findBottle(int $id): Bottle {
+		try {
+			return $this->bottleMapper->find($id);
+		} catch (DoesNotExistException $e) {
+			throw new NotFoundException('Bottle not found', 0, $e);
+		}
+	}
+}
