@@ -14,7 +14,10 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build && mkdir -p js css && cp -r dist/js/* js/ && cp -r dist/css/* css/"
+    "build": "vite build && mkdir -p js css && cp -r dist/js/* js/ && cp -r dist/css/* css/",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@nextcloud/axios": "^2.5.2",
