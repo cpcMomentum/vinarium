@@ -8,25 +8,22 @@
 
 			<!-- Step 1: Producer -->
 			<section v-if="step === 1" class="wizard__section">
-				<div class="pick-or-create">
-					<label class="field">
-						<span>Bestehendes Weingut wählen</span>
-						<select v-model.number="producerId" class="input" @change="mode1 = producerId ? 'pick' : 'create'">
-							<option :value="null">-- neues Weingut anlegen --</option>
-							<option v-for="p in store.producers" :key="p.id" :value="p.id">{{ p.name }}</option>
-						</select>
-					</label>
-				</div>
-				<fieldset v-if="!producerId" class="fieldset">
-					<legend>Neues Weingut</legend>
-					<label class="field"><span>Name *</span><input v-model="newProducer.name" class="input" /></label>
+				<label v-if="store.producers.length > 0" class="field">
+					<span>Bestehendes Weingut</span>
+					<select v-model.number="producerId" class="input">
+						<option :value="null">-- bitte wählen --</option>
+						<option v-for="p in store.producers" :key="p.id" :value="p.id">{{ p.name }}</option>
+					</select>
+				</label>
+
+				<fieldset class="fieldset">
+					<label class="field"><span>Name *</span><input v-model="form1.name" :disabled="isPicked1" class="input" /></label>
 					<div class="field-row">
-						<label class="field"><span>Land</span><input v-model="newProducer.country" class="input" placeholder="z. B. Frankreich" /></label>
-						<label class="field"><span>Region</span><input v-model="newProducer.region" class="input" placeholder="z. B. Bordeaux" /></label>
+						<label class="field"><span>Land</span><input v-model="form1.country" :disabled="isPicked1" class="input" placeholder="z. B. Frankreich" /></label>
+						<label class="field"><span>Region</span><input v-model="form1.region" :disabled="isPicked1" class="input" placeholder="z. B. Bordeaux" /></label>
 					</div>
-					<label class="field"><span>Website</span><input v-model="newProducer.website" class="input" placeholder="https://..." /></label>
-					<label class="field"><span>Notizen</span><textarea v-model="newProducer.notes" class="input" rows="2" /></label>
-					<NcButton :disabled="!newProducer.name.trim() || saving" @click="saveNewProducer">Weingut speichern</NcButton>
+					<label class="field"><span>Website</span><input v-model="form1.website" :disabled="isPicked1" class="input" placeholder="https://..." /></label>
+					<label class="field"><span>Notizen</span><textarea v-model="form1.notes" :disabled="isPicked1" class="input" rows="2" /></label>
 				</fieldset>
 			</section>
 
@@ -36,64 +33,58 @@
 					Der Wein entspricht einer <em>Cuvée (Name + Farbe)</em>, ohne Jahrgang oder Rebsortenanteile —
 					die variieren pro Jahrgang und gehören in Schritt 3.
 				</p>
-				<div class="pick-or-create">
-					<label class="field">
-						<span>Bestehenden Wein wählen</span>
-						<select v-model.number="wineId" class="input">
-							<option :value="null">-- neuen Wein anlegen --</option>
-							<option v-for="w in winesForProducer" :key="w.id" :value="w.id">{{ w.name }} ({{ WINE_COLOR_LABELS[w.color] }})</option>
-						</select>
-					</label>
-				</div>
-				<fieldset v-if="!wineId" class="fieldset">
-					<legend>Neuer Wein</legend>
-					<label class="field"><span>Name *</span><input v-model="newWine.name" class="input" placeholder="z. B. Chateau Clos Louie (ohne Jahrgang)" /></label>
+				<label v-if="winesForProducer.length > 0" class="field">
+					<span>Bestehender Wein</span>
+					<select v-model.number="wineId" class="input">
+						<option :value="null">-- bitte wählen --</option>
+						<option v-for="w in winesForProducer" :key="w.id" :value="w.id">{{ w.name }} ({{ WINE_COLOR_LABELS[w.color] }})</option>
+					</select>
+				</label>
+
+				<fieldset class="fieldset">
+					<label class="field"><span>Name *</span><input v-model="form2.name" :disabled="isPicked2" class="input" placeholder="z. B. Chateau Clos Louie (ohne Jahrgang)" /></label>
 					<div class="field-row">
 						<label class="field"><span>Farbe *</span>
-							<select v-model="newWine.color" class="input">
+							<select v-model="form2.color" :disabled="isPicked2" class="input">
 								<option v-for="c in WINE_COLORS" :key="c" :value="c">{{ WINE_COLOR_LABELS[c] }}</option>
 							</select>
 						</label>
-						<label class="field"><span>Appellation</span><input v-model="newWine.appellation" class="input" placeholder="z. B. Saint-Émilion GC" /></label>
+						<label class="field"><span>Appellation</span><input v-model="form2.appellation" :disabled="isPicked2" class="input" placeholder="z. B. Saint-Émilion GC" /></label>
 					</div>
-					<label class="field"><span>Barcode</span><input v-model="newWine.barcode" class="input" /></label>
-					<label class="field"><span>Notizen zur Cuvée</span><textarea v-model="newWine.notes" class="input" rows="2" /></label>
-					<NcButton :disabled="!newWine.name.trim() || saving" @click="saveNewWine">Wein speichern</NcButton>
+					<label class="field"><span>Barcode</span><input v-model="form2.barcode" :disabled="isPicked2" class="input" /></label>
+					<label class="field"><span>Notizen zur Cuvée</span><textarea v-model="form2.notes" :disabled="isPicked2" class="input" rows="2" /></label>
 				</fieldset>
 			</section>
 
 			<!-- Step 3: Vintage -->
 			<section v-else-if="step === 3" class="wizard__section">
-				<div class="pick-or-create">
-					<label class="field">
-						<span>Bestehenden Jahrgang wählen</span>
-						<select v-model.number="vintageId" class="input">
-							<option :value="null">-- neuen Jahrgang anlegen --</option>
-							<option v-for="v in vintagesForWine" :key="v.id" :value="v.id">{{ v.year }}</option>
-						</select>
-					</label>
-				</div>
-				<fieldset v-if="!vintageId" class="fieldset">
-					<legend>Neuer Jahrgang</legend>
+				<label v-if="vintagesForWine.length > 0" class="field">
+					<span>Bestehender Jahrgang</span>
+					<select v-model.number="vintageId" class="input">
+						<option :value="null">-- bitte wählen --</option>
+						<option v-for="v in vintagesForWine" :key="v.id" :value="v.id">{{ v.year }}</option>
+					</select>
+				</label>
+
+				<fieldset class="fieldset">
 					<div class="field-row">
-						<label class="field"><span>Jahr *</span><input v-model.number="newVintage.year" type="number" class="input" /></label>
-						<label class="field"><span>Alkohol %</span><input v-model.number="newVintage.alcoholPercent" type="number" step="0.1" class="input" placeholder="z. B. 13.5" /></label>
+						<label class="field"><span>Jahr *</span><input v-model.number="form3.year" :disabled="isPicked3" type="number" class="input" /></label>
+						<label class="field"><span>Alkohol %</span><input v-model.number="form3.alcoholPercent" :disabled="isPicked3" type="number" step="0.1" class="input" placeholder="z. B. 13.5" /></label>
 					</div>
 					<label class="field">
 						<span>Rebsorten (jahrgangsspezifisch)</span>
-						<input v-model="newVintage.grapeVarieties" class="input" placeholder="z. B. Merlot 70%, Cabernet Franc 30%" />
+						<input v-model="form3.grapeVarieties" :disabled="isPicked3" class="input" placeholder="z. B. Merlot 70%, Cabernet Franc 30%" />
 					</label>
 					<div class="field-row">
-						<label class="field"><span>Trinken ab</span><input v-model="newVintage.drinkFrom" type="date" class="input" /></label>
-						<label class="field"><span>Trinken bis</span><input v-model="newVintage.drinkUntil" type="date" class="input" /></label>
+						<label class="field"><span>Trinken ab (Jahr)</span><input v-model.number="form3.drinkFromYear" :disabled="isPicked3" type="number" min="1900" class="input" placeholder="z. B. 2025" /></label>
+						<label class="field"><span>Trinken bis (Jahr)</span><input v-model.number="form3.drinkUntilYear" :disabled="isPicked3" type="number" min="1900" class="input" placeholder="z. B. 2032" /></label>
 					</div>
 					<div class="field-row">
-						<label class="field"><span>Externe Bewertung</span><input v-model.number="newVintage.externalRating" type="number" step="0.1" class="input" placeholder="z. B. 92" /></label>
-						<label class="field"><span>Quelle</span><input v-model="newVintage.externalRatingSource" class="input" placeholder="z. B. Parker" /></label>
+						<label class="field"><span>Externe Bewertung</span><input v-model.number="form3.externalRating" :disabled="isPicked3" type="number" step="0.1" class="input" placeholder="z. B. 92" /></label>
+						<label class="field"><span>Quelle</span><input v-model="form3.externalRatingSource" :disabled="isPicked3" class="input" placeholder="z. B. Parker" /></label>
 					</div>
-					<label class="field"><span>Referenz-URL</span><input v-model="newVintage.referenceUrl" class="input" /></label>
-					<label class="field"><span>Beschreibung</span><textarea v-model="newVintage.description" class="input" rows="2" /></label>
-					<NcButton :disabled="!isValidYear || saving" @click="saveNewVintage">Jahrgang speichern</NcButton>
+					<label class="field"><span>Referenz-URL</span><input v-model="form3.referenceUrl" :disabled="isPicked3" class="input" /></label>
+					<label class="field"><span>Beschreibung</span><textarea v-model="form3.description" :disabled="isPicked3" class="input" rows="2" /></label>
 				</fieldset>
 			</section>
 
@@ -101,26 +92,25 @@
 			<section v-else-if="step === 4" class="wizard__section">
 				<p class="hint">
 					Hier landet der eigentliche Kauf: <em>Anzahl Flaschen</em>, Flaschengröße, optional Händler/Preis.
-					Die Flaschen kommen automatisch in die Parkzone, von dort weist du sie ins Regal zu.
+					Die Flaschen kommen automatisch in die Parkzone.
 				</p>
 				<fieldset class="fieldset">
-					<legend>Kauf-Daten</legend>
 					<div class="field-row">
-						<label class="field"><span>Kaufdatum *</span><input v-model="newPurchase.purchasedAt" type="date" class="input" /></label>
-						<label class="field"><span>Anzahl Flaschen *</span><input v-model.number="newPurchase.quantity" type="number" min="1" class="input" /></label>
+						<label class="field"><span>Kaufdatum *</span><input v-model="form4.purchasedAt" type="date" class="input" /></label>
+						<label class="field"><span>Anzahl Flaschen *</span><input v-model.number="form4.quantity" type="number" min="1" class="input" /></label>
 					</div>
 					<div class="field-row">
 						<label class="field"><span>Flaschengröße *</span>
-							<select v-model.number="newPurchase.bottleSizeMl" class="input">
+							<select v-model.number="form4.bottleSizeMl" class="input">
 								<option v-for="size in BOTTLE_SIZES" :key="size" :value="size">{{ BOTTLE_SIZE_LABELS[size] }}</option>
 							</select>
 						</label>
-						<label class="field"><span>Händler</span><input v-model="newPurchase.vendor" class="input" placeholder="z. B. Weinhandlung Müller" /></label>
+						<label class="field"><span>Händler</span><input v-model="form4.vendor" class="input" placeholder="z. B. Weinhandlung Müller" /></label>
 					</div>
 					<div class="field-row">
-						<label class="field"><span>Stückpreis</span><input v-model.number="newPurchase.unitPrice" type="number" step="0.01" class="input" placeholder="z. B. 24.50" /></label>
+						<label class="field"><span>Stückpreis</span><input v-model.number="form4.unitPrice" type="number" step="0.01" class="input" placeholder="z. B. 24.50" /></label>
 						<label class="field"><span>Währung</span>
-							<select v-model="newPurchase.currency" class="input">
+							<select v-model="form4.currency" class="input">
 								<option value="EUR">EUR</option>
 								<option value="USD">USD</option>
 								<option value="CHF">CHF</option>
@@ -128,15 +118,21 @@
 							</select>
 						</label>
 					</div>
-					<label class="field"><span>Notizen</span><textarea v-model="newPurchase.notes" class="input" rows="2" /></label>
+					<label class="field"><span>Notizen</span><textarea v-model="form4.notes" class="input" rows="2" /></label>
 				</fieldset>
 			</section>
+
+			<p v-if="errorMsg" class="error">{{ errorMsg }}</p>
 
 			<div class="wizard__actions">
 				<NcButton @click="cancel">Abbrechen</NcButton>
 				<NcButton v-if="step > 1" @click="step--">Zurück</NcButton>
-				<NcButton v-if="step < 4" type="primary" :disabled="!canAdvance" @click="step++">Weiter</NcButton>
-				<NcButton v-if="step === 4" type="primary" :disabled="!isValidPurchase || saving" @click="complete">Fertig (Kauf erfassen)</NcButton>
+				<NcButton v-if="step < 4" type="primary" :disabled="!canAdvance || saving" @click="advance">
+					Weiter
+				</NcButton>
+				<NcButton v-if="step === 4" type="primary" :disabled="!isValidPurchase || saving" @click="complete">
+					Fertig (Kauf erfassen)
+				</NcButton>
 			</div>
 		</div>
 	</NcModal>
@@ -159,74 +155,59 @@ const emit = defineEmits<{
 const store = useWineStore()
 const step = ref(1)
 const saving = ref(false)
-const mode1 = ref<'pick' | 'create'>('create')
+const errorMsg = ref('')
 
 const producerId = ref<number | null>(null)
 const wineId = ref<number | null>(null)
 const vintageId = ref<number | null>(null)
 
-const newProducer = ref({ name: '', country: '', region: '', website: '', notes: '' })
-const newWine = ref<{ name: string; color: WineColor; appellation: string; barcode: string; notes: string }>({
+const isPicked1 = computed(() => producerId.value !== null)
+const isPicked2 = computed(() => wineId.value !== null)
+const isPicked3 = computed(() => vintageId.value !== null)
+
+const form1 = ref({ name: '', country: '', region: '', website: '', notes: '' })
+const form2 = ref<{ name: string; color: WineColor; appellation: string; barcode: string; notes: string }>({
 	name: '', color: 'red', appellation: '', barcode: '', notes: '',
 })
-const newVintage = ref({
-	year: new Date().getFullYear() as number | null,
-	alcoholPercent: null as number | null,
-	grapeVarieties: '',
-	drinkFrom: '',
-	drinkUntil: '',
-	externalRating: null as number | null,
-	externalRatingSource: '',
-	referenceUrl: '',
-	description: '',
+const form3 = ref<{
+	year: number | null; alcoholPercent: number | null; grapeVarieties: string
+	drinkFromYear: number | null; drinkUntilYear: number | null
+	externalRating: number | null; externalRatingSource: string; referenceUrl: string; description: string
+}>({
+	year: new Date().getFullYear(), alcoholPercent: null, grapeVarieties: '',
+	drinkFromYear: null, drinkUntilYear: null,
+	externalRating: null, externalRatingSource: '', referenceUrl: '', description: '',
 })
-
-const titles = {
-	1: 'Schritt 1: Weingut',
-	2: 'Schritt 2: Wein',
-	3: 'Schritt 3: Jahrgang',
-	4: 'Schritt 4: Kauf',
-} as const
-
-const newPurchase = ref<{
-	purchasedAt: string
-	vendor: string
-	unitPrice: number | null
-	currency: string
-	quantity: number
-	bottleSizeMl: BottleSizeMl
-	notes: string
+const form4 = ref<{
+	purchasedAt: string; vendor: string; unitPrice: number | null; currency: string
+	quantity: number; bottleSizeMl: BottleSizeMl; notes: string
 }>({
 	purchasedAt: new Date().toISOString().substring(0, 10),
-	vendor: '',
-	unitPrice: null,
-	currency: 'EUR',
-	quantity: 6,
-	bottleSizeMl: 750,
-	notes: '',
+	vendor: '', unitPrice: null, currency: 'EUR', quantity: 6, bottleSizeMl: 750, notes: '',
 })
 
+const titles = { 1: 'Schritt 1: Weingut', 2: 'Schritt 2: Wein', 3: 'Schritt 3: Jahrgang', 4: 'Schritt 4: Kauf' } as const
 const winesForProducer = computed(() => (producerId.value ? store.winesByProducer(producerId.value) : []))
 const vintagesForWine = computed(() => (wineId.value ? store.vintagesByWine(wineId.value) : []))
 
-const canAdvance = computed(() => {
-	if (step.value === 1) return producerId.value !== null
-	if (step.value === 2) return wineId.value !== null
-	if (step.value === 3) return vintageId.value !== null
-	return true
-})
-
 const isValidYear = computed(() => {
-	const y = newVintage.value.year
+	const y = form3.value.year
 	return typeof y === 'number' && y >= 1900 && y <= new Date().getFullYear() + 2
 })
-
+const canAdvance = computed(() => {
+	if (step.value === 1) return producerId.value !== null || form1.value.name.trim() !== ''
+	if (step.value === 2) return wineId.value !== null || form2.value.name.trim() !== ''
+	if (step.value === 3) return vintageId.value !== null || isValidYear.value
+	return true
+})
 const isValidPurchase = computed(() =>
 	vintageId.value !== null
-	&& newPurchase.value.quantity >= 1
-	&& BOTTLE_SIZES.includes(newPurchase.value.bottleSizeMl)
-	&& newPurchase.value.purchasedAt !== '',
+	&& form4.value.quantity >= 1
+	&& BOTTLE_SIZES.includes(form4.value.bottleSizeMl)
+	&& form4.value.purchasedAt !== '',
 )
+
+// --- watchers: populate form from picked entity, clear on deselect ---
 
 watch(() => props.open, async (isOpen) => {
 	if (isOpen) {
@@ -234,116 +215,133 @@ watch(() => props.open, async (isOpen) => {
 		producerId.value = null
 		wineId.value = null
 		vintageId.value = null
+		errorMsg.value = ''
+		resetForm1()
+		resetForm2()
+		resetForm3()
 		await store.fetchProducers()
 	}
 }, { immediate: true })
 
 watch(producerId, async (id) => {
-	if (id !== null) await store.fetchWinesByProducer(id)
+	if (id !== null) {
+		const p = store.producerById(id)
+		if (p) form1.value = { name: p.name, country: p.country ?? '', region: p.region ?? '', website: p.website ?? '', notes: p.notes ?? '' }
+		await store.fetchWinesByProducer(id)
+	} else {
+		resetForm1()
+	}
 	wineId.value = null
 })
 
 watch(wineId, async (id) => {
-	if (id !== null) await store.fetchVintagesByWine(id)
+	if (id !== null) {
+		const w = store.wines.find(w => w.id === id)
+		if (w) form2.value = { name: w.name, color: w.color, appellation: w.appellation ?? '', barcode: w.barcode ?? '', notes: w.notes ?? '' }
+		await store.fetchVintagesByWine(id)
+	} else {
+		resetForm2()
+	}
 	vintageId.value = null
 })
 
-async function saveNewProducer() {
-	saving.value = true
-	try {
-		const p = await store.createProducer({
-			name: newProducer.value.name,
-			country: newProducer.value.country || null,
-			region: newProducer.value.region || null,
-			website: newProducer.value.website || null,
-			notes: newProducer.value.notes || null,
-		})
-		producerId.value = p.id
-		newProducer.value = { name: '', country: '', region: '', website: '', notes: '' }
-	} finally {
-		saving.value = false
-	}
-}
-
-async function saveNewWine() {
-	if (!producerId.value) return
-	saving.value = true
-	try {
-		const w = await store.createWine({
-			producerId: producerId.value,
-			name: newWine.value.name,
-			color: newWine.value.color,
-			data: {
-				appellation: newWine.value.appellation || null,
-				barcode: newWine.value.barcode || null,
-				notes: newWine.value.notes || null,
-			},
-		})
-		wineId.value = w.id
-		newWine.value = { name: '', color: 'red', appellation: '', barcode: '', notes: '' }
-	} finally {
-		saving.value = false
-	}
-}
-
-async function saveNewVintage() {
-	if (!wineId.value || !newVintage.value.year) return
-	saving.value = true
-	try {
-		const v = await store.createVintage({
-			wineId: wineId.value,
-			year: newVintage.value.year,
-			data: {
-				alcoholPercent: newVintage.value.alcoholPercent,
-				grapeVarieties: newVintage.value.grapeVarieties || null,
-				drinkFrom: newVintage.value.drinkFrom || null,
-				drinkUntil: newVintage.value.drinkUntil || null,
-				externalRating: newVintage.value.externalRating,
-				externalRatingSource: newVintage.value.externalRatingSource || null,
-				referenceUrl: newVintage.value.referenceUrl || null,
-				description: newVintage.value.description || null,
-			},
-		})
-		vintageId.value = v.id
-		newVintage.value = {
-			year: new Date().getFullYear(),
-			alcoholPercent: null,
-			grapeVarieties: '',
-			drinkFrom: '',
-			drinkUntil: '',
-			externalRating: null,
-			externalRatingSource: '',
-			referenceUrl: '',
-			description: '',
+watch(vintageId, (id) => {
+	if (id !== null) {
+		const v = store.vintages.find(v => v.id === id)
+		if (v) {
+			form3.value = {
+				year: v.year, alcoholPercent: v.alcoholPercent, grapeVarieties: v.grapeVarieties ?? '',
+				drinkFromYear: v.drinkFromYear, drinkUntilYear: v.drinkUntilYear,
+				externalRating: v.externalRating, externalRatingSource: v.externalRatingSource ?? '',
+				referenceUrl: v.referenceUrl ?? '', description: v.description ?? '',
+			}
 		}
+	} else {
+		resetForm3()
+	}
+})
+
+function resetForm1() { form1.value = { name: '', country: '', region: '', website: '', notes: '' } }
+function resetForm2() { form2.value = { name: '', color: 'red', appellation: '', barcode: '', notes: '' } }
+function resetForm3() {
+	form3.value = {
+		year: new Date().getFullYear(), alcoholPercent: null, grapeVarieties: '',
+		drinkFromYear: null, drinkUntilYear: null,
+		externalRating: null, externalRatingSource: '', referenceUrl: '', description: '',
+	}
+}
+
+// --- actions ---
+
+async function advance() {
+	saving.value = true
+	errorMsg.value = ''
+	try {
+		if (step.value === 1 && producerId.value === null) {
+			const p = await store.createProducer({
+				name: form1.value.name,
+				country: form1.value.country || null,
+				region: form1.value.region || null,
+				website: form1.value.website || null,
+				notes: form1.value.notes || null,
+			})
+			producerId.value = p.id
+		}
+		if (step.value === 2 && wineId.value === null && producerId.value !== null) {
+			const w = await store.createWine({
+				producerId: producerId.value,
+				name: form2.value.name,
+				color: form2.value.color,
+				data: { appellation: form2.value.appellation || null, barcode: form2.value.barcode || null, notes: form2.value.notes || null },
+			})
+			wineId.value = w.id
+		}
+		if (step.value === 3 && vintageId.value === null && wineId.value !== null && form3.value.year) {
+			const v = await store.createVintage({
+				wineId: wineId.value,
+				year: form3.value.year,
+				data: {
+					alcoholPercent: form3.value.alcoholPercent,
+					grapeVarieties: form3.value.grapeVarieties || null,
+					drinkFromYear: form3.value.drinkFromYear,
+					drinkUntilYear: form3.value.drinkUntilYear,
+					externalRating: form3.value.externalRating,
+					externalRatingSource: form3.value.externalRatingSource || null,
+					referenceUrl: form3.value.referenceUrl || null,
+					description: form3.value.description || null,
+				},
+			})
+			vintageId.value = v.id
+		}
+		step.value++
+	} catch (e: any) {
+		errorMsg.value = e?.message ?? 'Speichern fehlgeschlagen'
 	} finally {
 		saving.value = false
 	}
 }
 
-function cancel() {
-	emit('close')
-}
+function cancel() { emit('close') }
 
 async function complete() {
 	if (!vintageId.value || !isValidPurchase.value) return
 	saving.value = true
+	errorMsg.value = ''
 	try {
 		const result = await createPurchaseWithBottles({
 			vintageId: vintageId.value,
-			purchasedAt: newPurchase.value.purchasedAt,
-			vendor: newPurchase.value.vendor || null,
-			unitPrice: newPurchase.value.unitPrice,
-			currency: newPurchase.value.currency,
-			quantity: newPurchase.value.quantity,
-			bottleSizeMl: newPurchase.value.bottleSizeMl,
-			notes: newPurchase.value.notes || null,
+			purchasedAt: form4.value.purchasedAt,
+			vendor: form4.value.vendor || null,
+			unitPrice: form4.value.unitPrice,
+			currency: form4.value.currency,
+			quantity: form4.value.quantity,
+			bottleSizeMl: form4.value.bottleSizeMl,
+			notes: form4.value.notes || null,
 		})
-		emit('complete', {
-			purchaseId: result.purchase.id,
-			bottleCount: result.bottles.length,
-		})
+		emit('complete', { purchaseId: result.purchase.id, bottleCount: result.bottles.length })
 		emit('close')
+	} catch (e: any) {
+		errorMsg.value = e?.message ?? 'Kauf konnte nicht erfasst werden'
 	} finally {
 		saving.value = false
 	}
@@ -380,25 +378,17 @@ async function complete() {
 	color: var(--color-primary-element-text);
 }
 .wizard__stepper .step.done {
-	background: var(--color-success);
+	background: #2e7d32;
 	color: white;
 }
 .wizard__section {
 	min-height: 200px;
 }
-.pick-or-create {
-	margin-bottom: 1rem;
-}
 .fieldset {
 	border: 1px solid var(--color-border);
 	border-radius: var(--border-radius);
 	padding: 1rem;
-	margin-top: 0.5rem;
-}
-.fieldset legend {
-	padding: 0 0.5rem;
-	font-weight: 500;
-	color: var(--color-text-maxcontrast);
+	margin-top: 0.75rem;
 }
 .field {
 	display: block;
@@ -424,6 +414,11 @@ async function complete() {
 	color: var(--color-main-text);
 	font-family: inherit;
 }
+.input:disabled {
+	background: var(--color-background-dark);
+	color: var(--color-text-maxcontrast);
+	cursor: default;
+}
 .hint {
 	padding: 0.75rem;
 	background: var(--color-background-dark);
@@ -437,6 +432,13 @@ async function complete() {
 	color: var(--color-main-text);
 	font-style: normal;
 	font-weight: 500;
+}
+.error {
+	padding: 0.75rem;
+	background: var(--color-error, #c62828);
+	color: white;
+	border-radius: var(--border-radius);
+	margin-top: 1rem;
 }
 .wizard__actions {
 	display: flex;
