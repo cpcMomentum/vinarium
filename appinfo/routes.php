@@ -38,6 +38,7 @@ return [
 		['name' => 'vintage#destroy', 'url' => '/api/v1/vintages/{id}', 'verb' => 'DELETE'],
 
 		// Purchases (creates purchase + bulk-bottles atomically)
+		['name' => 'purchase#all',     'url' => '/api/v1/purchases/all',  'verb' => 'GET'],
 		['name' => 'purchase#index',   'url' => '/api/v1/purchases',      'verb' => 'GET'],
 		['name' => 'purchase#show',    'url' => '/api/v1/purchases/{id}', 'verb' => 'GET'],
 		['name' => 'purchase#create',  'url' => '/api/v1/purchases',      'verb' => 'POST'],

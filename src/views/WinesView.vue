@@ -66,6 +66,36 @@
 			</ul>
 		</section>
 
+		<section v-else-if="activeTab === 'purchases'" class="tab-panel">
+			<p v-if="store.purchases.length === 0" class="empty">Noch keine Käufe erfasst.</p>
+			<table v-else class="purchases-table">
+				<thead>
+					<tr>
+						<th>Datum</th>
+						<th>Weingut</th>
+						<th>Wein</th>
+						<th>Jahrgang</th>
+						<th>Menge</th>
+						<th>Größe</th>
+						<th>Preis</th>
+						<th>Händler</th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="pu in store.purchases" :key="pu.id">
+						<td>{{ formatDate(pu.purchased_at) }}</td>
+						<td>{{ pu.producer_name }}</td>
+						<td>{{ pu.wine_name }}</td>
+						<td>{{ pu.year }}</td>
+						<td>{{ pu.quantity }}×</td>
+						<td>{{ BOTTLE_SIZE_LABELS[pu.bottle_size_ml as BottleSizeMl] ?? pu.bottle_size_ml + ' ml' }}</td>
+						<td>{{ pu.unit_price !== null ? pu.unit_price.toFixed(2) + ' ' + (pu.currency ?? '€') : '—' }}</td>
+						<td>{{ pu.vendor ?? '—' }}</td>
+					</tr>
+				</tbody>
+			</table>
+		</section>
+
 		<PurchaseWizardModal :open="wizardOpen" @close="wizardOpen = false" @complete="onComplete" />
 		<EntityEditModal
 			:open="editOpen"
@@ -81,14 +111,14 @@ import { computed, onMounted, ref } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import PurchaseWizardModal from '@/components/PurchaseWizardModal.vue'
 import EntityEditModal from '@/components/EntityEditModal.vue'
-import { WINE_COLOR_LABELS } from '@/types/api'
+import { BOTTLE_SIZE_LABELS, WINE_COLOR_LABELS, type BottleSizeMl } from '@/types/api'
 import { useWineStore } from '@/stores/wineStore'
 
 type EntityType = 'producer' | 'wine' | 'vintage'
 
 const store = useWineStore()
 const wizardOpen = ref(false)
-const activeTab = ref<'producers' | 'wines' | 'vintages'>('producers')
+const activeTab = ref<'producers' | 'wines' | 'vintages' | 'purchases'>('producers')
 
 const editOpen = ref(false)
 const editType = ref<EntityType>('producer')
@@ -98,20 +128,35 @@ const tabs = computed(() => [
 	{ key: 'producers' as const, label: 'Weingüter', count: store.producers.length },
 	{ key: 'wines' as const, label: 'Weine', count: store.wines.length },
 	{ key: 'vintages' as const, label: 'Jahrgänge', count: store.vintages.length },
+	{ key: 'purchases' as const, label: 'Käufe', count: store.purchases.length },
 ])
 
 onMounted(async () => {
-	await store.fetchProducers()
-})
-
-async function onComplete(_payload: { vintageId: number }) {
-	wizardOpen.value = false
-	await store.fetchProducers()
+	await Promise.all([store.fetchProducers(), store.fetchPurchases()])
 	for (const p of store.producers) {
 		await store.fetchWinesByProducer(p.id)
 	}
 	for (const w of store.wines) {
 		await store.fetchVintagesByWine(w.id)
+	}
+})
+
+async function onComplete(_payload: { purchaseId: number; bottleCount: number }) {
+	wizardOpen.value = false
+	await Promise.all([store.fetchProducers(), store.fetchPurchases()])
+	for (const p of store.producers) {
+		await store.fetchWinesByProducer(p.id)
+	}
+	for (const w of store.wines) {
+		await store.fetchVintagesByWine(w.id)
+	}
+}
+
+function formatDate(iso: string): string {
+	try {
+		return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+	} catch {
+		return iso
 	}
 }
 
@@ -192,5 +237,19 @@ async function deleteEntity(type: EntityType, id: number) {
 	color: var(--color-text-maxcontrast);
 	font-style: italic;
 	padding: 1rem;
+}
+.purchases-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+.purchases-table th, .purchases-table td {
+	text-align: left;
+	padding: 0.5rem 0.75rem;
+	border-bottom: 1px solid var(--color-border);
+}
+.purchases-table th {
+	background: var(--color-background-hover);
+	font-weight: 500;
+	font-size: 0.9rem;
 }
 </style>

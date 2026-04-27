@@ -32,6 +32,14 @@ class PurchaseController extends Controller {
 	}
 
 	#[NoAdminRequired]
+	public function all(): DataResponse {
+		if ($this->userId === null) {
+			return $this->unauthorized();
+		}
+		return new DataResponse($this->purchaseService->listAll($this->userId));
+	}
+
+	#[NoAdminRequired]
 	public function index(int $vintageId): DataResponse {
 		if ($this->userId === null) {
 			return $this->unauthorized();

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import type { Bottle, BottleSizeMl, Purchase } from '@/types/api'
+import type { Bottle, BottleSizeMl, Purchase, PurchaseListItem } from '@/types/api'
 import { apiDelete, apiGet, apiPatch, apiPost } from './client'
 
 export interface PurchaseCreate {
@@ -23,6 +23,9 @@ export interface PurchaseWithBottlesResult {
 	purchase: Purchase
 	bottles: Bottle[]
 }
+
+export const listAllPurchases = (): Promise<PurchaseListItem[]> =>
+	apiGet<PurchaseListItem[]>('/purchases/all')
 
 export const listPurchasesByVintage = (vintageId: number): Promise<Purchase[]> =>
 	apiGet<Purchase[]>(`/purchases?vintageId=${vintageId}`)

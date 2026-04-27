@@ -5,7 +5,7 @@
 
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
-import type { Producer, Vintage, Wine } from '@/types/api'
+import type { Producer, PurchaseListItem, Vintage, Wine } from '@/types/api'
 import {
 	createProducer as apiCreateProducer,
 	deleteProducer as apiDeleteProducer,
@@ -22,6 +22,7 @@ import {
 	type WineCreate,
 	type WineUpdate,
 } from '@/api/wines'
+import { listAllPurchases as apiListPurchases } from '@/api/purchases'
 import {
 	createVintage as apiCreateVintage,
 	deleteVintage as apiDeleteVintage,
@@ -35,6 +36,7 @@ export const useWineStore = defineStore('wine', () => {
 	const producers = ref<Producer[]>([])
 	const wines = ref<Wine[]>([])
 	const vintages = ref<Vintage[]>([])
+	const purchases = ref<PurchaseListItem[]>([])
 	const loading = ref(false)
 
 	const producerById = computed(() => (id: number) => producers.value.find(p => p.id === id))
@@ -112,6 +114,15 @@ export const useWineStore = defineStore('wine', () => {
 		wines.value = wines.value.filter(w => w.id !== id)
 	}
 
+	async function fetchPurchases(): Promise<void> {
+		loading.value = true
+		try {
+			purchases.value = await apiListPurchases()
+		} finally {
+			loading.value = false
+		}
+	}
+
 	async function fetchVintagesByWine(wineId: number): Promise<void> {
 		loading.value = true
 		try {
@@ -144,15 +155,17 @@ export const useWineStore = defineStore('wine', () => {
 		producers.value = []
 		wines.value = []
 		vintages.value = []
+		purchases.value = []
 		loading.value = false
 	}
 
 	return {
-		producers, wines, vintages, loading,
+		producers, wines, vintages, purchases, loading,
 		producerById, winesByProducer, vintagesByWine,
 		fetchProducers, createProducer, updateProducer, deleteProducer,
 		fetchWinesByProducer, createWine, updateWine, deleteWine,
 		fetchVintagesByWine, createVintage, updateVintage, deleteVintage,
+		fetchPurchases,
 		$reset,
 	}
 })
