@@ -23,7 +23,7 @@ export type WineUpdate = Partial<Omit<WineCreate, 'producerId'>> & {
 }
 
 export const listWinesByProducer = (producerId: number): Promise<Wine[]> =>
-	apiGet<Wine[]>(`/wines?producerId=${producerId}`)
+	apiGet<Wine[]>(`/wines?${new URLSearchParams({ producerId: String(producerId) })}`)
 
 export const getWine = (id: number): Promise<Wine> =>
 	apiGet<Wine>(`/wines/${id}`)
