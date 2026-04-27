@@ -62,16 +62,21 @@ class ExportService {
 			'pu.purchased_at', 'pu.vendor', 'pu.unit_price', 'pu.currency', 'pu.bottle_size_ml',
 			'b.status', 'b.notes AS bottle_notes',
 		)
-			->selectAlias(
-				'(SELECT MAX(t2.rating) FROM *PREFIX*vinarium_tasting t2 WHERE t2.bottle_id = b.id)',
-				'rating',
-			)
+			->selectAlias($qb->func()->max('t.rating'), 'rating')
 			->from('vinarium_bottle', 'b')
 			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
 			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
 			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
 			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->leftJoin('b', 'vinarium_tasting', 't', $qb->expr()->eq('t.bottle_id', 'b.id'))
 			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)))
+			->groupBy(
+				'b.id', 'b.status', 'b.notes',
+				'p.name',
+				'w.name', 'w.color',
+				'v.year', 'v.grape_varieties', 'v.drink_from_year', 'v.drink_until_year',
+				'pu.purchased_at', 'pu.vendor', 'pu.unit_price', 'pu.currency', 'pu.bottle_size_ml',
+			)
 			->orderBy('p.name', 'ASC')
 			->addOrderBy('w.name', 'ASC')
 			->addOrderBy('v.year', 'DESC');
