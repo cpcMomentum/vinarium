@@ -378,7 +378,7 @@ async function complete() {
 	color: var(--color-primary-element-text);
 }
 .wizard__stepper .step.done {
-	background: #2e7d32;
+	background: var(--color-success);
 	color: white;
 }
 .wizard__section {
