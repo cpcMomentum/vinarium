@@ -2,22 +2,8 @@
 	<div class="inventory-view">
 		<header class="inventory-view__header">
 			<h2>Bestand</h2>
-			<div class="counts">
-				<span class="count count--park">Parkzone: {{ store.parkedCount }}</span>
-				<span class="count">Gesamt: {{ store.totalCount }}</span>
-			</div>
+			<span class="count">{{ store.totalCount }} Flaschen</span>
 		</header>
-
-		<section v-if="store.parkedCount > 0" class="parkzone">
-			<h3>Nicht zugeordnete Flaschen ({{ store.parkedCount }})</h3>
-			<ul class="park-list">
-				<li v-for="b in store.parked" :key="b.id" class="park-item">
-					<span class="dot" :style="{ background: colorFor(b.id) }"></span>
-					<span class="park-item__label">Flasche #{{ b.id }} (purchase {{ b.purchaseId }})</span>
-					<span class="muted">→ via Regal-Ansicht platzieren</span>
-				</li>
-			</ul>
-		</section>
 
 		<section class="filters">
 			<label>
@@ -86,7 +72,7 @@ const filterStatus = ref<BottleStatus | ''>('')
 const filterYear = ref<number | null>(null)
 
 onMounted(async () => {
-	await Promise.all([store.fetchBottles({}), store.fetchParked()])
+	await store.fetchBottles({})
 })
 
 async function applyFilter() {
@@ -96,6 +82,8 @@ async function applyFilter() {
 		year: filterYear.value ?? undefined,
 	})
 }
+
+// silence unused var when filter changes lock (kept for future drink-until-year filter)
 
 async function resetFilter() {
 	filterColor.value = ''
