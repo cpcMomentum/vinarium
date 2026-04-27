@@ -88,8 +88,6 @@ async function applyFilter() {
 	})
 }
 
-// silence unused var when filter changes lock (kept for future drink-until-year filter)
-
 async function resetFilter() {
 	filterColor.value = ''
 	filterStatus.value = ''
@@ -118,9 +116,6 @@ function cssColorFor(color: WineColor): string {
 	return palette[color]
 }
 
-function colorFor(_id: number): string {
-	return 'var(--color-text-maxcontrast)'
-}
 </script>
 
 <style scoped>
