@@ -28,6 +28,9 @@ export const getBottle = (id: number): Promise<Bottle> =>
 export const moveBottle = (id: number, slotId: number | null): Promise<Bottle> =>
 	apiPatch<Bottle, { slotId: number | null }>(`/bottles/${id}/move`, { slotId })
 
+export const swapBottles = (id: number, targetBottleId: number): Promise<Bottle[]> =>
+	apiPatch<Bottle[], { targetBottleId: number }>(`/bottles/${id}/swap`, { targetBottleId })
+
 export const consumeBottle = (id: number): Promise<Bottle> =>
 	apiPost<Bottle, Record<string, never>>(`/bottles/${id}/consume`, {})
 

@@ -89,6 +89,30 @@ class BottleService {
 		return $this->bottleMapper->update($bottle);
 	}
 
+	/**
+	 * Swap slot_ids between two bottles (transactional).
+	 * @return Bottle[]
+	 */
+	public function swapBottles(int $bottleAId, int $bottleBId, string $userId): array {
+		$a = $this->get($bottleAId, $userId);
+		$b = $this->get($bottleBId, $userId);
+
+		$this->db->beginTransaction();
+		try {
+			$slotA = $a->getSlotId();
+			$slotB = $b->getSlotId();
+			$a->setSlotId($slotB);
+			$b->setSlotId($slotA);
+			$this->bottleMapper->update($a);
+			$this->bottleMapper->update($b);
+			$this->db->commit();
+			return [$a, $b];
+		} catch (Throwable $e) {
+			$this->db->rollBack();
+			throw $e;
+		}
+	}
+
 	/** @return Bottle[] */
 	public function getParkedBottles(string $userId): array {
 		return $this->bottleMapper->findByOwnerParked($userId);
