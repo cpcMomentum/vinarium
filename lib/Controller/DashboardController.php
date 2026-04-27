@@ -18,6 +18,7 @@ use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\DataDownloadResponse;
 use OCP\AppFramework\Http\DataResponse;
+use OCP\AppFramework\Http\Response;
 use OCP\IRequest;
 
 class DashboardController extends Controller {
@@ -41,8 +42,11 @@ class DashboardController extends Controller {
 
 	#[NoAdminRequired]
 	#[NoCSRFRequired]
-	public function exportCsv(): DataDownloadResponse {
-		$csv = $this->exportService->exportCsv($this->userId ?? '');
+	public function exportCsv(): Response {
+		if ($this->userId === null) {
+			return new DataResponse(['error' => 'Not authenticated'], Http::STATUS_UNAUTHORIZED);
+		}
+		$csv = $this->exportService->exportCsv($this->userId);
 		return new DataDownloadResponse(
 			$csv,
 			'vinarium-export-' . date('Y-m-d') . '.csv',
