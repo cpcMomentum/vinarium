@@ -15,12 +15,15 @@ use OCA\Vinarium\Db\TastingMapper;
 use OCA\Vinarium\Exception\NotFoundException;
 use OCA\Vinarium\Exception\ValidationException;
 use OCP\AppFramework\Db\DoesNotExistException;
+use OCP\IDBConnection;
+use Throwable;
 
 class TastingService {
 
 	public function __construct(
 		private readonly TastingMapper $tastingMapper,
 		private readonly BottleService $bottleService,
+		private readonly IDBConnection $db,
 	) {
 	}
 
@@ -40,7 +43,11 @@ class TastingService {
 
 		$tasting = new Tasting();
 		$tasting->setBottleId($bottleId);
-		$tasting->setTastedAt(new DateTime($data['tastedAt'] ?? 'now'));
+		try {
+			$tasting->setTastedAt(new DateTime($data['tastedAt'] ?? 'now'));
+		} catch (\Exception $e) {
+			throw new ValidationException('Invalid date format for tastedAt');
+		}
 
 		if (isset($data['rating'])) {
 			$rating = (float)$data['rating'];
@@ -60,9 +67,16 @@ class TastingService {
 	 * Consume a bottle AND create a tasting in one action.
 	 */
 	public function consumeWithTasting(string $userId, int $bottleId, array $tastingData): array {
-		$bottle = $this->bottleService->consumeBottle($bottleId, $userId);
-		$tasting = $this->create($userId, $bottleId, $tastingData);
-		return ['bottle' => $bottle, 'tasting' => $tasting];
+		$this->db->beginTransaction();
+		try {
+			$bottle = $this->bottleService->consumeBottle($bottleId, $userId);
+			$tasting = $this->create($userId, $bottleId, $tastingData);
+			$this->db->commit();
+			return ['bottle' => $bottle, 'tasting' => $tasting];
+		} catch (Throwable $e) {
+			$this->db->rollBack();
+			throw $e;
+		}
 	}
 
 	public function get(int $id, string $userId): Tasting {
