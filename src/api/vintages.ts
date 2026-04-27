@@ -12,8 +12,8 @@ export interface VintageCreate {
 	data?: {
 		alcoholPercent?: number | null
 		grapeVarieties?: string | null
-		drinkFrom?: string | null
-		drinkUntil?: string | null
+		drinkFromYear?: number | null
+		drinkUntilYear?: number | null
 		externalRating?: number | null
 		externalRatingSource?: string | null
 		description?: string | null

@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace OCA\Vinarium\Db;
 
-use DateTime;
 use JsonSerializable;
 use OCP\AppFramework\Db\Entity;
 use OCP\DB\Types;
@@ -23,10 +22,10 @@ use OCP\DB\Types;
  * @method void setAlcoholPercent(?float $alcoholPercent)
  * @method ?string getGrapeVarieties()
  * @method void setGrapeVarieties(?string $grapeVarieties)
- * @method ?DateTime getDrinkFrom()
- * @method void setDrinkFrom(?DateTime $drinkFrom)
- * @method ?DateTime getDrinkUntil()
- * @method void setDrinkUntil(?DateTime $drinkUntil)
+ * @method ?int getDrinkFromYear()
+ * @method void setDrinkFromYear(?int $drinkFromYear)
+ * @method ?int getDrinkUntilYear()
+ * @method void setDrinkUntilYear(?int $drinkUntilYear)
  * @method ?float getExternalRating()
  * @method void setExternalRating(?float $externalRating)
  * @method ?string getExternalRatingSource()
@@ -41,8 +40,8 @@ class Vintage extends Entity implements JsonSerializable {
 	protected ?int $year = null;
 	protected ?float $alcoholPercent = null;
 	protected ?string $grapeVarieties = null;
-	protected ?DateTime $drinkFrom = null;
-	protected ?DateTime $drinkUntil = null;
+	protected ?int $drinkFromYear = null;
+	protected ?int $drinkUntilYear = null;
 	protected ?float $externalRating = null;
 	protected ?string $externalRatingSource = null;
 	protected ?string $description = null;
@@ -53,8 +52,8 @@ class Vintage extends Entity implements JsonSerializable {
 		$this->addType('year', Types::INTEGER);
 		$this->addType('alcoholPercent', Types::FLOAT);
 		$this->addType('grapeVarieties', Types::TEXT);
-		$this->addType('drinkFrom', Types::DATETIME);
-		$this->addType('drinkUntil', Types::DATETIME);
+		$this->addType('drinkFromYear', Types::INTEGER);
+		$this->addType('drinkUntilYear', Types::INTEGER);
 		$this->addType('externalRating', Types::FLOAT);
 		$this->addType('externalRatingSource', Types::STRING);
 		$this->addType('description', Types::TEXT);
@@ -68,8 +67,8 @@ class Vintage extends Entity implements JsonSerializable {
 			'year' => $this->getYear(),
 			'alcoholPercent' => $this->getAlcoholPercent(),
 			'grapeVarieties' => $this->getGrapeVarieties(),
-			'drinkFrom' => $this->getDrinkFrom()?->format(DateTime::ATOM),
-			'drinkUntil' => $this->getDrinkUntil()?->format(DateTime::ATOM),
+			'drinkFromYear' => $this->getDrinkFromYear(),
+			'drinkUntilYear' => $this->getDrinkUntilYear(),
 			'externalRating' => $this->getExternalRating(),
 			'externalRatingSource' => $this->getExternalRatingSource(),
 			'description' => $this->getDescription(),

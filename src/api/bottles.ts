@@ -11,7 +11,7 @@ function buildQuery(filter: BottleFilter): string {
 	if (filter.status) params.set('status', filter.status)
 	if (filter.color) params.set('color', filter.color)
 	if (filter.year !== undefined) params.set('year', String(filter.year))
-	if (filter.drinkUntilBefore) params.set('drinkUntilBefore', filter.drinkUntilBefore)
+	if (filter.drinkUntilYearBefore !== undefined) params.set('drinkUntilYearBefore', String(filter.drinkUntilYearBefore))
 	const q = params.toString()
 	return q ? `?${q}` : ''
 }

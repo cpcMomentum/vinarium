@@ -50,8 +50,8 @@ export interface Vintage {
 	year: number
 	alcoholPercent: number | null
 	grapeVarieties: string | null
-	drinkFrom: string | null
-	drinkUntil: string | null
+	drinkFromYear: number | null
+	drinkUntilYear: number | null
 	externalRating: number | null
 	externalRatingSource: string | null
 	description: string | null
@@ -122,6 +122,22 @@ export interface Slot {
 	column: number
 }
 
+export interface PurchaseListItem {
+	id: number
+	vintage_id: number
+	purchased_at: string
+	vendor: string | null
+	unit_price: number | null
+	currency: string | null
+	quantity: number
+	bottle_size_ml: number
+	notes: string | null
+	year: number
+	wine_name: string
+	wine_color: WineColor
+	producer_name: string
+}
+
 export interface ApiError {
 	status: number
 	message: string
@@ -158,12 +174,12 @@ export interface BottleListItem {
 	wine_name: string
 	wine_color: WineColor
 	producer_name: string
-	drink_until: string | null
+	drink_until_year: number | null
 }
 
 export interface BottleFilter {
 	status?: BottleStatus
 	color?: WineColor
 	year?: number
-	drinkUntilBefore?: string
+	drinkUntilYearBefore?: number
 }

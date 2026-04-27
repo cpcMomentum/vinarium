@@ -75,7 +75,7 @@ class BottleMapper extends QBMapper {
 			'v.year',
 			'w.name AS wine_name', 'w.color AS wine_color',
 			'p.name AS producer_name',
-			'v.drink_until',
+			'v.drink_until_year',
 		)
 			->from($this->tableName, 'b')
 			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
@@ -93,8 +93,8 @@ class BottleMapper extends QBMapper {
 		if (isset($filter['year'])) {
 			$qb->andWhere($qb->expr()->eq('v.year', $qb->createNamedParameter((int)$filter['year'], IQueryBuilder::PARAM_INT)));
 		}
-		if (isset($filter['drinkUntilBefore'])) {
-			$qb->andWhere($qb->expr()->lte('v.drink_until', $qb->createNamedParameter((string)$filter['drinkUntilBefore'])));
+		if (isset($filter['drinkUntilYearBefore'])) {
+			$qb->andWhere($qb->expr()->lte('v.drink_until_year', $qb->createNamedParameter((int)$filter['drinkUntilYearBefore'], IQueryBuilder::PARAM_INT)));
 		}
 
 		$qb->orderBy('p.name', 'ASC')->addOrderBy('w.name', 'ASC')->addOrderBy('v.year', 'DESC');

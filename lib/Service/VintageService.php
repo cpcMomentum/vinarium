@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace OCA\Vinarium\Service;
 
-use DateTime;
 use OCA\Vinarium\Db\Vintage;
 use OCA\Vinarium\Db\VintageMapper;
 use OCA\Vinarium\Exception\NotFoundException;
@@ -73,11 +72,11 @@ class VintageService {
 		if (array_key_exists('grapeVarieties', $data)) {
 			$vintage->setGrapeVarieties($data['grapeVarieties'] !== null ? (string)$data['grapeVarieties'] : null);
 		}
-		if (array_key_exists('drinkFrom', $data)) {
-			$vintage->setDrinkFrom($this->parseDate($data['drinkFrom']));
+		if (array_key_exists('drinkFromYear', $data)) {
+			$vintage->setDrinkFromYear($data['drinkFromYear'] !== null ? $this->parseYear($data['drinkFromYear']) : null);
 		}
-		if (array_key_exists('drinkUntil', $data)) {
-			$vintage->setDrinkUntil($this->parseDate($data['drinkUntil']));
+		if (array_key_exists('drinkUntilYear', $data)) {
+			$vintage->setDrinkUntilYear($data['drinkUntilYear'] !== null ? $this->parseYear($data['drinkUntilYear']) : null);
 		}
 		if (array_key_exists('externalRating', $data)) {
 			$vintage->setExternalRating($data['externalRating'] !== null ? (float)$data['externalRating'] : null);
@@ -93,15 +92,16 @@ class VintageService {
 		}
 	}
 
-	private function parseDate(mixed $value): ?DateTime {
-		if ($value === null || $value === '') {
-			return null;
+	private function parseYear(mixed $value): int {
+		if (!is_numeric($value)) {
+			throw new ValidationException('Invalid year: ' . print_r($value, true));
 		}
-		try {
-			return new DateTime((string)$value);
-		} catch (\Exception $e) {
-			throw new ValidationException('Invalid date: ' . $value, 0, $e);
+		$year = (int)$value;
+		$maxYear = (int)date('Y') + 50;
+		if ($year < self::MIN_YEAR || $year > $maxYear) {
+			throw new ValidationException(sprintf('Year %d out of range (%d..%d)', $year, self::MIN_YEAR, $maxYear));
 		}
+		return $year;
 	}
 
 	private function findVintage(int $id): Vintage {
