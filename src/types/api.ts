@@ -50,8 +50,8 @@ export interface Vintage {
 	year: number
 	alcoholPercent: number | null
 	grapeVarieties: string | null
-	drinkFrom: string | null
-	drinkUntil: string | null
+	drinkFromYear: number | null
+	drinkUntilYear: number | null
 	externalRating: number | null
 	externalRatingSource: string | null
 	description: string | null
@@ -122,7 +122,64 @@ export interface Slot {
 	column: number
 }
 
+export interface PurchaseListItem {
+	id: number
+	vintage_id: number
+	purchased_at: string
+	vendor: string | null
+	unit_price: number | null
+	currency: string | null
+	quantity: number
+	bottle_size_ml: number
+	notes: string | null
+	year: number
+	wine_name: string
+	wine_color: WineColor
+	producer_name: string
+}
+
 export interface ApiError {
 	status: number
 	message: string
+}
+
+export type BottleSizeMl = 375 | 500 | 750 | 1000 | 1500 | 3000
+
+export const BOTTLE_SIZES: readonly BottleSizeMl[] = [375, 500, 750, 1000, 1500, 3000] as const
+
+export const BOTTLE_SIZE_LABELS: Record<BottleSizeMl, string> = {
+	375: '0,375 l (Halb)',
+	500: '0,5 l',
+	750: '0,75 l (Standard)',
+	1000: '1,0 l',
+	1500: '1,5 l (Magnum)',
+	3000: '3,0 l (Doppelmagnum)',
+}
+
+export const BOTTLE_STATUS_LABELS: Record<BottleStatus, string> = {
+	in_storage: 'Im Bestand',
+	consumed: 'Getrunken',
+	gifted: 'Verschenkt',
+	lost: 'Verloren',
+}
+
+export interface BottleListItem {
+	id: number
+	purchase_id: number
+	slot_id: number | null
+	status: BottleStatus
+	photo_file_id: number | null
+	notes: string | null
+	year: number
+	wine_name: string
+	wine_color: WineColor
+	producer_name: string
+	drink_until_year: number | null
+}
+
+export interface BottleFilter {
+	status?: BottleStatus
+	color?: WineColor
+	year?: number
+	drinkUntilYearBefore?: number
 }

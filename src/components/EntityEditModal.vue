@@ -31,8 +31,8 @@
 					<input v-model.lazy="vintageGrapeVarieties" class="input" placeholder="z. B. Merlot 70%, Cabernet Franc 30%" />
 				</label>
 				<div class="field-row">
-					<label class="field"><span>Trinken ab</span><input v-model.lazy="vintageDrinkFrom" type="date" class="input" /></label>
-					<label class="field"><span>Trinken bis</span><input v-model.lazy="vintageDrinkUntil" type="date" class="input" /></label>
+					<label class="field"><span>Trinken ab (Jahr)</span><input v-model.number="vintageDrinkFromYear" type="number" min="1900" class="input" placeholder="z. B. 2025" /></label>
+					<label class="field"><span>Trinken bis (Jahr)</span><input v-model.number="vintageDrinkUntilYear" type="number" min="1900" class="input" placeholder="z. B. 2032" /></label>
 				</div>
 				<div class="field-row">
 					<label class="field"><span>Externe Bewertung</span><input v-model.number="vintageExternalRating" type="number" step="0.1" class="input" /></label>
@@ -108,13 +108,13 @@ const vintageGrapeVarieties = computed({
 	get: () => vintage.value?.grapeVarieties ?? '',
 	set: (v: string) => { if (vintage.value) vintage.value.grapeVarieties = v || null },
 })
-const vintageDrinkFrom = computed({
-	get: () => vintage.value?.drinkFrom?.substring(0, 10) ?? '',
-	set: (v: string) => { if (vintage.value) vintage.value.drinkFrom = v || null },
+const vintageDrinkFromYear = computed({
+	get: () => vintage.value?.drinkFromYear ?? null,
+	set: (v: number | null) => { if (vintage.value) vintage.value.drinkFromYear = v },
 })
-const vintageDrinkUntil = computed({
-	get: () => vintage.value?.drinkUntil?.substring(0, 10) ?? '',
-	set: (v: string) => { if (vintage.value) vintage.value.drinkUntil = v || null },
+const vintageDrinkUntilYear = computed({
+	get: () => vintage.value?.drinkUntilYear ?? null,
+	set: (v: number | null) => { if (vintage.value) vintage.value.drinkUntilYear = v },
 })
 const vintageExternalRating = computed({
 	get: () => vintage.value?.externalRating ?? null,
@@ -190,8 +190,8 @@ async function save() {
 				data: {
 					alcoholPercent: vintage.value.alcoholPercent,
 					grapeVarieties: vintage.value.grapeVarieties,
-					drinkFrom: vintage.value.drinkFrom,
-					drinkUntil: vintage.value.drinkUntil,
+					drinkFromYear: vintage.value.drinkFromYear,
+					drinkUntilYear: vintage.value.drinkUntilYear,
 					externalRating: vintage.value.externalRating,
 					externalRatingSource: vintage.value.externalRatingSource,
 					description: vintage.value.description,

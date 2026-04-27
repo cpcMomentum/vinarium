@@ -55,8 +55,8 @@ describe('api types', () => {
 			year: 2022,
 			alcoholPercent: 12.5,
 			grapeVarieties: 'Merlot 70%, Cabernet Franc 30%',
-			drinkFrom: null,
-			drinkUntil: null,
+			drinkFromYear: 2025,
+			drinkUntilYear: 2032,
 			externalRating: null,
 			externalRatingSource: null,
 			description: 'Frisch, mineralisch',
@@ -64,6 +64,7 @@ describe('api types', () => {
 		}
 		expect(vintage.year).toBeGreaterThan(2000)
 		expect(vintage.grapeVarieties).toContain('Merlot')
+		expect(vintage.drinkUntilYear).toBe(2032)
 	})
 
 	it('bottle slotId is nullable for parkzone', () => {

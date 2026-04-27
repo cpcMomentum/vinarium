@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace OCA\Vinarium\Db;
 
+use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\AppFramework\Db\QBMapper;
 use OCP\DB\QueryBuilder\IQueryBuilder;
 use OCP\IDBConnection;
@@ -19,6 +20,38 @@ use OCP\IDBConnection;
 class PurchaseMapper extends QBMapper {
 	public function __construct(IDBConnection $db) {
 		parent::__construct($db, 'vinarium_purchase', Purchase::class);
+	}
+
+	/**
+	 * @throws DoesNotExistException
+	 */
+	public function find(int $id): Purchase {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('*')->from($this->tableName)
+			->where($qb->expr()->eq('id', $qb->createNamedParameter($id, IQueryBuilder::PARAM_INT)));
+		return $this->findEntity($qb);
+	}
+
+	/** @return array<int, array<string, mixed>> denormalized rows with wine+producer info */
+	public function findAllByOwner(string $userId): array {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select(
+			'pu.id', 'pu.vintage_id', 'pu.purchased_at', 'pu.vendor',
+			'pu.unit_price', 'pu.currency', 'pu.quantity', 'pu.bottle_size_ml', 'pu.notes',
+			'v.year',
+			'w.name AS wine_name', 'w.color AS wine_color',
+			'p.name AS producer_name',
+		)
+			->from($this->tableName, 'pu')
+			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)))
+			->orderBy('pu.purchased_at', 'DESC');
+		$result = $qb->executeQuery();
+		$rows = $result->fetchAll();
+		$result->closeCursor();
+		return $rows;
 	}
 
 	/** @return Purchase[] */

@@ -59,9 +59,9 @@ describe('PurchaseWizardModal', () => {
 		expect(producersApi.listProducers).toHaveBeenCalled()
 	})
 
-	it('displays stepper with 3 steps', async () => {
+	it('displays stepper with 4 steps', async () => {
 		const wrapper = mount(PurchaseWizardModal, { props: { open: true } })
 		await nextTick()
-		expect(wrapper.findAll('.step')).toHaveLength(3)
+		expect(wrapper.findAll('.step')).toHaveLength(4)
 	})
 })

@@ -11,6 +11,11 @@ return [
 	'routes' => [
 		['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
 
+		// Cellar
+		['name' => 'cellar#show',   'url' => '/api/v1/cellar', 'verb' => 'GET'],
+		['name' => 'cellar#create', 'url' => '/api/v1/cellar', 'verb' => 'POST'],
+		['name' => 'cellar#slots',  'url' => '/api/v1/compartments/{compartmentId}/slots', 'verb' => 'GET'],
+
 		// Producers
 		['name' => 'producer#index',   'url' => '/api/v1/producers',      'verb' => 'GET'],
 		['name' => 'producer#show',    'url' => '/api/v1/producers/{id}', 'verb' => 'GET'],
@@ -31,5 +36,21 @@ return [
 		['name' => 'vintage#create',  'url' => '/api/v1/vintages',      'verb' => 'POST'],
 		['name' => 'vintage#update',  'url' => '/api/v1/vintages/{id}', 'verb' => 'PATCH'],
 		['name' => 'vintage#destroy', 'url' => '/api/v1/vintages/{id}', 'verb' => 'DELETE'],
+
+		// Purchases (creates purchase + bulk-bottles atomically)
+		['name' => 'purchase#all',     'url' => '/api/v1/purchases/all',  'verb' => 'GET'],
+		['name' => 'purchase#index',   'url' => '/api/v1/purchases',      'verb' => 'GET'],
+		['name' => 'purchase#show',    'url' => '/api/v1/purchases/{id}', 'verb' => 'GET'],
+		['name' => 'purchase#create',  'url' => '/api/v1/purchases',      'verb' => 'POST'],
+		['name' => 'purchase#update',  'url' => '/api/v1/purchases/{id}', 'verb' => 'PATCH'],
+		['name' => 'purchase#destroy', 'url' => '/api/v1/purchases/{id}', 'verb' => 'DELETE'],
+
+		// Bottles
+		['name' => 'bottle#index',   'url' => '/api/v1/bottles',           'verb' => 'GET'],
+		['name' => 'bottle#parked',  'url' => '/api/v1/bottles/parked',    'verb' => 'GET'],
+		['name' => 'bottle#show',    'url' => '/api/v1/bottles/{id}',      'verb' => 'GET'],
+		['name' => 'bottle#move',    'url' => '/api/v1/bottles/{id}/move', 'verb' => 'PATCH'],
+		['name' => 'bottle#consume', 'url' => '/api/v1/bottles/{id}/consume', 'verb' => 'POST'],
+		['name' => 'bottle#destroy', 'url' => '/api/v1/bottles/{id}',      'verb' => 'DELETE'],
 	],
 ];
