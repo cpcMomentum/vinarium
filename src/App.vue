@@ -34,6 +34,14 @@
 					<Grid :size="20" />
 				</template>
 			</NcAppNavigationItem>
+			<NcAppNavigationItem
+				name="Verkostungen"
+				:to="{ name: 'tastings' }"
+			>
+				<template #icon>
+					<StarOutline :size="20" />
+				</template>
+			</NcAppNavigationItem>
 		</NcAppNavigation>
 
 		<NcAppContent>
@@ -48,4 +56,5 @@ import GlassWine from 'vue-material-design-icons/GlassWine.vue'
 import ViewDashboard from 'vue-material-design-icons/ViewDashboard.vue'
 import FormatListBulleted from 'vue-material-design-icons/FormatListBulleted.vue'
 import Grid from 'vue-material-design-icons/Grid.vue'
+import StarOutline from 'vue-material-design-icons/StarOutline.vue'
 </script>

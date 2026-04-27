@@ -51,7 +51,17 @@ return [
 		['name' => 'bottle#show',    'url' => '/api/v1/bottles/{id}',      'verb' => 'GET'],
 		['name' => 'bottle#move',    'url' => '/api/v1/bottles/{id}/move', 'verb' => 'PATCH'],
 		['name' => 'bottle#swap',    'url' => '/api/v1/bottles/{id}/swap',    'verb' => 'PATCH'],
-		['name' => 'bottle#consume', 'url' => '/api/v1/bottles/{id}/consume', 'verb' => 'POST'],
 		['name' => 'bottle#destroy', 'url' => '/api/v1/bottles/{id}',      'verb' => 'DELETE'],
+
+		// Tastings
+		['name' => 'tasting#all',      'url' => '/api/v1/tastings',                  'verb' => 'GET'],
+		['name' => 'tasting#byBottle', 'url' => '/api/v1/bottles/{bottleId}/tastings', 'verb' => 'GET'],
+		['name' => 'tasting#create',   'url' => '/api/v1/bottles/{bottleId}/tastings', 'verb' => 'POST'],
+		['name' => 'tasting#consume',  'url' => '/api/v1/bottles/{bottleId}/consume',  'verb' => 'POST'],
+		['name' => 'tasting#destroy',  'url' => '/api/v1/tastings/{id}',              'verb' => 'DELETE'],
+
+		// Dashboard + Export
+		['name' => 'dashboard#stats',     'url' => '/api/v1/dashboard/stats', 'verb' => 'GET'],
+		['name' => 'dashboard#exportCsv', 'url' => '/api/v1/export/csv',     'verb' => 'GET'],
 	],
 ];

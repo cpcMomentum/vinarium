@@ -49,30 +49,35 @@
 						{{ WINE_COLOR_LABELS[b.wine_color] }}
 					</td>
 					<td>{{ BOTTLE_STATUS_LABELS[b.status] }}</td>
-					<td>{{ b.slot_id ?? '— Parkzone —' }}</td>
+					<td>{{ b.status !== 'in_storage' ? '—' : (b.slot_id ? 'Slot ' + b.slot_id : 'Parkzone') }}</td>
 					<td>
-						<NcButton v-if="b.status === 'in_storage'" type="tertiary" @click="onConsume(b.id)">Öffnen</NcButton>
+						<NcButton v-if="b.status === 'in_storage'" type="tertiary" @click="openTasting(b.id)">Öffnen</NcButton>
 					</td>
 				</tr>
 			</tbody>
 		</table>
 		<p v-else class="empty">Keine Flaschen gefunden.</p>
+
+		<TastingDialog :open="tastingOpen" :bottle-id="tastingBottleId" @close="tastingOpen = false" @consumed="onConsumed" />
 	</div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
+import TastingDialog from '@/components/TastingDialog.vue'
 import { BOTTLE_STATUS_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleStatus, type WineColor } from '@/types/api'
 import { useBottleStore } from '@/stores/bottleStore'
 
 const store = useBottleStore()
+const tastingOpen = ref(false)
+const tastingBottleId = ref<number | null>(null)
 const filterColor = ref<WineColor | ''>('')
-const filterStatus = ref<BottleStatus | ''>('')
+const filterStatus = ref<BottleStatus | ''>('in_storage')
 const filterYear = ref<number | null>(null)
 
 onMounted(async () => {
-	await store.fetchBottles({})
+	await store.fetchBottles({ status: 'in_storage' })
 })
 
 async function applyFilter() {
@@ -92,10 +97,13 @@ async function resetFilter() {
 	await store.fetchBottles({})
 }
 
-async function onConsume(id: number) {
-	if (!window.confirm('Flasche als getrunken markieren? Der Slot wird freigegeben.')) return
-	await store.consumeBottle(id)
-	await Promise.all([store.fetchBottles(store.filter), store.fetchParked()])
+function openTasting(bottleId: number) {
+	tastingBottleId.value = bottleId
+	tastingOpen.value = true
+}
+
+async function onConsumed() {
+	await store.fetchBottles(store.filter)
 }
 
 function cssColorFor(color: WineColor): string {
