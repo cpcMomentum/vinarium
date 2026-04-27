@@ -81,6 +81,21 @@ class BottleController extends Controller {
 	}
 
 	#[NoAdminRequired]
+	public function swap(int $id, int $targetBottleId): DataResponse {
+		if ($this->userId === null) {
+			return $this->unauthorized();
+		}
+		try {
+			$result = $this->bottleService->swapBottles($id, $targetBottleId, $this->userId);
+			return new DataResponse($result);
+		} catch (NotFoundException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
+		} catch (PermissionDeniedException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_FORBIDDEN);
+		}
+	}
+
+	#[NoAdminRequired]
 	public function consume(int $id): DataResponse {
 		if ($this->userId === null) {
 			return $this->unauthorized();

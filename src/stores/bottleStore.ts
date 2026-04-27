@@ -11,6 +11,7 @@ import {
 	listBottles as apiList,
 	listParkedBottles as apiListParked,
 	moveBottle as apiMove,
+	swapBottles as apiSwap,
 } from '@/api/bottles'
 
 export const useBottleStore = defineStore('bottle', () => {
@@ -61,6 +62,11 @@ export const useBottleStore = defineStore('bottle', () => {
 		}
 	}
 
+	async function swapBottles(bottleAId: number, bottleBId: number): Promise<void> {
+		await apiSwap(bottleAId, bottleBId)
+		await fetchBottles(filter.value)
+	}
+
 	async function consumeBottle(bottleId: number): Promise<void> {
 		await apiConsume(bottleId)
 		bottles.value = bottles.value.map(b =>
@@ -79,7 +85,7 @@ export const useBottleStore = defineStore('bottle', () => {
 	return {
 		bottles, parked, filter, loading,
 		parkedCount, totalCount,
-		fetchBottles, fetchParked, moveBottle, consumeBottle,
+		fetchBottles, fetchParked, moveBottle, swapBottles, consumeBottle,
 		$reset,
 	}
 })
