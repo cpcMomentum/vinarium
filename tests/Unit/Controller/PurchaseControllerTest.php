@@ -17,6 +17,7 @@ use OCA\Vinarium\Exception\ValidationException;
 use OCA\Vinarium\Service\BottleService;
 use OCA\Vinarium\Service\PurchaseService;
 use OCP\AppFramework\Http;
+use OCP\IDBConnection;
 use OCP\IRequest;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -25,15 +26,20 @@ class PurchaseControllerTest extends TestCase {
 	private PurchaseService&MockObject $purchaseService;
 	private BottleService&MockObject $bottleService;
 	private IRequest&MockObject $request;
+	private IDBConnection&MockObject $db;
 
 	protected function setUp(): void {
 		$this->purchaseService = $this->createMock(PurchaseService::class);
 		$this->bottleService = $this->createMock(BottleService::class);
 		$this->request = $this->createMock(IRequest::class);
+		$this->db = $this->createMock(IDBConnection::class);
+		$this->db->method('beginTransaction')->willReturn(true);
+		$this->db->method('commit')->willReturn(true);
+		$this->db->method('rollBack')->willReturn(true);
 	}
 
 	private function controller(?string $userId = 'alice'): PurchaseController {
-		return new PurchaseController($this->request, $userId, $this->purchaseService, $this->bottleService);
+		return new PurchaseController($this->request, $userId, $this->purchaseService, $this->bottleService, $this->db);
 	}
 
 	public function testCreateAlsoCreatesBottles(): void {

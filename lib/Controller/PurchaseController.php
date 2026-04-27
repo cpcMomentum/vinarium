@@ -18,6 +18,7 @@ use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\DataResponse;
+use OCP\IDBConnection;
 use OCP\IRequest;
 
 class PurchaseController extends Controller {
@@ -27,6 +28,7 @@ class PurchaseController extends Controller {
 		private readonly ?string $userId,
 		private readonly PurchaseService $purchaseService,
 		private readonly BottleService $bottleService,
+		private readonly IDBConnection $db,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -71,17 +73,24 @@ class PurchaseController extends Controller {
 		if ($this->userId === null) {
 			return $this->unauthorized();
 		}
+		$this->db->beginTransaction();
 		try {
 			$purchase = $this->purchaseService->create($this->userId, $vintageId, $data);
 			$bottles = $this->bottleService->createBottlesForPurchase($purchase->getId(), $this->userId);
+			$this->db->commit();
 			return new DataResponse([
 				'purchase' => $purchase,
 				'bottles' => $bottles,
 			], Http::STATUS_CREATED);
 		} catch (NotFoundException $e) {
+			$this->db->rollBack();
 			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
 		} catch (ValidationException $e) {
+			$this->db->rollBack();
 			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
+		} catch (\Throwable $e) {
+			$this->db->rollBack();
+			throw $e;
 		}
 	}
 
