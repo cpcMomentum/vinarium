@@ -1,6 +1,7 @@
 {
   "name": "vinarium",
   "version": "0.1.0",
+
   "description": "Private Weinkeller-Verwaltung als Nextcloud-App",
   "license": "AGPL-3.0-or-later",
   "author": "cpcMomentum",

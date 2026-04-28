@@ -24,7 +24,7 @@ export interface VintageCreate {
 export type VintageUpdate = Partial<Omit<VintageCreate, 'wineId'>> & { year?: number }
 
 export const listVintagesByWine = (wineId: number): Promise<Vintage[]> =>
-	apiGet<Vintage[]>(`/vintages?wineId=${wineId}`)
+	apiGet<Vintage[]>(`/vintages?${new URLSearchParams({ wineId: String(wineId) })}`)
 
 export const getVintage = (id: number): Promise<Vintage> =>
 	apiGet<Vintage>(`/vintages/${id}`)
