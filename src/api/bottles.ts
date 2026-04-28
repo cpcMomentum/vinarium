@@ -31,8 +31,8 @@ export const moveBottle = (id: number, slotId: number | null): Promise<Bottle> =
 export const swapBottles = (id: number, targetBottleId: number): Promise<Bottle[]> =>
 	apiPatch<Bottle[], { targetBottleId: number }>(`/bottles/${id}/swap`, { targetBottleId })
 
-export const consumeBottle = (id: number): Promise<Bottle> =>
-	apiPost<Bottle, Record<string, never>>(`/bottles/${id}/consume`, {})
+export const consumeBottle = (id: number): Promise<void> =>
+	apiPost<void, Record<string, never>>(`/bottles/${id}/consume`, {})
 
 export const deleteBottle = (id: number): Promise<void> =>
 	apiDelete(`/bottles/${id}`)
