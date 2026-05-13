@@ -23,6 +23,7 @@ use OCA\Vinarium\Db\PurchaseMapper;
 use OCA\Vinarium\Db\Shelf;
 use OCA\Vinarium\Db\ShelfMapper;
 use OCA\Vinarium\Db\Slot;
+use OCA\Vinarium\Db\LevelMapper;
 use OCA\Vinarium\Db\SlotMapper;
 use OCA\Vinarium\Db\Vintage;
 use OCA\Vinarium\Db\VintageMapper;
@@ -38,6 +39,7 @@ class CellarServiceTest extends IntegrationTestCase {
 	private CellarMapper $cellarMapper;
 	private ShelfMapper $shelfMapper;
 	private CompartmentMapper $compartmentMapper;
+	private LevelMapper $levelMapper;
 	private SlotMapper $slotMapper;
 	private BottleMapper $bottleMapper;
 	private ProducerMapper $producerMapper;
@@ -50,6 +52,7 @@ class CellarServiceTest extends IntegrationTestCase {
 		$this->cellarMapper = new CellarMapper($this->db);
 		$this->shelfMapper = new ShelfMapper($this->db);
 		$this->compartmentMapper = new CompartmentMapper($this->db);
+		$this->levelMapper = new LevelMapper($this->db);
 		$this->slotMapper = new SlotMapper($this->db);
 		$this->bottleMapper = new BottleMapper($this->db);
 		$this->producerMapper = new ProducerMapper($this->db);
@@ -61,13 +64,14 @@ class CellarServiceTest extends IntegrationTestCase {
 			$this->cellarMapper,
 			$this->shelfMapper,
 			$this->compartmentMapper,
+			$this->levelMapper,
 			$this->slotMapper,
 			$this->bottleMapper,
 			$this->db,
 		);
 	}
 
-	public function testCreateDefaultCellarCreates234Slots(): void {
+	public function testCreateDefaultCellarCreates156Slots(): void {
 		$userId = $this->uniqueId('user');
 		$cellar = $this->service->createDefaultCellar($userId);
 
@@ -77,13 +81,18 @@ class CellarServiceTest extends IntegrationTestCase {
 		$this->assertCount(1, $shelves);
 
 		$compartments = $this->compartmentMapper->findByShelf($shelves[0]->getId());
-		$this->assertCount(6, $compartments);
+		$this->assertCount(CellarService::DEFAULT_COMPARTMENTS, $compartments);
 
 		$totalSlots = 0;
 		foreach ($compartments as $comp) {
 			$totalSlots += count($this->slotMapper->findByCompartment($comp->getId()));
 		}
-		$this->assertSame(234, $totalSlots);
+		// DEFAULT_COMPARTMENTS(4) * DEFAULT_LEVELS(3) * (DEFAULT_COLUMNS_FRONT(6) + DEFAULT_COLUMNS_BACK(7)) = 156
+		$this->assertSame(
+			CellarService::DEFAULT_COMPARTMENTS * CellarService::DEFAULT_LEVELS
+				* (CellarService::DEFAULT_COLUMNS_FRONT + CellarService::DEFAULT_COLUMNS_BACK),
+			$totalSlots
+		);
 	}
 
 	public function testGetActiveCellarReturnsNested(): void {
@@ -94,7 +103,7 @@ class CellarServiceTest extends IntegrationTestCase {
 
 		$this->assertInstanceOf(Cellar::class, $result['cellar']);
 		$this->assertCount(1, $result['shelves']);
-		$this->assertCount(6, $result['shelves'][0]['compartments']);
+		$this->assertCount(CellarService::DEFAULT_COMPARTMENTS, $result['shelves'][0]['compartments']);
 	}
 
 	public function testGetActiveCellarThrowsWhenMissing(): void {
@@ -121,7 +130,10 @@ class CellarServiceTest extends IntegrationTestCase {
 			$bottleIds[] = $this->bottleMapper->insert($bottle)->getId();
 		}
 
-		$moved = $this->service->reconfigureCompartment($comp->getId(), 2, 3, 3, $userId);
+		$moved = $this->service->reconfigureCompartment($comp->getId(), [
+			['columnsFront' => 3, 'columnsBack' => 3],
+			['columnsFront' => 3, 'columnsBack' => 3],
+		], $userId);
 
 		$this->assertSame(2, $moved);
 		foreach ($bottleIds as $id) {
@@ -139,7 +151,9 @@ class CellarServiceTest extends IntegrationTestCase {
 		$comp = $active['shelves'][0]['compartments'][0];
 
 		$this->expectException(PermissionDeniedException::class);
-		$this->service->reconfigureCompartment($comp->getId(), 3, 6, 7, $this->uniqueId('intruder'));
+		$this->service->reconfigureCompartment($comp->getId(), [
+			['columnsFront' => 6, 'columnsBack' => 7],
+		], $this->uniqueId('intruder'));
 	}
 
 	private function seedPurchase(string $userId): int {
