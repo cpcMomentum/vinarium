@@ -7,7 +7,12 @@
 			</NcButton>
 		</header>
 
-		<section class="parkzone">
+		<section
+			:class="['parkzone', { 'parkzone--drag-over': parkzoneDragOver }]"
+			@dragover.prevent="parkzoneDragOver = true"
+			@dragleave="parkzoneDragOver = false"
+			@drop.prevent="onDropToParkzone"
+		>
 			<h3>Parkzone ({{ parkedBottles.length }})</h3>
 			<template v-if="parkedBottles.length > 0">
 				<p class="muted">Flaschen per Drag & Drop oder Klick in einen Slot ziehen.</p>
@@ -121,6 +126,7 @@ const selectedBottleId = ref<number | null>(null)
 const draggedBottleId = ref<number | null>(null)
 const creating = ref(false)
 const errorMsg = ref('')
+const parkzoneDragOver = ref(false)
 
 const parkedBottles = computed(() => store.bottles.filter(b => b.slot_id === null && b.status === 'in_storage'))
 
@@ -224,6 +230,24 @@ async function onDrop(slotId: number) {
 	}
 }
 
+async function onDropToParkzone() {
+	parkzoneDragOver.value = false
+	const bottleId = draggedBottleId.value ?? selectedBottleId.value
+	if (!bottleId) return
+	const bottle = store.bottles.find(b => b.id === bottleId)
+	if (!bottle || bottle.slot_id === null) return
+	errorMsg.value = ''
+	try {
+		await store.moveBottle(bottleId, null)
+		await store.fetchBottles({ status: 'in_storage' })
+	} catch (e: any) {
+		errorMsg.value = e?.message ?? 'Verschieben fehlgeschlagen'
+	} finally {
+		selectedBottleId.value = null
+		draggedBottleId.value = null
+	}
+}
+
 // --- Click fallback ---
 
 function onSlotClick(slotId: number) {
@@ -301,6 +325,10 @@ async function createDefault() {
 	padding: 1rem;
 	margin-bottom: 2.5rem;
 	min-height: 60px;
+}
+.parkzone--drag-over {
+	background: var(--color-primary-element-light, #e8f0fe);
+	border-color: var(--color-primary-element);
 }
 .empty-park {
 	color: var(--color-text-maxcontrast);
