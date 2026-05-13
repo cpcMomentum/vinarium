@@ -4,7 +4,7 @@
  */
 
 import type { Tasting } from '@/types/api'
-import { apiDelete, apiGet, apiPost } from './client'
+import { apiDelete, apiGet, apiPatch, apiPost } from './client'
 
 export interface TastingListItem {
 	id: number
@@ -44,6 +44,9 @@ export const createTasting = (bottleId: number, data: TastingCreate): Promise<Ta
 
 export const consumeWithTasting = (bottleId: number, data: TastingCreate): Promise<ConsumeResult> =>
 	apiPost<ConsumeResult, { bottleId: number; data: TastingCreate }>(`/bottles/${bottleId}/consume`, { bottleId, data })
+
+export const updateTasting = (id: number, data: TastingCreate): Promise<Tasting> =>
+	apiPatch<Tasting, TastingCreate>(`/tastings/${id}`, data)
 
 export const deleteTasting = (id: number): Promise<void> =>
 	apiDelete(`/tastings/${id}`)

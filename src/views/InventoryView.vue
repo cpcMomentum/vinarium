@@ -125,7 +125,7 @@ function colorFor(_id: number): string {
 
 <style scoped>
 .inventory-view {
-	padding: 2rem;
+	padding: 2rem 2rem 2rem 50px;
 	max-width: 1100px;
 }
 .inventory-view__header {

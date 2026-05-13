@@ -284,7 +284,7 @@ async function createDefault() {
 
 <style scoped>
 .shelf-view {
-	padding: 2rem;
+	padding: 2rem 2rem 2rem 50px;
 	max-width: 1000px;
 }
 .shelf-view__header {

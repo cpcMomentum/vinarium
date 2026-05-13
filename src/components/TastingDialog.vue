@@ -1,8 +1,8 @@
 <template>
 	<NcModal v-if="open" @close="$emit('close')">
 		<div class="tasting-dialog">
-			<h2>Flasche öffnen + Verkostung</h2>
-			<p class="muted">Die Flasche wird als „getrunken" markiert und der Slot freigegeben.</p>
+			<h2>{{ editMode ? 'Verkostung bearbeiten' : 'Flasche öffnen + Verkostung' }}</h2>
+			<p v-if="!editMode" class="muted">Die Flasche wird als „getrunken" markiert und der Slot freigegeben.</p>
 
 			<fieldset class="fieldset">
 				<label class="field"><span>Datum</span><input v-model="form.tastedAt" type="date" class="input" /></label>
@@ -20,25 +20,36 @@
 
 			<div class="actions">
 				<NcButton @click="$emit('close')">Abbrechen</NcButton>
-				<NcButton type="primary" :disabled="saving" @click="submit">Flasche öffnen</NcButton>
+				<NcButton type="primary" :disabled="saving" @click="submit">
+					{{ editMode ? 'Speichern' : 'Flasche öffnen' }}
+				</NcButton>
 			</div>
 		</div>
 	</NcModal>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import { consumeWithTasting } from '@/api/tastings'
+import { consumeWithTasting, updateTasting } from '@/api/tastings'
+import type { TastingListItem } from '@/api/tastings'
 
-const props = defineProps<{ open: boolean; bottleId: number | null }>()
+const props = defineProps<{
+	open: boolean
+	bottleId?: number | null
+	tasting?: TastingListItem | null
+}>()
+
 const emit = defineEmits<{
 	(e: 'close'): void
 	(e: 'consumed'): void
+	(e: 'updated', tasting: TastingListItem): void
 }>()
 
+const editMode = computed(() => !!props.tasting)
 const saving = ref(false)
+
 const form = ref({
 	tastedAt: new Date().toISOString().substring(0, 10),
 	rating: 7.0 as number | null,
@@ -48,7 +59,16 @@ const form = ref({
 })
 
 watch(() => props.open, (isOpen) => {
-	if (isOpen) {
+	if (!isOpen) return
+	if (props.tasting) {
+		form.value = {
+			tastedAt: props.tasting.tasted_at.substring(0, 10),
+			rating: props.tasting.rating ?? 7.0,
+			notes: props.tasting.notes ?? '',
+			occasion: props.tasting.occasion ?? '',
+			companions: props.tasting.companions ?? '',
+		}
+	} else {
 		form.value = {
 			tastedAt: new Date().toISOString().substring(0, 10),
 			rating: 7.0,
@@ -60,18 +80,29 @@ watch(() => props.open, (isOpen) => {
 })
 
 async function submit() {
-	if (!props.bottleId) return
 	saving.value = true
 	try {
-		await consumeWithTasting(props.bottleId, {
-			tastedAt: form.value.tastedAt,
-			rating: form.value.rating,
-			notes: form.value.notes || null,
-			occasion: form.value.occasion || null,
-			companions: form.value.companions || null,
-		})
-		emit('consumed')
-		emit('close')
+		if (editMode.value && props.tasting) {
+			const updated = await updateTasting(props.tasting.id, {
+				tastedAt: form.value.tastedAt,
+				rating: form.value.rating,
+				notes: form.value.notes || null,
+				occasion: form.value.occasion || null,
+				companions: form.value.companions || null,
+			})
+			emit('updated', { ...props.tasting, ...updated })
+			emit('close')
+		} else if (props.bottleId) {
+			await consumeWithTasting(props.bottleId, {
+				tastedAt: form.value.tastedAt,
+				rating: form.value.rating,
+				notes: form.value.notes || null,
+				occasion: form.value.occasion || null,
+				companions: form.value.companions || null,
+			})
+			emit('consumed')
+			emit('close')
+		}
 	} finally {
 		saving.value = false
 	}

@@ -182,7 +182,7 @@ async function deleteEntity(type: EntityType, id: number) {
 
 <style scoped>
 .wines-view {
-	padding: 2rem;
+	padding: 2rem 2rem 2rem 50px;
 	max-width: 900px;
 }
 .wines-view__header {
