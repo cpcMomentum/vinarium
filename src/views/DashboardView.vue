@@ -96,7 +96,7 @@ function barWidth(count: number): string {
 </script>
 
 <style scoped>
-.dashboard { padding: 2rem; max-width: 900px; }
+.dashboard { padding: 2rem 2rem 2rem 50px; max-width: 900px; }
 .widgets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem; }
 .widget { text-align: center; padding: 1.5rem 1rem; background: var(--color-background-hover); border-radius: var(--border-radius); border: 1px solid var(--color-border); }
 .widget__value { font-size: 2rem; font-weight: 700; color: var(--color-main-text); }

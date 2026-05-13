@@ -16,7 +16,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr v-for="t in tastings" :key="t.id" @click="toggleExpand(t.id)">
+				<tr v-for="t in tastings" :key="t.id" @click="openEdit(t)">
 					<td>{{ formatDate(t.tasted_at) }}</td>
 					<td class="wrap-cell producer-cell">{{ t.producer_name }}</td>
 					<td>
@@ -30,26 +30,43 @@
 					</td>
 					<td class="wrap-cell occasion-cell">{{ t.occasion ?? '—' }}</td>
 					<td class="notes-cell">
-						<div :class="['notes-text', { expanded: expandedIds.has(t.id) }]">{{ t.notes ?? '—' }}</div>
+						<div class="notes-text">{{ t.notes ?? '—' }}</div>
 					</td>
 				</tr>
 			</tbody>
 		</table>
+
+		<TastingDialog
+			:open="editDialog.open"
+			:tasting="editDialog.tasting"
+			@close="editDialog.open = false"
+			@updated="onUpdated"
+		/>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { listAllTastings, type TastingListItem } from '@/api/tastings'
+import TastingDialog from '@/components/TastingDialog.vue'
 import type { WineColor } from '@/types/api'
 
 const tastings = ref<TastingListItem[]>([])
 const loading = ref(true)
-const expandedIds = ref(new Set<number>())
 
-function toggleExpand(id: number) {
-	if (expandedIds.value.has(id)) expandedIds.value.delete(id)
-	else expandedIds.value.add(id)
+const editDialog = reactive({
+	open: false,
+	tasting: null as TastingListItem | null,
+})
+
+function openEdit(tasting: TastingListItem) {
+	editDialog.tasting = tasting
+	editDialog.open = true
+}
+
+function onUpdated(updated: TastingListItem) {
+	const idx = tastings.value.findIndex(t => t.id === updated.id)
+	if (idx !== -1) tastings.value[idx] = updated
 }
 
 onMounted(async () => {
@@ -75,7 +92,7 @@ function cssColorFor(color: string): string {
 </script>
 
 <style scoped>
-.tastings-view { padding: 2rem; max-width: 1400px; }
+.tastings-view { padding: 2rem 2rem 2rem 50px; max-width: 1400px; }
 .tastings-table { width: 100%; border-collapse: collapse; }
 .tastings-table th, .tastings-table td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border); }
 .tastings-table th { background: var(--color-background-hover); font-weight: 500; font-size: 0.9rem; }
@@ -85,8 +102,7 @@ function cssColorFor(color: string): string {
 .producer-cell { min-width: 180px; max-width: 220px; }
 .occasion-cell { min-width: 200px; max-width: 300px; }
 .notes-cell { min-width: 280px; max-width: 470px; }
-.notes-text { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; white-space: normal; word-break: break-word; }
-.notes-text.expanded { display: block; -webkit-line-clamp: unset; white-space: pre-wrap; }
+.notes-text { white-space: normal; word-break: break-word; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 .tastings-table tbody tr { cursor: pointer; }
 .tastings-table tbody tr:hover { background: var(--color-background-hover); }
 .muted { color: var(--color-text-maxcontrast); }

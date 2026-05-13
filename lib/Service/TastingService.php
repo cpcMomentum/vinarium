@@ -75,6 +75,36 @@ class TastingService {
 		return $tasting;
 	}
 
+	public function update(int $id, string $userId, array $data): Tasting {
+		$tasting = $this->get($id, $userId);
+
+		if (isset($data['tastedAt'])) {
+			$tasting->setTastedAt(new DateTime($data['tastedAt']));
+		}
+		if (array_key_exists('rating', $data)) {
+			if ($data['rating'] !== null) {
+				$rating = (float)$data['rating'];
+				if ($rating < 0.5 || $rating > 10.0) {
+					throw new ValidationException('Rating must be 0.5..10.0');
+				}
+				$tasting->setRating($rating);
+			} else {
+				$tasting->setRating(null);
+			}
+		}
+		if (array_key_exists('notes', $data)) {
+			$tasting->setNotes($data['notes']);
+		}
+		if (array_key_exists('occasion', $data)) {
+			$tasting->setOccasion($data['occasion']);
+		}
+		if (array_key_exists('companions', $data)) {
+			$tasting->setCompanions($data['companions']);
+		}
+
+		return $this->tastingMapper->update($tasting);
+	}
+
 	public function delete(int $id, string $userId): Tasting {
 		$tasting = $this->get($id, $userId);
 		return $this->tastingMapper->delete($tasting);
