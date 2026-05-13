@@ -27,8 +27,8 @@
 				<button class="config-add-level" @click="addLevel">+ Ebene hinzufügen</button>
 			</div>
 
-			<p v-if="bottlesAtRisk > 0" class="config-dialog__warning">
-				⚠ Mindestens {{ bottlesAtRisk }} Flasche(n) können betroffen sein und landen in der Parkzone.
+			<p v-if="bottlesAtRisk" class="config-dialog__warning">
+				⚠ Flaschen die keinen Platz mehr finden landen in der Parkzone.
 			</p>
 			<p v-if="errorMsg" class="config-dialog__error">{{ errorMsg }}</p>
 		</div>
@@ -69,15 +69,14 @@ function initFromProps() {
 
 const isValid = computed(() => editLevels.value.length > 0 && editLevels.value.every(l => l.columnsFront >= 1))
 
-// Rough heuristic: show warning if any level is being removed or columns reduced
 const bottlesAtRisk = computed(() => {
 	const original = props.compartment.levels
-	if (editLevels.value.length < original.length) return 1
+	if (editLevels.value.length < original.length) return true
 	for (let i = 0; i < Math.min(editLevels.value.length, original.length); i++) {
-		if (editLevels.value[i].columnsFront < original[i].columnsFront) return 1
-		if ((editLevels.value[i].columnsBack ?? 0) < (original[i].columnsBack ?? 0)) return 1
+		if (editLevels.value[i].columnsFront < original[i].columnsFront) return true
+		if ((editLevels.value[i].columnsBack ?? 0) < (original[i].columnsBack ?? 0)) return true
 	}
-	return 0
+	return false
 })
 
 function addLevel() {
