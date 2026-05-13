@@ -175,6 +175,10 @@ export interface BottleListItem {
 	wine_color: WineColor
 	producer_name: string
 	drink_until_year: number | null
+	slot_level: number | null
+	slot_row: string | null
+	slot_column: number | null
+	compartment_label: string | null
 }
 
 export interface BottleFilter {

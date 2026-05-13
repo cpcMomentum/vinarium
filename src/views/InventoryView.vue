@@ -49,7 +49,7 @@
 						{{ WINE_COLOR_LABELS[b.wine_color] }}
 					</td>
 					<td>{{ BOTTLE_STATUS_LABELS[b.status] }}</td>
-					<td>{{ b.status !== 'in_storage' ? '—' : (b.slot_id ? 'Slot ' + b.slot_id : 'Parkzone') }}</td>
+					<td>{{ formatSlotLabel(b) }}</td>
 					<td>
 						<NcButton v-if="b.status === 'in_storage'" type="tertiary" @click="openTasting(b.id)">Öffnen</NcButton>
 					</td>
@@ -120,6 +120,13 @@ function cssColorFor(color: WineColor): string {
 
 function colorFor(_id: number): string {
 	return 'var(--color-text-maxcontrast)'
+}
+
+function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot_level: number | null; slot_row: string | null; slot_column: number | null; compartment_label: string | null }): string {
+	if (b.status !== 'in_storage') return '—'
+	if (!b.slot_id) return 'Parkzone'
+	const rowAbbr = b.slot_row === 'back' ? 'H' : 'V'
+	return `${b.compartment_label ?? '?'}, E${(b.slot_level ?? 0) + 1}, ${rowAbbr}${(b.slot_column ?? 0) + 1}`
 }
 </script>
 

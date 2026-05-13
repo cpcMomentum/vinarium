@@ -76,12 +76,16 @@ class BottleMapper extends QBMapper {
 			'w.name AS wine_name', 'w.color AS wine_color',
 			'p.name AS producer_name',
 			'v.drink_until_year',
+			'sl.level AS slot_level', 'sl.row AS slot_row', 'sl.column AS slot_column',
+			'co.label AS compartment_label',
 		)
 			->from($this->tableName, 'b')
 			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
 			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
 			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
 			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->leftJoin('b', 'vinarium_slot', 'sl', 'b.slot_id = sl.id')
+			->leftJoin('sl', 'vinarium_compartment', 'co', 'sl.compartment_id = co.id')
 			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)));
 
 		if (isset($filter['status'])) {
