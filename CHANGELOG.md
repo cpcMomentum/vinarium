@@ -7,6 +7,9 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Added
+- App-Icon: Weintraube (MDI `mdi-grapes`, Apache 2.0) ersetzt Platzhalter in `img/app.svg` und `img/app-dark.svg`
+
 ### Geplant
 - Verkostung bearbeiten (PATCH /tastings/{id})
 - Verkostungs-Detail-View (Kaufdaten, Historie)
