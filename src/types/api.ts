@@ -104,14 +104,25 @@ export interface Shelf {
 	sortOrder: number
 }
 
+export interface Level {
+	id: number
+	compartmentId: number
+	levelNumber: number
+	columnsFront: number
+	columnsBack: number | null
+	sortOrder: number
+}
+
 export interface Compartment {
 	id: number
 	shelfId: number
 	label: string
 	sortOrder: number
-	levels: number
-	columnsFront: number
-	columnsBack: number
+}
+
+export interface CompartmentWithLevels {
+	compartment: Compartment
+	levels: Level[]
 }
 
 export interface Slot {
