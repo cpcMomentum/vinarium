@@ -10,7 +10,7 @@
 		<section
 			:class="['parkzone', { 'parkzone--drag-over': parkzoneDragOver }]"
 			@dragover.prevent="parkzoneDragOver = true"
-			@dragleave="parkzoneDragOver = false"
+			@dragleave="onParkzoneDragLeave"
 			@drop.prevent="onDropToParkzone"
 		>
 			<h3>Parkzone ({{ parkedBottles.length }})</h3>
@@ -206,7 +206,18 @@ function onDragOver(slotId: number, event: DragEvent) {
 
 function onDragLeave(event: DragEvent) {
 	const target = event.currentTarget as HTMLElement
-	target.classList.remove('drag-over')
+	const related = event.relatedTarget as Node | null
+	if (!related || !target.contains(related)) {
+		target.classList.remove('drag-over')
+	}
+}
+
+function onParkzoneDragLeave(event: DragEvent) {
+	const related = event.relatedTarget as Node | null
+	const section = event.currentTarget as Element
+	if (!related || !section.contains(related)) {
+		parkzoneDragOver.value = false
+	}
 }
 
 async function onDrop(slotId: number) {
