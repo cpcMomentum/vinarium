@@ -92,6 +92,7 @@ class BottleService {
 	public function restoreBottle(int $id, string $userId): Bottle {
 		$bottle = $this->get($id, $userId);
 		$bottle->setStatus(Bottle::STATUS_IN_STORAGE);
+		$bottle->setSlotId(null);
 		return $this->bottleMapper->update($bottle);
 	}
 
