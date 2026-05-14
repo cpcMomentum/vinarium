@@ -59,10 +59,9 @@
 					<button
 						v-if="shelves.length > 1"
 						class="shelf-delete-btn"
+						title="Regal löschen"
 						@click="confirmDeleteShelf"
-					>
-						Regal löschen
-					</button>
+					>✕</button>
 				</div>
 
 				<div v-for="compData in activeShelf.compartments" :key="compData.compartment.id" class="compartment">
@@ -488,12 +487,13 @@ async function createDefault() {
 	margin: 0;
 }
 .shelf-delete-btn {
-	font-size: 0.8rem;
-	background: #c0392b;
-	color: #fff;
+	background: none;
 	border: none;
-	border-radius: var(--border-radius);
-	padding: 0.3rem 0.75rem;
+	color: #c0392b;
+	font-size: 1.1rem;
+	font-weight: bold;
+	padding: 0 4px;
+	line-height: 1;
 	cursor: pointer;
 }
 .compartment {
