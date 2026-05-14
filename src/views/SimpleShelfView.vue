@@ -56,14 +56,13 @@
 			<div v-if="activeShelf" class="shelves">
 				<div class="shelf-title-row">
 					<h3 class="shelf-title">{{ activeShelf.shelf.name }}</h3>
-					<NcButton
+					<button
 						v-if="shelves.length > 1"
-						type="tertiary"
 						class="shelf-delete-btn"
 						@click="confirmDeleteShelf"
 					>
 						Regal löschen
-					</NcButton>
+					</button>
 				</div>
 
 				<div v-for="compData in activeShelf.compartments" :key="compData.compartment.id" class="compartment">
@@ -490,7 +489,12 @@ async function createDefault() {
 }
 .shelf-delete-btn {
 	font-size: 0.8rem;
-	color: var(--color-error, #c62828) !important;
+	background: #c0392b;
+	color: #fff;
+	border: none;
+	border-radius: var(--border-radius);
+	padding: 0.3rem 0.75rem;
+	cursor: pointer;
 }
 .compartment {
 	border: 2px solid var(--color-border-dark, #999);
