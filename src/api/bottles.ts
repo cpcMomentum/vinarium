@@ -34,5 +34,8 @@ export const swapBottles = (id: number, targetBottleId: number): Promise<Bottle[
 export const consumeBottle = (id: number): Promise<Bottle> =>
 	apiPost<Bottle, Record<string, never>>(`/bottles/${id}/consume`, {})
 
+export const restoreBottle = (id: number): Promise<Bottle> =>
+	apiPatch<Bottle, Record<string, never>>(`/bottles/${id}/restore`, {})
+
 export const deleteBottle = (id: number): Promise<void> =>
 	apiDelete(`/bottles/${id}`)
