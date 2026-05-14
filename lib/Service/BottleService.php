@@ -89,6 +89,12 @@ class BottleService {
 		return $this->bottleMapper->update($bottle);
 	}
 
+	public function restoreBottle(int $id, string $userId): Bottle {
+		$bottle = $this->get($id, $userId);
+		$bottle->setStatus(Bottle::STATUS_IN_STORAGE);
+		return $this->bottleMapper->update($bottle);
+	}
+
 	/**
 	 * Swap slot_ids between two bottles (transactional).
 	 * @return Bottle[]

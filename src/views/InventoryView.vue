@@ -52,6 +52,7 @@
 					<td>{{ formatSlotLabel(b) }}</td>
 					<td>
 						<NcButton v-if="b.status === 'in_storage'" type="tertiary" @click="openTasting(b.id)">Öffnen</NcButton>
+						<NcButton v-else type="tertiary" @click="doRestore(b.id)">Zurück in Bestand</NcButton>
 					</td>
 				</tr>
 			</tbody>
@@ -68,6 +69,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import TastingDialog from '@/components/TastingDialog.vue'
 import { BOTTLE_STATUS_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleStatus, type WineColor } from '@/types/api'
 import { useBottleStore } from '@/stores/bottleStore'
+import { restoreBottle } from '@/api/bottles'
 
 const store = useBottleStore()
 const tastingOpen = ref(false)
@@ -103,6 +105,11 @@ function openTasting(bottleId: number) {
 }
 
 async function onConsumed() {
+	await store.fetchBottles(store.filter)
+}
+
+async function doRestore(id: number) {
+	await restoreBottle(id)
 	await store.fetchBottles(store.filter)
 }
 
