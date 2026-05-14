@@ -6,8 +6,8 @@
 			<div class="levels-config">
 				<div class="levels-config__header">
 					<span>Ebene</span>
-					<span>Vorne (Plätze)</span>
-					<span>Hinten (Plätze, leer = keine)</span>
+					<span>Vorne</span>
+					<span>Hinten (leer = keine)</span>
 					<span></span>
 				</div>
 				<div v-for="(level, idx) in editLevels" :key="idx" class="levels-config__row">
@@ -110,7 +110,6 @@ async function submit() {
 
 <style scoped>
 .config-dialog {
-	min-width: 380px;
 	padding: 0.5rem 0;
 }
 .config-dialog__hint {
@@ -133,7 +132,7 @@ async function submit() {
 }
 .levels-config__header {
 	display: grid;
-	grid-template-columns: 60px 1fr 1fr 24px;
+	grid-template-columns: 55px 1fr 1fr 36px;
 	gap: 0.5rem;
 	font-size: 0.8rem;
 	color: var(--color-text-maxcontrast);
@@ -141,7 +140,7 @@ async function submit() {
 }
 .levels-config__row {
 	display: grid;
-	grid-template-columns: 60px 1fr 1fr 24px;
+	grid-template-columns: 55px 1fr 1fr 36px;
 	gap: 0.5rem;
 	align-items: center;
 	margin-bottom: 0.4rem;
@@ -151,9 +150,11 @@ async function submit() {
 	background: none;
 	border: none;
 	cursor: pointer;
-	color: var(--color-text-maxcontrast);
-	font-size: 0.9rem;
-	padding: 0;
+	color: #c0392b;
+	font-size: 1rem;
+	font-weight: bold;
+	padding: 0 4px;
+	line-height: 1;
 }
 .config-input {
 	padding: 0.35rem 0.5rem;

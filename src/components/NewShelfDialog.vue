@@ -21,8 +21,8 @@
 				<div class="levels-config">
 					<div class="levels-config__header">
 						<span>Ebene</span>
-						<span>Vorne (Plätze)</span>
-						<span>Hinten (Plätze, leer = keine)</span>
+						<span>Vorne</span>
+						<span>Hinten (leer = keine)</span>
 					</div>
 					<div v-for="(level, idx) in levelsConfig" :key="idx" class="levels-config__row">
 						<span class="levels-config__label">Ebene {{ idx + 1 }}</span>
@@ -147,7 +147,6 @@ async function submit() {
 
 <style scoped>
 .wizard {
-	min-width: 400px;
 	padding: 0.5rem 0;
 }
 .wizard__title {
@@ -177,7 +176,7 @@ async function submit() {
 .wizard__input--short { width: 80px; }
 .levels-config__header {
 	display: grid;
-	grid-template-columns: 60px 1fr 1fr 24px;
+	grid-template-columns: 55px 1fr 1fr 36px;
 	gap: 0.5rem;
 	font-size: 0.8rem;
 	color: var(--color-text-maxcontrast);
@@ -185,7 +184,7 @@ async function submit() {
 }
 .levels-config__row {
 	display: grid;
-	grid-template-columns: 60px 1fr 1fr 24px;
+	grid-template-columns: 55px 1fr 1fr 36px;
 	gap: 0.5rem;
 	align-items: center;
 	margin-bottom: 0.4rem;
@@ -197,9 +196,11 @@ async function submit() {
 	background: none;
 	border: none;
 	cursor: pointer;
-	color: var(--color-text-maxcontrast);
-	font-size: 0.9rem;
-	padding: 0;
+	color: #c0392b;
+	font-size: 1rem;
+	font-weight: bold;
+	padding: 0 4px;
+	line-height: 1;
 }
 .wizard__add-level {
 	margin-top: 0.5rem;
