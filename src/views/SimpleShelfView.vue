@@ -2,53 +2,84 @@
 	<div class="shelf-view">
 		<header class="shelf-view__header">
 			<h2>Regal</h2>
-			<NcButton v-if="!cellar" type="primary" :disabled="creating" @click="createDefault">
-				Standard-Regal anlegen (234 Slots)
-			</NcButton>
+			<NcButton type="primary" @click="newShelfOpen = true">+ Neues Regal</NcButton>
 		</header>
 
-		<section
-			:class="['parkzone', { 'parkzone--drag-over': parkzoneDragOver }]"
-			@dragover.prevent="parkzoneDragOver = true"
-			@dragleave="onParkzoneDragLeave"
-			@drop.prevent="onDropToParkzone"
-		>
-			<h3>Parkzone ({{ parkedBottles.length }})</h3>
-			<template v-if="parkedBottles.length > 0">
-				<p class="muted">Flaschen per Drag & Drop oder Klick in einen Slot ziehen.</p>
-				<ul class="park-list">
-					<li
-						v-for="b in parkedBottles"
-						:key="b.id"
-						:class="['park-card', { selected: selectedBottleId === b.id }]"
-						draggable="true"
-						@dragstart="onDragStart(b.id, $event)"
-						@dragend="onDragEnd"
-						@click="selectedBottleId = selectedBottleId === b.id ? null : b.id"
-					>
-						<span class="park-card__dot" :style="{ background: cssColorFor(b.wine_color) }"></span>
-						<span class="park-card__label">{{ b.wine_name }} {{ b.year }}</span>
-					</li>
-				</ul>
-			</template>
-			<p v-else class="empty-park">Keine Flaschen in der Parkzone.</p>
-		</section>
+		<!-- Kein Keller -->
+		<div v-if="!cellar" class="shelf-view__empty">
+			<p>Noch kein Weinkeller angelegt.</p>
+			<NcButton type="primary" :disabled="creating" @click="createDefault">Standard-Regal anlegen</NcButton>
+		</div>
 
-		<div v-if="cellar && shelves.length > 0" class="shelves">
-			<h3 class="shelf-title">{{ shelves[0]?.shelf.name ?? 'Regal' }}</h3>
-			<div v-for="entry in shelves" :key="entry.shelf.id">
-				<div v-for="comp in entry.compartments" :key="comp.id" class="compartment">
-					<h4 class="compartment__title">{{ comp.label }}</h4>
-					<div v-for="level in reversedLevels(comp.levels)" :key="level" class="level">
+		<template v-else>
+			<!-- Parkzone -->
+			<section
+				:class="['parkzone', { 'parkzone--drag-over': parkzoneDragOver }]"
+				@dragover.prevent="parkzoneDragOver = true"
+				@dragleave="onParkzoneDragLeave"
+				@drop.prevent="onDropToParkzone"
+			>
+				<h3>Parkzone ({{ parkedBottles.length }})</h3>
+				<template v-if="parkedBottles.length > 0">
+					<p class="muted">Flaschen per Drag & Drop in einen Slot ziehen.</p>
+					<ul class="park-list">
+						<li
+							v-for="b in parkedBottles"
+							:key="b.id"
+							:class="['park-card', { selected: selectedBottleId === b.id }]"
+							draggable="true"
+							@dragstart="onDragStart(b.id, $event)"
+							@dragend="onDragEnd"
+							@click="selectedBottleId = selectedBottleId === b.id ? null : b.id"
+						>
+							<span class="park-card__dot" :style="{ background: cssColorFor(b.wine_color) }"></span>
+							<span class="park-card__label">{{ b.wine_name }} {{ b.year }}</span>
+						</li>
+					</ul>
+				</template>
+				<p v-else class="empty-park">Keine Flaschen in der Parkzone.</p>
+			</section>
+
+			<!-- Regal-Tabs -->
+			<div v-if="shelves.length > 1" class="shelf-tabs">
+				<button
+					v-for="entry in shelves"
+					:key="entry.shelf.id"
+					:class="['shelf-tab', { active: activeShelfId === entry.shelf.id }]"
+					@click="activeShelfId = entry.shelf.id"
+				>
+					{{ entry.shelf.name }}
+				</button>
+			</div>
+
+			<!-- Aktives Regal -->
+			<div v-if="activeShelf" class="shelves">
+				<div class="shelf-title-row">
+					<h3 class="shelf-title">{{ activeShelf.shelf.name }}</h3>
+					<button
+						v-if="shelves.length > 1"
+						class="shelf-delete-btn"
+						title="Regal löschen"
+						@click="confirmDeleteShelf"
+					>✕</button>
+				</div>
+
+				<div v-for="compData in activeShelf.compartments" :key="compData.compartment.id" class="compartment">
+					<div class="compartment__header">
+						<h4 class="compartment__title">{{ compData.compartment.label }}</h4>
+						<button class="compartment__config-btn" :title="'Fach konfigurieren'" @click="openConfig(compData)">⚙</button>
+					</div>
+
+					<div v-for="level in reversedLevels(compData.levels)" :key="level.id" class="level">
 						<div class="level__label-col">
-							<span class="level__label">Ebene {{ level }}</span>
+							<span class="level__label">Ebene {{ level.levelNumber + 1 }}</span>
 						</div>
 						<div class="level__content">
-							<div class="row-group">
+							<div v-if="level.columnsBack !== null" class="row-group">
 								<span class="row-label">Hinten</span>
 								<div class="slot-row">
 									<div
-										v-for="slot in slotsFor(comp.id, level - 1, 'back')"
+										v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'back')"
 										:key="slot.id"
 										:class="['slot', slotClasses(slot.id)]"
 										:style="bottleInSlot(slot.id) ? { background: cssColorFor(bottleInSlot(slot.id)!.wine_color) } : {}"
@@ -75,7 +106,7 @@
 								<span class="row-label">Vorne</span>
 								<div class="slot-row">
 									<div
-										v-for="slot in slotsFor(comp.id, level - 1, 'front')"
+										v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'front')"
 										:key="slot.id"
 										:class="['slot', slotClasses(slot.id)]"
 										:style="bottleInSlot(slot.id) ? { background: cssColorFor(bottleInSlot(slot.id)!.wine_color) } : {}"
@@ -102,33 +133,51 @@
 					</div>
 				</div>
 			</div>
-		</div>
+		</template>
 
 		<p v-if="errorMsg" class="error">{{ errorMsg }}</p>
+
+		<NewShelfDialog :open="newShelfOpen" @close="newShelfOpen = false" @created="onShelfCreated" />
+		<ShelfConfigDialog
+			v-if="configTarget"
+			:open="configOpen"
+			:compartment="configTarget"
+			@close="configOpen = false"
+			@reconfigured="onReconfigured"
+		/>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import axios from '@nextcloud/axios'
-import { generateUrl } from '@nextcloud/router'
-import type { BottleListItem, Cellar, Compartment, Shelf, Slot, WineColor } from '@/types/api'
+import NewShelfDialog from '@/components/NewShelfDialog.vue'
+import ShelfConfigDialog from '@/components/ShelfConfigDialog.vue'
+import type { BottleListItem, CompartmentWithLevels, Level, Slot, WineColor } from '@/types/api'
+import type { CellarResponse } from '@/api/cellar'
+import { createDefaultCellar, destroyShelf, fetchCellar, fetchSlots } from '@/api/cellar'
 import { useBottleStore } from '@/stores/bottleStore'
 
-interface ShelfEntry { shelf: Shelf; compartments: Compartment[] }
-
 const store = useBottleStore()
-const cellar = ref<Cellar | null>(null)
-const shelves = ref<ShelfEntry[]>([])
+
+const cellar = ref<CellarResponse['cellar'] | null>(null)
+const shelves = ref<CellarResponse['shelves']>([])
 const allSlots = ref<Slot[]>([])
+const activeShelfId = ref<number | null>(null)
+
 const selectedBottleId = ref<number | null>(null)
 const draggedBottleId = ref<number | null>(null)
+const parkzoneDragOver = ref(false)
 const creating = ref(false)
 const errorMsg = ref('')
-const parkzoneDragOver = ref(false)
+
+const newShelfOpen = ref(false)
+const configOpen = ref(false)
+const configTarget = ref<CompartmentWithLevels | null>(null)
 
 const parkedBottles = computed(() => store.bottles.filter(b => b.slot_id === null && b.status === 'in_storage'))
+
+const activeShelf = computed(() => shelves.value.find(e => e.shelf.id === activeShelfId.value) ?? null)
 
 const bottleBySlotId = computed(() => {
 	const map = new Map<number, BottleListItem>()
@@ -141,25 +190,21 @@ const bottleBySlotId = computed(() => {
 function bottleInSlot(slotId: number): BottleListItem | undefined {
 	return bottleBySlotId.value.get(slotId)
 }
-
 function bottleFullName(slotId: number): string {
 	return bottleBySlotId.value.get(slotId)?.wine_name ?? ''
 }
-
 function bottleYear(slotId: number): string {
 	const b = bottleBySlotId.value.get(slotId)
 	return b ? String(b.year) : ''
 }
 
-function reversedLevels(count: number): number[] {
-	const arr: number[] = []
-	for (let i = count; i >= 1; i--) arr.push(i)
-	return arr
+function reversedLevels(levels: Level[]): Level[] {
+	return [...levels].sort((a, b) => b.levelNumber - a.levelNumber)
 }
 
-function slotsFor(compartmentId: number, level: number, row: string): Slot[] {
+function slotsFor(compartmentId: number, levelNumber: number, row: string): Slot[] {
 	return allSlots.value
-		.filter(s => s.compartmentId === compartmentId && s.level === level && s.row === row)
+		.filter(s => s.compartmentId === compartmentId && s.level === levelNumber && s.row === row)
 		.sort((a, b) => a.column - b.column)
 }
 
@@ -194,39 +239,22 @@ function onDragStart(bottleId: number, event: DragEvent) {
 	event.dataTransfer!.effectAllowed = 'move'
 	event.dataTransfer!.setData('text/plain', String(bottleId))
 }
-
-function onDragEnd() {
-	draggedBottleId.value = null
-}
+function onDragEnd() { draggedBottleId.value = null }
 
 function onDragOver(slotId: number, event: DragEvent) {
-	const target = event.currentTarget as HTMLElement
-	target.classList.add('drag-over')
+	(event.currentTarget as HTMLElement).classList.add('drag-over')
 }
-
 function onDragLeave(event: DragEvent) {
 	const target = event.currentTarget as HTMLElement
 	const related = event.relatedTarget as Node | null
-	if (!related || !target.contains(related)) {
-		target.classList.remove('drag-over')
-	}
-}
-
-function onParkzoneDragLeave(event: DragEvent) {
-	const related = event.relatedTarget as Node | null
-	const section = event.currentTarget as Element
-	if (!related || !section.contains(related)) {
-		parkzoneDragOver.value = false
-	}
+	if (!related || !target.contains(related)) target.classList.remove('drag-over')
 }
 
 async function onDrop(slotId: number) {
 	const bottleId = draggedBottleId.value ?? selectedBottleId.value
 	if (!bottleId) return
-
 	const target = bottleInSlot(slotId)
 	errorMsg.value = ''
-
 	try {
 		if (target && target.id !== bottleId) {
 			await store.swapBottles(bottleId, target.id)
@@ -234,10 +262,11 @@ async function onDrop(slotId: number) {
 			await store.moveBottle(bottleId, slotId)
 			await store.fetchBottles({ status: 'in_storage' })
 		}
-		selectedBottleId.value = null
-		draggedBottleId.value = null
 	} catch (e: any) {
 		errorMsg.value = e?.message ?? 'Verschieben fehlgeschlagen'
+	} finally {
+		selectedBottleId.value = null
+		draggedBottleId.value = null
 	}
 }
 
@@ -259,7 +288,11 @@ async function onDropToParkzone() {
 	}
 }
 
-// --- Click fallback ---
+function onParkzoneDragLeave(event: DragEvent) {
+	const related = event.relatedTarget as Node | null
+	const section = event.currentTarget as HTMLElement
+	if (!related || !section.contains(related)) parkzoneDragOver.value = false
+}
 
 function onSlotClick(slotId: number) {
 	const b = bottleInSlot(slotId)
@@ -270,22 +303,59 @@ function onSlotClick(slotId: number) {
 	}
 }
 
+// --- Config Dialog ---
+
+function openConfig(compData: CompartmentWithLevels) {
+	configTarget.value = compData
+	configOpen.value = true
+}
+
+async function onReconfigured() {
+	await reload()
+	await store.fetchBottles({ status: 'in_storage' })
+}
+
+// --- Shelf management ---
+
+async function confirmDeleteShelf() {
+	if (!activeShelf.value) return
+	const name = activeShelf.value.shelf.name
+	if (!confirm(`Regal "${name}" wirklich löschen? Alle Flaschen kommen in die Parkzone.`)) return
+	try {
+		await destroyShelf(activeShelf.value.shelf.id)
+		await reload()
+		await store.fetchBottles({ status: 'in_storage' })
+	} catch (e: any) {
+		errorMsg.value = e?.message ?? 'Löschen fehlgeschlagen'
+	}
+}
+
+async function onShelfCreated() {
+	await reload()
+	// Switch to the newly created shelf (last in list)
+	if (shelves.value.length > 0) {
+		activeShelfId.value = shelves.value[shelves.value.length - 1].shelf.id
+	}
+}
+
 // --- Data loading ---
 
 onMounted(async () => {
-	await Promise.all([loadCellar(), store.fetchBottles({ status: 'in_storage' })])
+	await Promise.all([reload(), store.fetchBottles({ status: 'in_storage' })])
 })
 
-async function loadCellar() {
+async function reload() {
+	errorMsg.value = ''
 	try {
-		const { data } = await axios.get<{ cellar: Cellar; shelves: ShelfEntry[] }>(
-			generateUrl('/apps/vinarium/api/v1/cellar'),
-		)
+		const data = await fetchCellar()
 		cellar.value = data.cellar
 		shelves.value = data.shelves
+		if (activeShelfId.value === null || !shelves.value.find(e => e.shelf.id === activeShelfId.value)) {
+			activeShelfId.value = shelves.value[0]?.shelf.id ?? null
+		}
 		await loadAllSlots()
 	} catch (e: any) {
-		if (e?.response?.status === 404) cellar.value = null
+		if (e?.status === 404) cellar.value = null
 		else errorMsg.value = e?.message ?? 'Fehler beim Laden'
 	}
 }
@@ -293,11 +363,9 @@ async function loadCellar() {
 async function loadAllSlots() {
 	const slots: Slot[] = []
 	for (const entry of shelves.value) {
-		for (const comp of entry.compartments) {
-			const { data } = await axios.get<Slot[]>(
-				generateUrl(`/apps/vinarium/api/v1/compartments/${comp.id}/slots`),
-			)
-			slots.push(...data)
+		for (const compData of entry.compartments) {
+			const compSlots = await fetchSlots(compData.compartment.id)
+			slots.push(...compSlots)
 		}
 	}
 	allSlots.value = slots
@@ -307,10 +375,10 @@ async function createDefault() {
 	creating.value = true
 	errorMsg.value = ''
 	try {
-		await axios.post(generateUrl('/apps/vinarium/api/v1/cellar'), {})
-		await loadCellar()
+		await createDefaultCellar()
+		await reload()
 	} catch (e: any) {
-		errorMsg.value = e?.response?.data?.error ?? e?.message ?? 'Anlegen fehlgeschlagen'
+		errorMsg.value = e?.message ?? 'Anlegen fehlgeschlagen'
 	} finally {
 		creating.value = false
 	}
@@ -328,13 +396,20 @@ async function createDefault() {
 	align-items: center;
 	margin-bottom: 1.5rem;
 }
+.shelf-view__empty {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 1rem;
+	padding: 2rem;
+}
 .parkzone {
 	background: var(--color-background-hover);
 	border: 1px solid var(--color-border-dark, #bbb);
 	border-left: 4px solid var(--color-warning, #e3a000);
 	border-radius: var(--border-radius);
 	padding: 1rem;
-	margin-bottom: 2.5rem;
+	margin-bottom: 1.5rem;
 	min-height: 60px;
 }
 .parkzone--drag-over {
@@ -372,8 +447,7 @@ async function createDefault() {
 	border-color: var(--color-primary-element);
 }
 .park-card__dot {
-	width: 10px;
-	height: 10px;
+	width: 10px; height: 10px;
 	border-radius: 50%;
 	flex-shrink: 0;
 }
@@ -381,9 +455,46 @@ async function createDefault() {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9rem;
 }
+.shelf-tabs {
+	display: flex;
+	gap: 0;
+	border-bottom: 2px solid var(--color-border);
+	margin-bottom: 1.5rem;
+}
+.shelf-tab {
+	padding: 0.5rem 1.25rem;
+	background: none;
+	border: none;
+	border-bottom: 2px solid transparent;
+	margin-bottom: -2px;
+	cursor: pointer;
+	font-size: 0.9rem;
+	color: var(--color-text-maxcontrast);
+}
+.shelf-tab.active {
+	color: var(--color-main-text);
+	border-bottom-color: var(--color-primary-element);
+	font-weight: 500;
+}
+.shelf-title-row {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	margin-bottom: 1rem;
+}
 .shelf-title {
 	font-size: 1.2rem;
-	margin: 0 0 1rem 0;
+	margin: 0;
+}
+.shelf-delete-btn {
+	background: none;
+	border: none;
+	color: #c0392b;
+	font-size: 1.1rem;
+	font-weight: bold;
+	padding: 0 4px;
+	line-height: 1;
+	cursor: pointer;
 }
 .compartment {
 	border: 2px solid var(--color-border-dark, #999);
@@ -392,10 +503,27 @@ async function createDefault() {
 	margin-bottom: 1rem;
 	max-width: 720px;
 }
-.compartment__title {
-	margin: 0 0 0.75rem 0;
-	font-size: 1rem;
+.compartment__header {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin-bottom: 0.75rem;
 }
+.compartment__title {
+	margin: 0;
+	font-size: 1rem;
+	flex: 1;
+}
+.compartment__config-btn {
+	background: none;
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius);
+	padding: 0.15rem 0.4rem;
+	cursor: pointer;
+	font-size: 0.9rem;
+	color: var(--color-text-maxcontrast);
+}
+.compartment__config-btn:hover { background: var(--color-background-hover); }
 .level {
 	display: flex;
 	align-items: stretch;
@@ -454,20 +582,11 @@ async function createDefault() {
 	transition: background 0.1s, outline 0.1s;
 	cursor: pointer;
 }
-.slot.occupied {
-	color: white;
-	cursor: grab;
-}
+.slot.occupied { color: white; cursor: grab; }
 .slot.occupied:active { cursor: grabbing; }
-.slot.selected-source {
-	outline: 2px solid var(--color-primary-element);
-	outline-offset: 1px;
-}
-.slot.drag-source {
-	opacity: 0.4;
-}
-.slot:not(.occupied):hover,
-.slot.drag-over {
+.slot.selected-source { outline: 2px solid var(--color-primary-element); outline-offset: 1px; }
+.slot.drag-source { opacity: 0.4; }
+.slot:not(.occupied):hover, .slot.drag-over {
 	background: var(--color-primary-element-light, #e8f0fe);
 	border-color: var(--color-primary-element);
 }
@@ -493,10 +612,7 @@ async function createDefault() {
 	max-width: 66px;
 	word-break: break-word;
 }
-.slot__year {
-	font-size: 0.6rem;
-	opacity: 0.85;
-}
+.slot__year { font-size: 0.6rem; opacity: 0.85; }
 .error {
 	margin-top: 1rem;
 	padding: 0.75rem;
