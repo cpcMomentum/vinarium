@@ -125,10 +125,6 @@ function cssColorFor(color: WineColor): string {
 	return palette[color]
 }
 
-function colorFor(_id: number): string {
-	return 'var(--color-text-maxcontrast)'
-}
-
 function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot_level: number | null; slot_row: string | null; slot_column: number | null; compartment_label: string | null }): string {
 	if (b.status !== 'in_storage') return '—'
 	if (!b.slot_id) return 'Parkzone'
