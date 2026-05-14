@@ -109,13 +109,20 @@ async function submit() {
 </script>
 
 <style scoped>
+:deep(.dialog__content) {
+	padding-top: 1.25rem;
+	padding-bottom: 1.25rem;
+}
+:deep(.dialog__actions) {
+	padding-bottom: 0.75rem;
+}
 .config-dialog {
-	padding: 0.5rem 0;
+	padding: 0;
 }
 .config-dialog__hint {
 	font-size: 0.85rem;
 	color: var(--color-text-maxcontrast);
-	margin: 0 0 1rem 0;
+	margin: 0 0 1.25rem 0;
 }
 .config-dialog__warning {
 	margin-top: 1rem;
