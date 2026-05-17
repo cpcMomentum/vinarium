@@ -2,7 +2,7 @@
 	<NcContent app-name="vinarium">
 		<NcAppNavigation aria-label="Vinarium">
 			<NcAppNavigationItem
-				name="Dashboard"
+				:name="t('vinarium', 'Dashboard')"
 				:to="{ name: 'dashboard' }"
 				exact
 			>
@@ -11,7 +11,7 @@
 				</template>
 			</NcAppNavigationItem>
 			<NcAppNavigationItem
-				name="Weine"
+				:name="t('vinarium', 'Weine')"
 				:to="{ name: 'wines' }"
 			>
 				<template #icon>
@@ -19,7 +19,7 @@
 				</template>
 			</NcAppNavigationItem>
 			<NcAppNavigationItem
-				name="Bestand"
+				:name="t('vinarium', 'Bestand')"
 				:to="{ name: 'inventory' }"
 			>
 				<template #icon>
@@ -27,7 +27,7 @@
 				</template>
 			</NcAppNavigationItem>
 			<NcAppNavigationItem
-				name="Regal"
+				:name="t('vinarium', 'Regal')"
 				:to="{ name: 'shelf' }"
 			>
 				<template #icon>
@@ -35,7 +35,7 @@
 				</template>
 			</NcAppNavigationItem>
 			<NcAppNavigationItem
-				name="Verkostungen"
+				:name="t('vinarium', 'Verkostungen')"
 				:to="{ name: 'tastings' }"
 			>
 				<template #icon>
@@ -51,6 +51,7 @@
 </template>
 
 <script setup lang="ts">
+import { translate as t } from '@nextcloud/l10n'
 import { NcContent, NcAppNavigation, NcAppNavigationItem, NcAppContent } from '@nextcloud/vue'
 import GlassWine from 'vue-material-design-icons/GlassWine.vue'
 import ViewDashboard from 'vue-material-design-icons/ViewDashboard.vue'

@@ -1,8 +1,8 @@
 <template>
 	<div class="wines-view">
 		<header class="wines-view__header">
-			<h2>Weine</h2>
-			<NcButton type="primary" @click="wizardOpen = true">+ Kauf erfassen</NcButton>
+			<h2>{{ t('vinarium', 'Weine') }}</h2>
+			<NcButton type="primary" @click="wizardOpen = true">{{ t('vinarium', '+ Kauf erfassen') }}</NcButton>
 		</header>
 
 		<div class="tabs">
@@ -17,7 +17,7 @@
 		</div>
 
 		<section v-if="activeTab === 'producers'" class="tab-panel">
-			<p v-if="store.producers.length === 0" class="empty">Noch keine Weingüter erfasst.</p>
+			<p v-if="store.producers.length === 0" class="empty">{{ t('vinarium', 'Noch keine Weingüter erfasst.') }}</p>
 			<ul v-else class="list">
 				<li v-for="p in store.producers" :key="p.id" class="list-item">
 					<div class="list-item__main">
@@ -26,32 +26,32 @@
 						<span v-if="p.country" class="muted"> · {{ p.country }}</span>
 					</div>
 					<div class="list-item__actions">
-						<NcButton @click="editEntity('producer', p.id)">Bearbeiten</NcButton>
-						<NcButton type="tertiary" @click="deleteEntity('producer', p.id)">Löschen</NcButton>
+						<NcButton @click="editEntity('producer', p.id)">{{ t('vinarium', 'Bearbeiten') }}</NcButton>
+						<NcButton type="tertiary" @click="deleteEntity('producer', p.id)">{{ t('vinarium', 'Löschen') }}</NcButton>
 					</div>
 				</li>
 			</ul>
 		</section>
 
 		<section v-else-if="activeTab === 'wines'" class="tab-panel">
-			<p v-if="store.wines.length === 0" class="empty">Noch keine Weine erfasst.</p>
+			<p v-if="store.wines.length === 0" class="empty">{{ t('vinarium', 'Noch keine Weine erfasst.') }}</p>
 			<ul v-else class="list">
 				<li v-for="w in store.wines" :key="w.id" class="list-item">
 					<div class="list-item__main">
 						<strong>{{ w.name }}</strong>
-						<span class="muted"> · {{ WINE_COLOR_LABELS[w.color] }}</span>
+						<span class="muted"> · {{ t('vinarium', WINE_COLOR_LABELS[w.color]) }}</span>
 						<span v-if="store.producerById(w.producerId)" class="muted"> · {{ store.producerById(w.producerId)?.name }}</span>
 					</div>
 					<div class="list-item__actions">
-						<NcButton @click="editEntity('wine', w.id)">Bearbeiten</NcButton>
-						<NcButton type="tertiary" @click="deleteEntity('wine', w.id)">Löschen</NcButton>
+						<NcButton @click="editEntity('wine', w.id)">{{ t('vinarium', 'Bearbeiten') }}</NcButton>
+						<NcButton type="tertiary" @click="deleteEntity('wine', w.id)">{{ t('vinarium', 'Löschen') }}</NcButton>
 					</div>
 				</li>
 			</ul>
 		</section>
 
 		<section v-else-if="activeTab === 'vintages'" class="tab-panel">
-			<p v-if="store.vintages.length === 0" class="empty">Noch keine Jahrgänge erfasst.</p>
+			<p v-if="store.vintages.length === 0" class="empty">{{ t('vinarium', 'Noch keine Jahrgänge erfasst.') }}</p>
 			<ul v-else class="list">
 				<li v-for="v in store.vintages" :key="v.id" class="list-item">
 					<div class="list-item__main">
@@ -59,26 +59,26 @@
 						<span v-if="v.alcoholPercent" class="muted"> · {{ v.alcoholPercent }}%</span>
 					</div>
 					<div class="list-item__actions">
-						<NcButton @click="editEntity('vintage', v.id)">Bearbeiten</NcButton>
-						<NcButton type="tertiary" @click="deleteEntity('vintage', v.id)">Löschen</NcButton>
+						<NcButton @click="editEntity('vintage', v.id)">{{ t('vinarium', 'Bearbeiten') }}</NcButton>
+						<NcButton type="tertiary" @click="deleteEntity('vintage', v.id)">{{ t('vinarium', 'Löschen') }}</NcButton>
 					</div>
 				</li>
 			</ul>
 		</section>
 
 		<section v-else-if="activeTab === 'purchases'" class="tab-panel">
-			<p v-if="store.purchases.length === 0" class="empty">Noch keine Käufe erfasst.</p>
+			<p v-if="store.purchases.length === 0" class="empty">{{ t('vinarium', 'Noch keine Käufe erfasst.') }}</p>
 			<table v-else class="purchases-table">
 				<thead>
 					<tr>
-						<th>Datum</th>
-						<th>Weingut</th>
-						<th>Wein</th>
-						<th>Jahrgang</th>
-						<th>Menge</th>
-						<th>Größe</th>
-						<th>Preis</th>
-						<th>Händler</th>
+						<th>{{ t('vinarium', 'Datum') }}</th>
+						<th>{{ t('vinarium', 'Weingut') }}</th>
+						<th>{{ t('vinarium', 'Wein') }}</th>
+						<th>{{ t('vinarium', 'Jahrgang') }}</th>
+						<th>{{ t('vinarium', 'Menge') }}</th>
+						<th>{{ t('vinarium', 'Größe') }}</th>
+						<th>{{ t('vinarium', 'Preis') }}</th>
+						<th>{{ t('vinarium', 'Händler') }}</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -88,7 +88,7 @@
 						<td>{{ pu.wine_name }}</td>
 						<td>{{ pu.year }}</td>
 						<td>{{ pu.quantity }}×</td>
-						<td>{{ BOTTLE_SIZE_LABELS[pu.bottle_size_ml as BottleSizeMl] ?? pu.bottle_size_ml + ' ml' }}</td>
+						<td>{{ t('vinarium', BOTTLE_SIZE_LABELS[pu.bottle_size_ml as BottleSizeMl] ?? pu.bottle_size_ml + ' ml') }}</td>
 						<td>{{ pu.unit_price !== null ? pu.unit_price.toFixed(2) + ' ' + (pu.currency ?? '€') : '—' }}</td>
 						<td>{{ pu.vendor ?? '—' }}</td>
 					</tr>
@@ -108,6 +108,8 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { translate as t } from '@nextcloud/l10n'
+import moment from '@nextcloud/moment'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import PurchaseWizardModal from '@/components/PurchaseWizardModal.vue'
 import EntityEditModal from '@/components/EntityEditModal.vue'
@@ -125,10 +127,10 @@ const editType = ref<EntityType>('producer')
 const editId = ref<number | null>(null)
 
 const tabs = computed(() => [
-	{ key: 'producers' as const, label: 'Weingüter', count: store.producers.length },
-	{ key: 'wines' as const, label: 'Weine', count: store.wines.length },
-	{ key: 'vintages' as const, label: 'Jahrgänge', count: store.vintages.length },
-	{ key: 'purchases' as const, label: 'Käufe', count: store.purchases.length },
+	{ key: 'producers' as const, label: t('vinarium', 'Weingüter'), count: store.producers.length },
+	{ key: 'wines' as const, label: t('vinarium', 'Weine'), count: store.wines.length },
+	{ key: 'vintages' as const, label: t('vinarium', 'Jahrgänge'), count: store.vintages.length },
+	{ key: 'purchases' as const, label: t('vinarium', 'Käufe'), count: store.purchases.length },
 ])
 
 onMounted(async () => {
@@ -154,7 +156,7 @@ async function onComplete(_payload: { purchaseId: number; bottleCount: number })
 
 function formatDate(iso: string): string {
 	try {
-		return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+		return moment(iso).format('L')
 	} catch {
 		return iso
 	}
@@ -172,8 +174,8 @@ function closeEdit() {
 }
 
 async function deleteEntity(type: EntityType, id: number) {
-	const label = type === 'producer' ? 'Weingut' : type === 'wine' ? 'Wein' : 'Jahrgang'
-	if (!window.confirm(`${label} wirklich löschen? Alle zugehörigen Einträge bleiben erhalten bis du sie separat löschst.`)) return
+	const label = type === 'producer' ? t('vinarium', 'Weingut') : type === 'wine' ? t('vinarium', 'Wein') : t('vinarium', 'Jahrgang')
+	if (!window.confirm(t('vinarium', '{entity} wirklich löschen? Alle zugehörigen Einträge bleiben erhalten bis du sie separat löschst.', { entity: label }))) return
 	if (type === 'producer') await store.deleteProducer(id)
 	else if (type === 'wine') await store.deleteWine(id)
 	else await store.deleteVintage(id)

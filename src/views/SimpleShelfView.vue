@@ -1,14 +1,14 @@
 <template>
 	<div class="shelf-view">
 		<header class="shelf-view__header">
-			<h2>Regal</h2>
-			<NcButton type="primary" @click="newShelfOpen = true">+ Neues Regal</NcButton>
+			<h2>{{ t('vinarium', 'Regal') }}</h2>
+			<NcButton type="primary" @click="newShelfOpen = true">{{ t('vinarium', '+ Neues Regal') }}</NcButton>
 		</header>
 
 		<!-- Kein Keller -->
 		<div v-if="!cellar" class="shelf-view__empty">
-			<p>Noch kein Weinkeller angelegt.</p>
-			<NcButton type="primary" :disabled="creating" @click="createDefault">Standard-Regal anlegen</NcButton>
+			<p>{{ t('vinarium', 'Noch kein Weinkeller angelegt.') }}</p>
+			<NcButton type="primary" :disabled="creating" @click="createDefault">{{ t('vinarium', 'Standard-Regal anlegen') }}</NcButton>
 		</div>
 
 		<template v-else>
@@ -19,9 +19,9 @@
 				@dragleave="onParkzoneDragLeave"
 				@drop.prevent="onDropToParkzone"
 			>
-				<h3>Parkzone ({{ parkedBottles.length }})</h3>
+				<h3>{{ t('vinarium', 'Parkzone ({n})', { n: parkedBottles.length }) }}</h3>
 				<template v-if="parkedBottles.length > 0">
-					<p class="muted">Flaschen per Drag & Drop in einen Slot ziehen.</p>
+					<p class="muted">{{ t('vinarium', 'Flaschen per Drag & Drop in einen Slot ziehen.') }}</p>
 					<ul class="park-list">
 						<li
 							v-for="b in parkedBottles"
@@ -37,7 +37,7 @@
 						</li>
 					</ul>
 				</template>
-				<p v-else class="empty-park">Keine Flaschen in der Parkzone.</p>
+				<p v-else class="empty-park">{{ t('vinarium', 'Keine Flaschen in der Parkzone.') }}</p>
 			</section>
 
 			<!-- Regal-Tabs -->
@@ -59,7 +59,7 @@
 					<button
 						v-if="shelves.length > 1"
 						class="shelf-delete-btn"
-						title="Regal löschen"
+						:title="t('vinarium', 'Regal löschen')"
 						@click="confirmDeleteShelf"
 					>✕</button>
 				</div>
@@ -67,16 +67,16 @@
 				<div v-for="compData in activeShelf.compartments" :key="compData.compartment.id" class="compartment">
 					<div class="compartment__header">
 						<h4 class="compartment__title">{{ compData.compartment.label }}</h4>
-						<button class="compartment__config-btn" :title="'Fach konfigurieren'" @click="openConfig(compData)">⚙</button>
+						<button class="compartment__config-btn" :title="t('vinarium', 'Fach konfigurieren')" @click="openConfig(compData)">⚙</button>
 					</div>
 
 					<div v-for="level in reversedLevels(compData.levels)" :key="level.id" class="level">
 						<div class="level__label-col">
-							<span class="level__label">Ebene {{ level.levelNumber + 1 }}</span>
+							<span class="level__label">{{ t('vinarium', 'Ebene {n}', { n: level.levelNumber + 1 }) }}</span>
 						</div>
 						<div class="level__content">
 							<div v-if="level.columnsBack !== null" class="row-group">
-								<span class="row-label">Hinten</span>
+								<span class="row-label">{{ t('vinarium', 'Hinten') }}</span>
 								<div class="slot-row">
 									<div
 										v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'back')"
@@ -103,7 +103,7 @@
 								</div>
 							</div>
 							<div class="row-group">
-								<span class="row-label">Vorne</span>
+								<span class="row-label">{{ t('vinarium', 'Vorne') }}</span>
 								<div class="slot-row">
 									<div
 										v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'front')"
@@ -150,6 +150,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { translate as t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NewShelfDialog from '@/components/NewShelfDialog.vue'
 import ShelfConfigDialog from '@/components/ShelfConfigDialog.vue'
@@ -228,7 +229,10 @@ function slotClasses(slotId: number): Record<string, boolean> {
 function slotTooltip(slot: Slot): string {
 	const b = bottleInSlot(slot.id)
 	if (b) return `${b.wine_name} ${b.year} (${b.producer_name})`
-	return `Frei — Ebene ${slot.level + 1}, ${slot.row === 'front' ? 'Vorne' : 'Hinten'}, Platz ${slot.column + 1}`
+	const row = slot.row === 'front' ? t('vinarium', 'Vorne') : t('vinarium', 'Hinten')
+	return t('vinarium', 'Frei — Ebene {level}, {row}, Platz {col}', {
+		level: slot.level + 1, row, col: slot.column + 1,
+	})
 }
 
 // --- Drag & Drop ---
@@ -263,7 +267,7 @@ async function onDrop(slotId: number) {
 			await store.fetchBottles({ status: 'in_storage' })
 		}
 	} catch (e: any) {
-		errorMsg.value = e?.message ?? 'Verschieben fehlgeschlagen'
+		errorMsg.value = e?.message ?? t('vinarium', 'Verschieben fehlgeschlagen')
 	} finally {
 		selectedBottleId.value = null
 		draggedBottleId.value = null
@@ -281,7 +285,7 @@ async function onDropToParkzone() {
 		await store.moveBottle(bottleId, null)
 		await store.fetchBottles({ status: 'in_storage' })
 	} catch (e: any) {
-		errorMsg.value = e?.message ?? 'Verschieben fehlgeschlagen'
+		errorMsg.value = e?.message ?? t('vinarium', 'Verschieben fehlgeschlagen')
 	} finally {
 		selectedBottleId.value = null
 		draggedBottleId.value = null
@@ -320,13 +324,13 @@ async function onReconfigured() {
 async function confirmDeleteShelf() {
 	if (!activeShelf.value) return
 	const name = activeShelf.value.shelf.name
-	if (!confirm(`Regal "${name}" wirklich löschen? Alle Flaschen kommen in die Parkzone.`)) return
+	if (!confirm(t('vinarium', 'Regal "{name}" wirklich löschen? Alle Flaschen kommen in die Parkzone.', { name }))) return
 	try {
 		await destroyShelf(activeShelf.value.shelf.id)
 		await reload()
 		await store.fetchBottles({ status: 'in_storage' })
 	} catch (e: any) {
-		errorMsg.value = e?.message ?? 'Löschen fehlgeschlagen'
+		errorMsg.value = e?.message ?? t('vinarium', 'Löschen fehlgeschlagen')
 	}
 }
 
@@ -356,7 +360,7 @@ async function reload() {
 		await loadAllSlots()
 	} catch (e: any) {
 		if (e?.status === 404) cellar.value = null
-		else errorMsg.value = e?.message ?? 'Fehler beim Laden'
+		else errorMsg.value = e?.message ?? t('vinarium', 'Fehler beim Laden')
 	}
 }
 
@@ -378,7 +382,7 @@ async function createDefault() {
 		await createDefaultCellar()
 		await reload()
 	} catch (e: any) {
-		errorMsg.value = e?.message ?? 'Anlegen fehlgeschlagen'
+		errorMsg.value = e?.message ?? t('vinarium', 'Anlegen fehlgeschlagen')
 	} finally {
 		creating.value = false
 	}

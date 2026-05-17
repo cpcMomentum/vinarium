@@ -1,17 +1,17 @@
 <template>
-	<NcDialog :open="open" :name="`${compartment.compartment.label} konfigurieren`" @update:open="$emit('close')">
+	<NcDialog :open="open" :name="t('vinarium', '{label} konfigurieren', { label: compartment.compartment.label })" @update:open="$emit('close')">
 		<div class="config-dialog">
-			<p class="config-dialog__hint">Ebenen und Plätze anpassen. Flaschen die keinen Platz mehr haben kommen in die Parkzone.</p>
+			<p class="config-dialog__hint">{{ t('vinarium', 'Ebenen und Plätze anpassen. Flaschen die keinen Platz mehr haben kommen in die Parkzone.') }}</p>
 
 			<div class="levels-config">
 				<div class="levels-config__header">
-					<span>Ebene</span>
-					<span>Vorne</span>
-					<span>Hinten (leer = keine)</span>
+					<span>{{ t('vinarium', 'Ebene') }}</span>
+					<span>{{ t('vinarium', 'Vorne') }}</span>
+					<span>{{ t('vinarium', 'Hinten (leer = keine)') }}</span>
 					<span></span>
 				</div>
 				<div v-for="(level, idx) in editLevels" :key="idx" class="levels-config__row">
-					<span class="levels-config__label">Ebene {{ idx + 1 }}</span>
+					<span class="levels-config__label">{{ t('vinarium', 'Ebene {n}', { n: idx + 1 }) }}</span>
 					<input v-model.number="level.columnsFront" type="number" min="1" max="30" class="config-input" />
 					<input
 						:value="level.columnsBack ?? ''"
@@ -24,19 +24,19 @@
 					/>
 					<button v-if="editLevels.length > 1" class="levels-config__remove" @click="removeLevel(idx)">✕</button>
 				</div>
-				<button class="config-add-level" @click="addLevel">+ Ebene hinzufügen</button>
+				<button class="config-add-level" @click="addLevel">{{ t('vinarium', '+ Ebene hinzufügen') }}</button>
 			</div>
 
 			<p v-if="bottlesAtRisk" class="config-dialog__warning">
-				⚠ Flaschen die keinen Platz mehr finden landen in der Parkzone.
+				{{ t('vinarium', '⚠ Flaschen die keinen Platz mehr finden landen in der Parkzone.') }}
 			</p>
 			<p v-if="errorMsg" class="config-dialog__error">{{ errorMsg }}</p>
 		</div>
 
 		<template #actions>
-			<NcButton type="secondary" @click="$emit('close')">Abbrechen</NcButton>
+			<NcButton type="secondary" @click="$emit('close')">{{ t('vinarium', 'Abbrechen') }}</NcButton>
 			<NcButton type="primary" :disabled="saving || !isValid" @click="submit">
-				{{ saving ? 'Wird gespeichert…' : 'Speichern' }}
+				{{ saving ? t('vinarium', 'Wird gespeichert…') : t('vinarium', 'Speichern') }}
 			</NcButton>
 		</template>
 	</NcDialog>
@@ -44,6 +44,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { translate as t } from '@nextcloud/l10n'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { reconfigureCompartment, type LevelConfig } from '@/api/cellar'
@@ -101,7 +102,7 @@ async function submit() {
 		emit('reconfigured', movedToParkzone)
 		emit('close')
 	} catch (e: any) {
-		errorMsg.value = e?.message ?? 'Fehler beim Speichern'
+		errorMsg.value = e?.message ?? t('vinarium', 'Fehler beim Speichern')
 	} finally {
 		saving.value = false
 	}
