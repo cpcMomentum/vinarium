@@ -84,14 +84,21 @@ async function submit() {
 	saving.value = true
 	try {
 		if (editMode.value && props.tasting) {
-			const updated = await updateTasting(props.tasting.id, {
+			await updateTasting(props.tasting.id, {
 				tastedAt: form.value.tastedAt,
 				rating: form.value.rating,
 				notes: form.value.notes || null,
 				occasion: form.value.occasion || null,
 				companions: form.value.companions || null,
 			})
-			emit('updated', { ...props.tasting, ...updated })
+			emit('updated', {
+				...props.tasting,
+				tasted_at: form.value.tastedAt,
+				rating: form.value.rating,
+				notes: form.value.notes || null,
+				occasion: form.value.occasion || null,
+				companions: form.value.companions || null,
+			})
 			emit('close')
 		} else if (props.bottleId) {
 			await consumeWithTasting(props.bottleId, {
