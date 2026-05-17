@@ -58,6 +58,7 @@ return [
 		['name' => 'bottle#destroy', 'url' => '/api/v1/bottles/{id}',      'verb' => 'DELETE'],
 
 		// Tastings
+		['name' => 'tasting#details',  'url' => '/api/v1/tastings/{id}/details',     'verb' => 'GET'],
 		['name' => 'tasting#all',      'url' => '/api/v1/tastings',                  'verb' => 'GET'],
 		['name' => 'tasting#byBottle', 'url' => '/api/v1/bottles/{bottleId}/tastings', 'verb' => 'GET'],
 		['name' => 'tasting#create',   'url' => '/api/v1/bottles/{bottleId}/tastings', 'verb' => 'POST'],

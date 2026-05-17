@@ -20,7 +20,7 @@
 				</tr>
 			</thead>
 			<tbody>
-				<tr v-for="tasting in tastings" :key="tasting.id" @click="openEdit(tasting)">
+				<tr v-for="tasting in tastings" :key="tasting.id" @click="openDetail(tasting.id)">
 					<td>{{ formatDate(tasting.tasted_at) }}</td>
 					<td class="wrap-cell producer-cell">{{ tasting.producer_name }}</td>
 					<td>
@@ -69,6 +69,14 @@
 			</template>
 		</NcDialog>
 
+		<!-- Detail modal -->
+		<TastingDetailModal
+			:open="detailModal.open"
+			:tasting-id="detailModal.tastingId"
+			@close="detailModal.open = false"
+			@edit="onDetailEdit"
+		/>
+
 		<!-- Tasting dialog for editing existing tastings -->
 		<TastingDialog
 			:open="editDialog.open"
@@ -93,13 +101,19 @@ import { translate as t } from '@nextcloud/l10n'
 import moment from '@nextcloud/moment'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
-import { listAllTastings, type TastingListItem } from '@/api/tastings'
+import { listAllTastings, type TastingDetail, type TastingListItem } from '@/api/tastings'
 import { listBottles } from '@/api/bottles'
 import type { BottleListItem } from '@/types/api'
 import TastingDialog from '@/components/TastingDialog.vue'
+import TastingDetailModal from '@/components/TastingDetailModal.vue'
 
 const tastings = ref<TastingListItem[]>([])
 const loading = ref(true)
+
+const detailModal = reactive({
+	open: false,
+	tastingId: null as number | null,
+})
 
 const editDialog = reactive({
 	open: false,
@@ -116,8 +130,15 @@ const pickerLoading = ref(false)
 const pickerBottles = ref<BottleListItem[]>([])
 const pickerSelectedId = ref<number | null>(null)
 
-function openEdit(tasting: TastingListItem) {
-	editDialog.tasting = tasting
+function openDetail(id: number) {
+	detailModal.tastingId = id
+	detailModal.open = true
+}
+
+function onDetailEdit(detail: TastingDetail) {
+	detailModal.open = false
+	const listItem = tastings.value.find(item => item.id === detail.id) ?? null
+	editDialog.tasting = listItem
 	editDialog.open = true
 }
 

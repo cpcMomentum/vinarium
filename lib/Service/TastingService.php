@@ -65,6 +65,63 @@ class TastingService {
 		return ['bottle' => $bottle, 'tasting' => $tasting];
 	}
 
+	/** @return array<string, mixed> */
+	public function getDetails(int $id, string $userId): array {
+		$row = $this->tastingMapper->findDetails($id, $userId);
+		if ($row === null) {
+			throw new NotFoundException('Tasting not found');
+		}
+		$relatedSameWine = $this->tastingMapper->findRelatedSameWine(
+			$id,
+			(int)$row['wine_id'],
+			$userId
+		);
+		$relatedSameProducer = $this->tastingMapper->findRelatedSameProducer(
+			$id,
+			(int)$row['producer_id'],
+			(int)$row['wine_id'],
+			$userId
+		);
+		return [
+			'id' => (int)$row['id'],
+			'bottle_id' => (int)$row['bottle_id'],
+			'tasted_at' => $row['tasted_at'],
+			'rating' => $row['rating'] !== null ? (float)$row['rating'] : null,
+			'notes' => $row['notes'],
+			'occasion' => $row['occasion'],
+			'companions' => $row['companions'],
+			'wine_id' => (int)$row['wine_id'],
+			'wine_name' => $row['wine_name'],
+			'wine_color' => $row['wine_color'],
+			'vintage_id' => (int)$row['vintage_id'],
+			'year' => (int)$row['year'],
+			'producer_id' => (int)$row['producer_id'],
+			'producer_name' => $row['producer_name'],
+			'purchase' => [
+				'purchased_at' => $row['purchased_at'],
+				'vendor' => $row['vendor'],
+				'unit_price' => $row['unit_price'] !== null ? (float)$row['unit_price'] : null,
+				'currency' => $row['currency'],
+				'bottle_size_ml' => (int)$row['bottle_size_ml'],
+			],
+			'related_same_wine' => array_map(fn($r) => [
+				'id' => (int)$r['id'],
+				'tasted_at' => $r['tasted_at'],
+				'rating' => $r['rating'] !== null ? (float)$r['rating'] : null,
+				'notes' => $r['notes'],
+				'year' => (int)$r['year'],
+			], $relatedSameWine),
+			'related_same_producer' => array_map(fn($r) => [
+				'id' => (int)$r['id'],
+				'tasted_at' => $r['tasted_at'],
+				'rating' => $r['rating'] !== null ? (float)$r['rating'] : null,
+				'notes' => $r['notes'],
+				'wine_name' => $r['wine_name'],
+				'year' => (int)$r['year'],
+			], $relatedSameProducer),
+		];
+	}
+
 	public function get(int $id, string $userId): Tasting {
 		try {
 			$tasting = $this->tastingMapper->find($id);
