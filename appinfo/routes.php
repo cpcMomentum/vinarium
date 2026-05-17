@@ -62,6 +62,8 @@ return [
 		['name' => 'bottle#destroy', 'url' => '/api/v1/bottles/{id}',      'verb' => 'DELETE'],
 
 		// Tastings
+		['name' => 'tasting#uploadPhoto', 'url' => '/api/v1/tastings/{id}/photo',            'verb' => 'POST'],
+		['name' => 'tasting#deletePhoto', 'url' => '/api/v1/tastings/{id}/photo/{fileId}',   'verb' => 'DELETE'],
 		['name' => 'tasting#details',  'url' => '/api/v1/tastings/{id}/details',     'verb' => 'GET'],
 		['name' => 'tasting#all',      'url' => '/api/v1/tastings',                  'verb' => 'GET'],
 		['name' => 'tasting#byBottle', 'url' => '/api/v1/bottles/{bottleId}/tastings', 'verb' => 'GET'],

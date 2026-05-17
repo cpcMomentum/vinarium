@@ -26,7 +26,13 @@ class TastingService {
 
 	/** @return array<int, array<string, mixed>> */
 	public function listAll(string $userId): array {
-		return $this->tastingMapper->findAllByOwner($userId);
+		$rows = $this->tastingMapper->findAllByOwner($userId);
+		return array_map(function (array $row): array {
+			$row['photo_file_ids'] = isset($row['photo_file_ids']) && $row['photo_file_ids'] !== null
+				? json_decode((string)$row['photo_file_ids'], true) ?? []
+				: [];
+			return $row;
+		}, $rows);
 	}
 
 	/** @return Tasting[] */
@@ -82,6 +88,10 @@ class TastingService {
 			(int)$row['wine_id'],
 			$userId
 		);
+		$photoFileIds = isset($row['photo_file_ids']) && $row['photo_file_ids'] !== null
+			? json_decode((string)$row['photo_file_ids'], true) ?? []
+			: [];
+
 		return [
 			'id' => (int)$row['id'],
 			'bottle_id' => (int)$row['bottle_id'],
@@ -90,6 +100,7 @@ class TastingService {
 			'notes' => $row['notes'],
 			'occasion' => $row['occasion'],
 			'companions' => $row['companions'],
+			'photo_file_ids' => $photoFileIds,
 			'wine_id' => (int)$row['wine_id'],
 			'wine_name' => $row['wine_name'],
 			'wine_color' => $row['wine_color'],
@@ -159,6 +170,10 @@ class TastingService {
 			$tasting->setCompanions($data['companions']);
 		}
 
+		return $this->tastingMapper->update($tasting);
+	}
+
+	public function save(Tasting $tasting): Tasting {
 		return $this->tastingMapper->update($tasting);
 	}
 
