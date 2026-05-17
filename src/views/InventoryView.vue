@@ -30,6 +30,7 @@
 		<table v-if="store.bottles.length > 0" class="bottles">
 			<thead>
 				<tr>
+					<th class="photo-col"></th>
 					<th>{{ t('vinarium', 'Weingut') }}</th>
 					<th>{{ t('vinarium', 'Wein') }}</th>
 					<th>{{ t('vinarium', 'Jahrgang') }}</th>
@@ -41,6 +42,14 @@
 			</thead>
 			<tbody>
 				<tr v-for="b in store.bottles" :key="b.id">
+					<td class="photo-cell">
+						<img
+							v-if="b.photo_file_id !== null"
+							:src="bottlePhotoUrl(b.id)"
+							class="bottle-thumb"
+							:alt="b.wine_name"
+						/>
+					</td>
 					<td>{{ b.producer_name }}</td>
 					<td>{{ b.wine_name }}</td>
 					<td>{{ b.year }}</td>
@@ -70,7 +79,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import TastingDialog from '@/components/TastingDialog.vue'
 import { BOTTLE_STATUS_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleStatus, type WineColor } from '@/types/api'
 import { useBottleStore } from '@/stores/bottleStore'
-import { restoreBottle } from '@/api/bottles'
+import { restoreBottle, getBottlePhotoUrl } from '@/api/bottles'
 
 const store = useBottleStore()
 const tastingOpen = ref(false)
@@ -124,6 +133,10 @@ function cssColorFor(color: WineColor): string {
 		fortified: '#4a1010',
 	}
 	return palette[color]
+}
+
+function bottlePhotoUrl(id: number): string {
+	return getBottlePhotoUrl(id)
 }
 
 function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot_level: number | null; slot_row: string | null; slot_column: number | null; compartment_label: string | null }): string {
@@ -250,5 +263,17 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 	font-style: italic;
 	padding: 2rem;
 	text-align: center;
+}
+.photo-col { width: 48px; }
+.photo-cell {
+	padding: 0.25rem 0.5rem;
+	width: 48px;
+}
+.bottle-thumb {
+	width: 40px;
+	height: 40px;
+	object-fit: cover;
+	border-radius: 4px;
+	display: block;
 }
 </style>

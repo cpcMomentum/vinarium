@@ -15,6 +15,35 @@
 				<button class="bottle-detail__close" @click="$emit('close')">✕</button>
 			</div>
 
+			<!-- Foto -->
+			<div class="bottle-detail__photo-section">
+				<div class="bottle-detail__photo-wrap">
+					<img
+						v-if="detail.photo_file_id !== null"
+						:src="photoUrl"
+						:key="photoUrl"
+						class="bottle-detail__photo"
+						:alt="detail.wine_name"
+					/>
+					<div v-else class="bottle-detail__photo-placeholder muted">
+						{{ t('vinarium', 'Kein Foto') }}
+					</div>
+				</div>
+				<div class="bottle-detail__photo-actions">
+					<label class="photo-upload-btn" :title="t('vinarium', 'Foto hochladen')">
+						<input type="file" accept="image/*" class="photo-file-input" @change="onPhotoSelected" />
+						{{ detail.photo_file_id !== null ? t('vinarium', 'Ersetzen') : t('vinarium', 'Foto hinzufügen') }}
+					</label>
+					<button
+						v-if="detail.photo_file_id !== null"
+						class="photo-remove-btn"
+						:title="t('vinarium', 'Foto entfernen')"
+						@click="onRemovePhoto"
+					>✕</button>
+				</div>
+				<p v-if="photoError" class="photo-error">{{ photoError }}</p>
+			</div>
+
 			<dl class="bottle-detail__dl">
 				<template v-if="detail.appellation">
 					<dt>{{ t('vinarium', 'Appellation') }}</dt>
@@ -97,11 +126,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import moment from '@nextcloud/moment'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import { getBottleDetails, type BottleDetail } from '@/api/bottles'
+import { getBottleDetails, getBottlePhotoUrl, uploadBottlePhoto, deleteBottlePhoto, type BottleDetail } from '@/api/bottles'
 import { BOTTLE_SIZE_LABELS, type BottleSizeMl, type WineColor } from '@/types/api'
 
 const props = defineProps<{ bottleId: number | null }>()
@@ -113,12 +142,21 @@ const emit = defineEmits<{
 const detail = ref<BottleDetail | null>(null)
 const loading = ref(false)
 const error = ref<string | null>(null)
+const photoError = ref<string | null>(null)
+const photoKey = ref(0)
+
+const photoUrl = computed(() =>
+	detail.value?.photo_file_id !== null && detail.value !== null
+		? `${getBottlePhotoUrl(detail.value.id)}?v=${photoKey.value}`
+		: null,
+)
 
 watch(() => props.bottleId, async (id) => {
 	if (id === null) { detail.value = null; error.value = null; return }
 	loading.value = true
 	detail.value = null
 	error.value = null
+	photoError.value = null
 	try {
 		detail.value = await getBottleDetails(id)
 	} catch (e: any) {
@@ -127,6 +165,33 @@ watch(() => props.bottleId, async (id) => {
 		loading.value = false
 	}
 }, { immediate: true })
+
+async function onPhotoSelected(event: Event) {
+	const input = event.target as HTMLInputElement
+	const file = input.files?.[0]
+	if (!file || !detail.value) return
+	photoError.value = null
+	try {
+		const result = await uploadBottlePhoto(detail.value.id, file)
+		detail.value = { ...detail.value, photo_file_id: result.photo_file_id }
+		photoKey.value++
+	} catch (e: any) {
+		photoError.value = e?.message ?? t('vinarium', 'Upload fehlgeschlagen')
+	} finally {
+		input.value = ''
+	}
+}
+
+async function onRemovePhoto() {
+	if (!detail.value) return
+	photoError.value = null
+	try {
+		await deleteBottlePhoto(detail.value.id)
+		detail.value = { ...detail.value, photo_file_id: null }
+	} catch (e: any) {
+		photoError.value = e?.message ?? t('vinarium', 'Entfernen fehlgeschlagen')
+	}
+}
 
 function formatDate(iso: string): string {
 	try { return moment(iso).format('L') }
@@ -191,6 +256,64 @@ function cssColorFor(color: string): string {
 	flex-shrink: 0;
 }
 .bottle-detail__close:hover { color: var(--color-main-text); }
+.bottle-detail__photo-section {
+	margin-bottom: 1rem;
+}
+.bottle-detail__photo-wrap {
+	width: 100%;
+	aspect-ratio: 4 / 3;
+	border-radius: var(--border-radius);
+	overflow: hidden;
+	background: var(--color-background-dark);
+	margin-bottom: 0.5rem;
+}
+.bottle-detail__photo {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+.bottle-detail__photo-placeholder {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.85rem;
+}
+.bottle-detail__photo-actions {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+.photo-upload-btn {
+	display: inline-flex;
+	align-items: center;
+	padding: 0.3rem 0.75rem;
+	background: var(--color-background-dark);
+	border: 1px solid var(--color-border);
+	border-radius: var(--border-radius);
+	cursor: pointer;
+	font-size: 0.8rem;
+	color: var(--color-main-text);
+}
+.photo-upload-btn:hover { background: var(--color-background-hover); }
+.photo-file-input {
+	display: none;
+}
+.photo-remove-btn {
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: var(--color-text-maxcontrast);
+	font-size: 0.9rem;
+	padding: 0 4px;
+}
+.photo-remove-btn:hover { color: var(--color-error, #c62828); }
+.photo-error {
+	font-size: 0.8rem;
+	color: var(--color-error, #c62828);
+	margin: 0.25rem 0 0;
+}
 .bottle-detail__dl {
 	display: grid;
 	grid-template-columns: auto 1fr;
