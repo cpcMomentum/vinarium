@@ -18,6 +18,8 @@
 				<label class="field"><span>{{ t('vinarium', 'Begleitung') }}</span><input v-model="form.companions" class="input" :placeholder="t('vinarium', 'z. B. Anna, Max')" /></label>
 			</fieldset>
 
+			<p v-if="errorMsg" class="error">{{ errorMsg }}</p>
+
 			<div class="actions">
 				<NcButton @click="$emit('close')">{{ t('vinarium', 'Abbrechen') }}</NcButton>
 				<NcButton type="primary" :disabled="saving" @click="submit">
@@ -50,6 +52,7 @@ const emit = defineEmits<{
 
 const editMode = computed(() => !!props.tasting)
 const saving = ref(false)
+const errorMsg = ref('')
 
 const form = ref({
 	tastedAt: new Date().toISOString().substring(0, 10),
@@ -61,6 +64,7 @@ const form = ref({
 
 watch(() => props.open, (isOpen) => {
 	if (!isOpen) return
+	errorMsg.value = ''
 	if (props.tasting) {
 		form.value = {
 			tastedAt: props.tasting.tasted_at.substring(0, 10),
@@ -82,6 +86,7 @@ watch(() => props.open, (isOpen) => {
 
 async function submit() {
 	saving.value = true
+	errorMsg.value = ''
 	try {
 		if (editMode.value && props.tasting) {
 			await updateTasting(props.tasting.id, {
@@ -111,6 +116,8 @@ async function submit() {
 			emit('consumed')
 			emit('close')
 		}
+	} catch (e: any) {
+		errorMsg.value = e?.message ?? t('vinarium', 'Speichern fehlgeschlagen')
 	} finally {
 		saving.value = false
 	}
@@ -132,4 +139,5 @@ async function submit() {
 .rating-slider { flex: 1; }
 .rating-value { font-size: 1.2rem; font-weight: 600; min-width: 40px; text-align: center; }
 .actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem; }
+.error { color: var(--color-error, #c62828); margin-top: 0.75rem; font-size: 0.9rem; }
 </style>
