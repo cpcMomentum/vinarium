@@ -1,141 +1,152 @@
 <template>
 	<div class="shelf-view">
-		<header class="shelf-view__header">
-			<h2>{{ t('vinarium', 'Regal') }}</h2>
-			<NcButton type="primary" @click="newShelfOpen = true">{{ t('vinarium', '+ Neues Regal') }}</NcButton>
-		</header>
+		<div class="shelf-layout">
+			<div class="shelf-main">
+				<header class="shelf-view__header">
+					<h2>{{ t('vinarium', 'Regal') }}</h2>
+					<NcButton type="primary" @click="newShelfOpen = true">{{ t('vinarium', '+ Neues Regal') }}</NcButton>
+				</header>
 
-		<!-- Kein Keller -->
-		<div v-if="!cellar" class="shelf-view__empty">
-			<p>{{ t('vinarium', 'Noch kein Weinkeller angelegt.') }}</p>
-			<NcButton type="primary" :disabled="creating" @click="createDefault">{{ t('vinarium', 'Standard-Regal anlegen') }}</NcButton>
-		</div>
+				<!-- Kein Keller -->
+				<div v-if="!cellar" class="shelf-view__empty">
+					<p>{{ t('vinarium', 'Noch kein Weinkeller angelegt.') }}</p>
+					<NcButton type="primary" :disabled="creating" @click="createDefault">{{ t('vinarium', 'Standard-Regal anlegen') }}</NcButton>
+				</div>
 
-		<template v-else>
-			<!-- Parkzone -->
-			<section
-				:class="['parkzone', { 'parkzone--drag-over': parkzoneDragOver }]"
-				@dragover.prevent="parkzoneDragOver = true"
-				@dragleave="onParkzoneDragLeave"
-				@drop.prevent="onDropToParkzone"
-			>
-				<h3>{{ t('vinarium', 'Parkzone ({n})', { n: parkedBottles.length }) }}</h3>
-				<template v-if="parkedBottles.length > 0">
-					<p class="muted">{{ t('vinarium', 'Flaschen per Drag & Drop in einen Slot ziehen.') }}</p>
-					<ul class="park-list">
-						<li
-							v-for="b in parkedBottles"
-							:key="b.id"
-							:class="['park-card', { selected: selectedBottleId === b.id }]"
-							draggable="true"
-							@dragstart="onDragStart(b.id, $event)"
-							@dragend="onDragEnd"
-							@click="selectedBottleId = selectedBottleId === b.id ? null : b.id"
+				<template v-else>
+					<!-- Parkzone -->
+					<section
+						:class="['parkzone', { 'parkzone--drag-over': parkzoneDragOver }]"
+						@dragover.prevent="parkzoneDragOver = true"
+						@dragleave="onParkzoneDragLeave"
+						@drop.prevent="onDropToParkzone"
+					>
+						<h3>{{ t('vinarium', 'Parkzone ({n})', { n: parkedBottles.length }) }}</h3>
+						<template v-if="parkedBottles.length > 0">
+							<p class="muted">{{ t('vinarium', 'Flaschen per Drag & Drop in einen Slot ziehen.') }}</p>
+							<ul class="park-list">
+								<li
+									v-for="b in parkedBottles"
+									:key="b.id"
+									:class="['park-card', { selected: selectedBottleId === b.id }]"
+									draggable="true"
+									@dragstart="onDragStart(b.id, $event)"
+									@dragend="onDragEnd"
+									@click="onParkCardClick(b.id)"
+								>
+									<span class="park-card__dot" :style="{ background: cssColorFor(b.wine_color) }"></span>
+									<span class="park-card__label">{{ b.wine_name }} {{ b.year }}</span>
+								</li>
+							</ul>
+						</template>
+						<p v-else class="empty-park">{{ t('vinarium', 'Keine Flaschen in der Parkzone.') }}</p>
+					</section>
+
+					<!-- Regal-Tabs -->
+					<div v-if="shelves.length > 1" class="shelf-tabs">
+						<button
+							v-for="entry in shelves"
+							:key="entry.shelf.id"
+							:class="['shelf-tab', { active: activeShelfId === entry.shelf.id }]"
+							@click="activeShelfId = entry.shelf.id"
 						>
-							<span class="park-card__dot" :style="{ background: cssColorFor(b.wine_color) }"></span>
-							<span class="park-card__label">{{ b.wine_name }} {{ b.year }}</span>
-						</li>
-					</ul>
+							{{ entry.shelf.name }}
+						</button>
+					</div>
+
+					<!-- Aktives Regal -->
+					<div v-if="activeShelf" class="shelves">
+						<div class="shelf-title-row">
+							<h3 class="shelf-title">{{ activeShelf.shelf.name }}</h3>
+							<button
+								v-if="shelves.length > 1"
+								class="shelf-delete-btn"
+								:title="t('vinarium', 'Regal löschen')"
+								@click="confirmDeleteShelf"
+							>✕</button>
+						</div>
+
+						<div v-for="compData in activeShelf.compartments" :key="compData.compartment.id" class="compartment">
+							<div class="compartment__header">
+								<h4 class="compartment__title">{{ compData.compartment.label }}</h4>
+								<button class="compartment__config-btn" :title="t('vinarium', 'Fach konfigurieren')" @click="openConfig(compData)">⚙</button>
+							</div>
+
+							<div v-for="level in reversedLevels(compData.levels)" :key="level.id" class="level">
+								<div class="level__label-col">
+									<span class="level__label">{{ t('vinarium', 'Ebene {n}', { n: level.levelNumber + 1 }) }}</span>
+								</div>
+								<div class="level__content">
+									<div v-if="level.columnsBack !== null" class="row-group">
+										<span class="row-label">{{ t('vinarium', 'Hinten') }}</span>
+										<div class="slot-row">
+											<div
+												v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'back')"
+												:key="slot.id"
+												:class="['slot', slotClasses(slot.id)]"
+												:style="bottleInSlot(slot.id) ? { background: cssColorFor(bottleInSlot(slot.id)!.wine_color) } : {}"
+												:title="slotTooltip(slot)"
+												@dragover.prevent="onDragOver(slot.id, $event)"
+												@dragleave="onDragLeave($event)"
+												@drop.prevent="onDrop(slot.id)"
+												@click="onSlotClick(slot.id)"
+											>
+												<div
+													v-if="bottleInSlot(slot.id)"
+													class="slot__bottle"
+													draggable="true"
+													@dragstart.stop="onDragStart(bottleInSlot(slot.id)!.id, $event)"
+													@dragend="onDragEnd"
+												>
+													<span class="slot__name">{{ bottleFullName(slot.id) }}</span>
+													<span class="slot__year">{{ bottleYear(slot.id) }}</span>
+												</div>
+											</div>
+										</div>
+									</div>
+									<div class="row-group">
+										<span class="row-label">{{ t('vinarium', 'Vorne') }}</span>
+										<div class="slot-row">
+											<div
+												v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'front')"
+												:key="slot.id"
+												:class="['slot', slotClasses(slot.id)]"
+												:style="bottleInSlot(slot.id) ? { background: cssColorFor(bottleInSlot(slot.id)!.wine_color) } : {}"
+												:title="slotTooltip(slot)"
+												@dragover.prevent="onDragOver(slot.id, $event)"
+												@dragleave="onDragLeave($event)"
+												@drop.prevent="onDrop(slot.id)"
+												@click="onSlotClick(slot.id)"
+											>
+												<div
+													v-if="bottleInSlot(slot.id)"
+													class="slot__bottle"
+													draggable="true"
+													@dragstart.stop="onDragStart(bottleInSlot(slot.id)!.id, $event)"
+													@dragend="onDragEnd"
+												>
+													<span class="slot__name">{{ bottleFullName(slot.id) }}</span>
+													<span class="slot__year">{{ bottleYear(slot.id) }}</span>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
 				</template>
-				<p v-else class="empty-park">{{ t('vinarium', 'Keine Flaschen in der Parkzone.') }}</p>
-			</section>
 
-			<!-- Regal-Tabs -->
-			<div v-if="shelves.length > 1" class="shelf-tabs">
-				<button
-					v-for="entry in shelves"
-					:key="entry.shelf.id"
-					:class="['shelf-tab', { active: activeShelfId === entry.shelf.id }]"
-					@click="activeShelfId = entry.shelf.id"
-				>
-					{{ entry.shelf.name }}
-				</button>
+				<p v-if="errorMsg" class="error">{{ errorMsg }}</p>
 			</div>
 
-			<!-- Aktives Regal -->
-			<div v-if="activeShelf" class="shelves">
-				<div class="shelf-title-row">
-					<h3 class="shelf-title">{{ activeShelf.shelf.name }}</h3>
-					<button
-						v-if="shelves.length > 1"
-						class="shelf-delete-btn"
-						:title="t('vinarium', 'Regal löschen')"
-						@click="confirmDeleteShelf"
-					>✕</button>
-				</div>
-
-				<div v-for="compData in activeShelf.compartments" :key="compData.compartment.id" class="compartment">
-					<div class="compartment__header">
-						<h4 class="compartment__title">{{ compData.compartment.label }}</h4>
-						<button class="compartment__config-btn" :title="t('vinarium', 'Fach konfigurieren')" @click="openConfig(compData)">⚙</button>
-					</div>
-
-					<div v-for="level in reversedLevels(compData.levels)" :key="level.id" class="level">
-						<div class="level__label-col">
-							<span class="level__label">{{ t('vinarium', 'Ebene {n}', { n: level.levelNumber + 1 }) }}</span>
-						</div>
-						<div class="level__content">
-							<div v-if="level.columnsBack !== null" class="row-group">
-								<span class="row-label">{{ t('vinarium', 'Hinten') }}</span>
-								<div class="slot-row">
-									<div
-										v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'back')"
-										:key="slot.id"
-										:class="['slot', slotClasses(slot.id)]"
-										:style="bottleInSlot(slot.id) ? { background: cssColorFor(bottleInSlot(slot.id)!.wine_color) } : {}"
-										:title="slotTooltip(slot)"
-										@dragover.prevent="onDragOver(slot.id, $event)"
-										@dragleave="onDragLeave($event)"
-										@drop.prevent="onDrop(slot.id)"
-										@click="onSlotClick(slot.id)"
-									>
-										<div
-											v-if="bottleInSlot(slot.id)"
-											class="slot__bottle"
-											draggable="true"
-											@dragstart.stop="onDragStart(bottleInSlot(slot.id)!.id, $event)"
-											@dragend="onDragEnd"
-										>
-											<span class="slot__name">{{ bottleFullName(slot.id) }}</span>
-											<span class="slot__year">{{ bottleYear(slot.id) }}</span>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="row-group">
-								<span class="row-label">{{ t('vinarium', 'Vorne') }}</span>
-								<div class="slot-row">
-									<div
-										v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'front')"
-										:key="slot.id"
-										:class="['slot', slotClasses(slot.id)]"
-										:style="bottleInSlot(slot.id) ? { background: cssColorFor(bottleInSlot(slot.id)!.wine_color) } : {}"
-										:title="slotTooltip(slot)"
-										@dragover.prevent="onDragOver(slot.id, $event)"
-										@dragleave="onDragLeave($event)"
-										@drop.prevent="onDrop(slot.id)"
-										@click="onSlotClick(slot.id)"
-									>
-										<div
-											v-if="bottleInSlot(slot.id)"
-											class="slot__bottle"
-											draggable="true"
-											@dragstart.stop="onDragStart(bottleInSlot(slot.id)!.id, $event)"
-											@dragend="onDragEnd"
-										>
-											<span class="slot__name">{{ bottleFullName(slot.id) }}</span>
-											<span class="slot__year">{{ bottleYear(slot.id) }}</span>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</template>
-
-		<p v-if="errorMsg" class="error">{{ errorMsg }}</p>
+			<BottleDetailPanel
+				v-if="detailBottleId !== null"
+				:bottleId="detailBottleId"
+				@close="closeDetail"
+				@uncork="onUncork"
+			/>
+		</div>
 
 		<NewShelfDialog :open="newShelfOpen" @close="newShelfOpen = false" @created="onShelfCreated" />
 		<ShelfConfigDialog
@@ -144,6 +155,12 @@
 			:compartment="configTarget"
 			@close="configOpen = false"
 			@reconfigured="onReconfigured"
+		/>
+		<TastingDialog
+			:open="uncorkOpen"
+			:bottleId="uncorkBottleId"
+			@close="uncorkOpen = false"
+			@consumed="onConsumed"
 		/>
 	</div>
 </template>
@@ -154,6 +171,8 @@ import { translate as t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NewShelfDialog from '@/components/NewShelfDialog.vue'
 import ShelfConfigDialog from '@/components/ShelfConfigDialog.vue'
+import BottleDetailPanel from '@/components/BottleDetailPanel.vue'
+import TastingDialog from '@/components/TastingDialog.vue'
 import type { BottleListItem, CompartmentWithLevels, Level, Slot, WineColor } from '@/types/api'
 import type { CellarResponse } from '@/api/cellar'
 import { createDefaultCellar, destroyShelf, fetchCellar, fetchSlots } from '@/api/cellar'
@@ -167,6 +186,7 @@ const allSlots = ref<Slot[]>([])
 const activeShelfId = ref<number | null>(null)
 
 const selectedBottleId = ref<number | null>(null)
+const detailBottleId = ref<number | null>(null)
 const draggedBottleId = ref<number | null>(null)
 const parkzoneDragOver = ref(false)
 const creating = ref(false)
@@ -175,6 +195,9 @@ const errorMsg = ref('')
 const newShelfOpen = ref(false)
 const configOpen = ref(false)
 const configTarget = ref<CompartmentWithLevels | null>(null)
+
+const uncorkOpen = ref(false)
+const uncorkBottleId = ref<number | null>(null)
 
 const parkedBottles = computed(() => store.bottles.filter(b => b.slot_id === null && b.status === 'in_storage'))
 
@@ -271,6 +294,7 @@ async function onDrop(slotId: number) {
 	} finally {
 		selectedBottleId.value = null
 		draggedBottleId.value = null
+		detailBottleId.value = null
 	}
 }
 
@@ -289,6 +313,7 @@ async function onDropToParkzone() {
 	} finally {
 		selectedBottleId.value = null
 		draggedBottleId.value = null
+		detailBottleId.value = null
 	}
 }
 
@@ -301,10 +326,44 @@ function onParkzoneDragLeave(event: DragEvent) {
 function onSlotClick(slotId: number) {
 	const b = bottleInSlot(slotId)
 	if (b) {
-		selectedBottleId.value = selectedBottleId.value === b.id ? null : b.id
+		if (selectedBottleId.value === b.id) {
+			selectedBottleId.value = null
+			detailBottleId.value = null
+		} else {
+			selectedBottleId.value = b.id
+			detailBottleId.value = b.id
+		}
 	} else if (selectedBottleId.value) {
 		onDrop(slotId)
 	}
+}
+
+function onParkCardClick(bottleId: number) {
+	if (selectedBottleId.value === bottleId) {
+		selectedBottleId.value = null
+		detailBottleId.value = null
+	} else {
+		selectedBottleId.value = bottleId
+		detailBottleId.value = bottleId
+	}
+}
+
+function closeDetail() {
+	selectedBottleId.value = null
+	detailBottleId.value = null
+}
+
+function onUncork(bottleId: number) {
+	uncorkBottleId.value = bottleId
+	uncorkOpen.value = true
+}
+
+async function onConsumed() {
+	uncorkOpen.value = false
+	uncorkBottleId.value = null
+	detailBottleId.value = null
+	selectedBottleId.value = null
+	await store.fetchBottles({ status: 'in_storage' })
 }
 
 // --- Config Dialog ---
@@ -392,7 +451,16 @@ async function createDefault() {
 <style scoped>
 .shelf-view {
 	padding: 2rem 2rem 2rem 50px;
-	max-width: 1000px;
+}
+.shelf-layout {
+	display: flex;
+	align-items: flex-start;
+	gap: 1.5rem;
+	max-width: 1300px;
+}
+.shelf-main {
+	flex: 1;
+	min-width: 0;
 }
 .shelf-view__header {
 	display: flex;

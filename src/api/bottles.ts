@@ -16,6 +16,37 @@ function buildQuery(filter: BottleFilter): string {
 	return q ? `?${q}` : ''
 }
 
+export interface BottleDetail {
+	id: number
+	purchase_id: number
+	slot_id: number | null
+	status: string
+	notes: string | null
+	wine_name: string
+	wine_color: string
+	appellation: string | null
+	producer_name: string
+	year: number
+	grape_varieties: string | null
+	drink_from_year: number | null
+	drink_until_year: number | null
+	alcohol_percent: number | null
+	external_rating: number | null
+	external_rating_source: string | null
+	purchased_at: string
+	vendor: string | null
+	unit_price: number | null
+	currency: string | null
+	bottle_size_ml: number
+	slot_level: number | null
+	slot_row: string | null
+	slot_column: number | null
+	compartment_label: string | null
+}
+
+export const getBottleDetails = (id: number): Promise<BottleDetail> =>
+	apiGet<BottleDetail>(`/bottles/${id}/details`)
+
 export const listBottles = (filter: BottleFilter = {}): Promise<BottleListItem[]> =>
 	apiGet<BottleListItem[]>(`/bottles${buildQuery(filter)}`)
 

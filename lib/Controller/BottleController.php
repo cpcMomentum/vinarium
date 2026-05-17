@@ -65,6 +65,18 @@ class BottleController extends Controller {
 	}
 
 	#[NoAdminRequired]
+	public function details(int $id): DataResponse {
+		if ($this->userId === null) {
+			return $this->unauthorized();
+		}
+		try {
+			return new DataResponse($this->bottleService->getDetails($id, $this->userId));
+		} catch (NotFoundException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
+		}
+	}
+
+	#[NoAdminRequired]
 	public function move(int $id, ?int $slotId = null): DataResponse {
 		if ($this->userId === null) {
 			return $this->unauthorized();
