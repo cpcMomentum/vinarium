@@ -1,41 +1,41 @@
 <template>
 	<div class="inventory-view">
 		<header class="inventory-view__header">
-			<h2>Bestand</h2>
-			<span class="count">{{ store.totalCount }} Flaschen</span>
+			<h2>{{ t('vinarium', 'Bestand') }}</h2>
+			<span class="count">{{ n('vinarium', '{count} Flasche', '{count} Flaschen', store.totalCount, { count: store.totalCount }) }}</span>
 		</header>
 
 		<section class="filters">
 			<label>
-				Farbe
+				{{ t('vinarium', 'Farbe') }}
 				<select v-model="filterColor" class="input" @change="applyFilter">
-					<option value="">alle</option>
-					<option v-for="c in WINE_COLORS" :key="c" :value="c">{{ WINE_COLOR_LABELS[c] }}</option>
+					<option value="">{{ t('vinarium', 'alle') }}</option>
+					<option v-for="c in WINE_COLORS" :key="c" :value="c">{{ t('vinarium', WINE_COLOR_LABELS[c]) }}</option>
 				</select>
 			</label>
 			<label>
-				Status
+				{{ t('vinarium', 'Status') }}
 				<select v-model="filterStatus" class="input" @change="applyFilter">
-					<option value="">alle</option>
-					<option v-for="(label, key) in BOTTLE_STATUS_LABELS" :key="key" :value="key">{{ label }}</option>
+					<option value="">{{ t('vinarium', 'alle') }}</option>
+					<option v-for="(label, key) in BOTTLE_STATUS_LABELS" :key="key" :value="key">{{ t('vinarium', label) }}</option>
 				</select>
 			</label>
 			<label>
-				Jahrgang
-				<input v-model.number.lazy="filterYear" type="number" class="input" placeholder="z. B. 2020" @change="applyFilter" />
+				{{ t('vinarium', 'Jahrgang') }}
+				<input v-model.number.lazy="filterYear" type="number" class="input" :placeholder="t('vinarium', 'z. B. 2020')" @change="applyFilter" />
 			</label>
-			<button class="reset" @click="resetFilter">Filter zurücksetzen</button>
+			<button class="reset" @click="resetFilter">{{ t('vinarium', 'Filter zurücksetzen') }}</button>
 		</section>
 
 		<table v-if="store.bottles.length > 0" class="bottles">
 			<thead>
 				<tr>
-					<th>Weingut</th>
-					<th>Wein</th>
-					<th>Jahrgang</th>
-					<th>Farbe</th>
-					<th>Status</th>
-					<th>Slot</th>
+					<th>{{ t('vinarium', 'Weingut') }}</th>
+					<th>{{ t('vinarium', 'Wein') }}</th>
+					<th>{{ t('vinarium', 'Jahrgang') }}</th>
+					<th>{{ t('vinarium', 'Farbe') }}</th>
+					<th>{{ t('vinarium', 'Status') }}</th>
+					<th>{{ t('vinarium', 'Slot') }}</th>
 					<th></th>
 				</tr>
 			</thead>
@@ -46,18 +46,18 @@
 					<td>{{ b.year }}</td>
 					<td>
 						<span class="dot" :style="{ background: cssColorFor(b.wine_color) }"></span>
-						{{ WINE_COLOR_LABELS[b.wine_color] }}
+						{{ t('vinarium', WINE_COLOR_LABELS[b.wine_color]) }}
 					</td>
-					<td>{{ BOTTLE_STATUS_LABELS[b.status] }}</td>
+					<td>{{ t('vinarium', BOTTLE_STATUS_LABELS[b.status]) }}</td>
 					<td>{{ formatSlotLabel(b) }}</td>
 					<td>
-						<NcButton v-if="b.status === 'in_storage'" type="tertiary" @click="openTasting(b.id)">Öffnen</NcButton>
-						<NcButton v-else type="tertiary" @click="doRestore(b.id)">Zurück in Bestand</NcButton>
+						<NcButton v-if="b.status === 'in_storage'" type="tertiary" @click="openTasting(b.id)">{{ t('vinarium', 'Öffnen') }}</NcButton>
+						<NcButton v-else type="tertiary" @click="doRestore(b.id)">{{ t('vinarium', 'Zurück in Bestand') }}</NcButton>
 					</td>
 				</tr>
 			</tbody>
 		</table>
-		<p v-else class="empty">Keine Flaschen gefunden.</p>
+		<p v-else class="empty">{{ t('vinarium', 'Keine Flaschen gefunden.') }}</p>
 
 		<TastingDialog :open="tastingOpen" :bottle-id="tastingBottleId" @close="tastingOpen = false" @consumed="onConsumed" />
 	</div>
@@ -65,6 +65,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import TastingDialog from '@/components/TastingDialog.vue'
 import { BOTTLE_STATUS_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleStatus, type WineColor } from '@/types/api'
@@ -127,9 +128,14 @@ function cssColorFor(color: WineColor): string {
 
 function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot_level: number | null; slot_row: string | null; slot_column: number | null; compartment_label: string | null }): string {
 	if (b.status !== 'in_storage') return '—'
-	if (!b.slot_id) return 'Parkzone'
-	const rowAbbr = b.slot_row === 'back' ? 'H' : 'V'
-	return `${b.compartment_label ?? '?'}, E${(b.slot_level ?? 0) + 1}, ${rowAbbr}${(b.slot_column ?? 0) + 1}`
+	if (!b.slot_id) return t('vinarium', 'Parkzone')
+	const level = (b.slot_level ?? 0) + 1
+	const col = (b.slot_column ?? 0) + 1
+	const label = b.compartment_label ?? '?'
+	if (b.slot_row === 'back') {
+		return t('vinarium', '{label}, E{level}, H{col}', { label, level, col })
+	}
+	return t('vinarium', '{label}, E{level}, V{col}', { label, level, col })
 }
 </script>
 

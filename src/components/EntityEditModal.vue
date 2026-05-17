@@ -4,47 +4,47 @@
 			<h2>{{ title }}</h2>
 
 			<template v-if="type === 'producer' && producer">
-				<label class="field"><span>Name *</span><input v-model="producer.name" class="input" /></label>
-				<label class="field"><span>Land</span><input v-model.lazy="producerCountry" class="input" /></label>
-				<label class="field"><span>Region</span><input v-model.lazy="producerRegion" class="input" /></label>
-				<label class="field"><span>Website</span><input v-model.lazy="producerWebsite" class="input" /></label>
-				<label class="field"><span>Notizen</span><textarea v-model.lazy="producerNotes" class="input" rows="3" /></label>
+				<label class="field"><span>{{ t('vinarium', 'Name *') }}</span><input v-model="producer.name" class="input" /></label>
+				<label class="field"><span>{{ t('vinarium', 'Land') }}</span><input v-model.lazy="producerCountry" class="input" /></label>
+				<label class="field"><span>{{ t('vinarium', 'Region') }}</span><input v-model.lazy="producerRegion" class="input" /></label>
+				<label class="field"><span>{{ t('vinarium', 'Website') }}</span><input v-model.lazy="producerWebsite" class="input" /></label>
+				<label class="field"><span>{{ t('vinarium', 'Notizen') }}</span><textarea v-model.lazy="producerNotes" class="input" rows="3" /></label>
 			</template>
 
 			<template v-else-if="type === 'wine' && wine">
-				<label class="field"><span>Name *</span><input v-model="wine.name" class="input" /></label>
-				<label class="field"><span>Farbe *</span>
+				<label class="field"><span>{{ t('vinarium', 'Name *') }}</span><input v-model="wine.name" class="input" /></label>
+				<label class="field"><span>{{ t('vinarium', 'Farbe *') }}</span>
 					<select v-model="wine.color" class="input">
-						<option v-for="c in WINE_COLORS" :key="c" :value="c">{{ WINE_COLOR_LABELS[c] }}</option>
+						<option v-for="c in WINE_COLORS" :key="c" :value="c">{{ t('vinarium', WINE_COLOR_LABELS[c]) }}</option>
 					</select>
 				</label>
-				<label class="field"><span>Appellation</span><input v-model.lazy="wineAppellation" class="input" /></label>
-				<label class="field"><span>Barcode</span><input v-model.lazy="wineBarcode" class="input" /></label>
-				<label class="field"><span>Notizen zur Cuvée</span><textarea v-model.lazy="wineNotes" class="input" rows="3" /></label>
+				<label class="field"><span>{{ t('vinarium', 'Appellation') }}</span><input v-model.lazy="wineAppellation" class="input" /></label>
+				<label class="field"><span>{{ t('vinarium', 'Barcode') }}</span><input v-model.lazy="wineBarcode" class="input" /></label>
+				<label class="field"><span>{{ t('vinarium', 'Notizen zur Cuvée') }}</span><textarea v-model.lazy="wineNotes" class="input" rows="3" /></label>
 			</template>
 
 			<template v-else-if="type === 'vintage' && vintage">
-				<label class="field"><span>Jahr *</span><input v-model.number="vintage.year" type="number" class="input" /></label>
-				<label class="field"><span>Alkohol %</span><input v-model.number="vintageAlcohol" type="number" step="0.1" class="input" /></label>
+				<label class="field"><span>{{ t('vinarium', 'Jahr *') }}</span><input v-model.number="vintage.year" type="number" class="input" /></label>
+				<label class="field"><span>{{ t('vinarium', 'Alkohol %') }}</span><input v-model.number="vintageAlcohol" type="number" step="0.1" class="input" /></label>
 				<label class="field">
-					<span>Rebsorten (jahrgangsspezifisch)</span>
-					<input v-model.lazy="vintageGrapeVarieties" class="input" placeholder="z. B. Merlot 70%, Cabernet Franc 30%" />
+					<span>{{ t('vinarium', 'Rebsorten (jahrgangsspezifisch)') }}</span>
+					<input v-model.lazy="vintageGrapeVarieties" class="input" :placeholder="t('vinarium', 'z. B. Merlot 70%, Cabernet Franc 30%')" />
 				</label>
 				<div class="field-row">
-					<label class="field"><span>Trinken ab (Jahr)</span><input v-model.number="vintageDrinkFromYear" type="number" min="1900" class="input" placeholder="z. B. 2025" /></label>
-					<label class="field"><span>Trinken bis (Jahr)</span><input v-model.number="vintageDrinkUntilYear" type="number" min="1900" class="input" placeholder="z. B. 2032" /></label>
+					<label class="field"><span>{{ t('vinarium', 'Trinken ab (Jahr)') }}</span><input v-model.number="vintageDrinkFromYear" type="number" min="1900" class="input" :placeholder="t('vinarium', 'z. B. 2025')" /></label>
+					<label class="field"><span>{{ t('vinarium', 'Trinken bis (Jahr)') }}</span><input v-model.number="vintageDrinkUntilYear" type="number" min="1900" class="input" :placeholder="t('vinarium', 'z. B. 2032')" /></label>
 				</div>
 				<div class="field-row">
-					<label class="field"><span>Externe Bewertung</span><input v-model.number="vintageExternalRating" type="number" step="0.1" class="input" /></label>
-					<label class="field"><span>Bewertungsquelle</span><input v-model.lazy="vintageRatingSource" class="input" placeholder="z. B. Parker, Vinous" /></label>
+					<label class="field"><span>{{ t('vinarium', 'Externe Bewertung') }}</span><input v-model.number="vintageExternalRating" type="number" step="0.1" class="input" /></label>
+					<label class="field"><span>{{ t('vinarium', 'Bewertungsquelle') }}</span><input v-model.lazy="vintageRatingSource" class="input" :placeholder="t('vinarium', 'z. B. Parker, Vinous')" /></label>
 				</div>
-				<label class="field"><span>Referenz-URL</span><input v-model.lazy="vintageReferenceUrl" class="input" /></label>
-				<label class="field"><span>Beschreibung</span><textarea v-model.lazy="vintageDescription" class="input" rows="3" /></label>
+				<label class="field"><span>{{ t('vinarium', 'Referenz-URL') }}</span><input v-model.lazy="vintageReferenceUrl" class="input" /></label>
+				<label class="field"><span>{{ t('vinarium', 'Beschreibung') }}</span><textarea v-model.lazy="vintageDescription" class="input" rows="3" /></label>
 			</template>
 
 			<div class="actions">
-				<NcButton @click="$emit('close')">Abbrechen</NcButton>
-				<NcButton type="primary" :disabled="saving || !isValid" @click="save">Speichern</NcButton>
+				<NcButton @click="$emit('close')">{{ t('vinarium', 'Abbrechen') }}</NcButton>
+				<NcButton type="primary" :disabled="saving || !isValid" @click="save">{{ t('vinarium', 'Speichern') }}</NcButton>
 			</div>
 		</div>
 	</NcModal>
@@ -52,6 +52,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { translate as t } from '@nextcloud/l10n'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { WINE_COLORS, WINE_COLOR_LABELS, type Producer, type Vintage, type Wine } from '@/types/api'
@@ -134,9 +135,9 @@ const vintageDescription = computed({
 })
 
 const title = computed(() => {
-	if (props.type === 'producer') return 'Weingut bearbeiten'
-	if (props.type === 'wine') return 'Wein bearbeiten'
-	return 'Jahrgang bearbeiten'
+	if (props.type === 'producer') return t('vinarium', 'Weingut bearbeiten')
+	if (props.type === 'wine') return t('vinarium', 'Wein bearbeiten')
+	return t('vinarium', 'Jahrgang bearbeiten')
 })
 
 const isValid = computed(() => {

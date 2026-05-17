@@ -9,107 +9,101 @@
 			<!-- Step 1: Producer -->
 			<section v-if="step === 1" class="wizard__section">
 				<label v-if="store.producers.length > 0" class="field">
-					<span>Bestehendes Weingut</span>
+					<span>{{ t('vinarium', 'Bestehendes Weingut') }}</span>
 					<select v-model.number="producerId" class="input">
-						<option :value="null">-- bitte wählen --</option>
+						<option :value="null">{{ t('vinarium', '-- bitte wählen --') }}</option>
 						<option v-for="p in store.producers" :key="p.id" :value="p.id">{{ p.name }}</option>
 					</select>
 				</label>
 
 				<fieldset class="fieldset">
-					<label class="field"><span>Name *</span><input v-model="form1.name" :disabled="isPicked1" class="input" /></label>
+					<label class="field"><span>{{ t('vinarium', 'Name *') }}</span><input v-model="form1.name" :disabled="isPicked1" class="input" /></label>
 					<div class="field-row">
-						<label class="field"><span>Land</span><input v-model="form1.country" :disabled="isPicked1" class="input" placeholder="z. B. Frankreich" /></label>
-						<label class="field"><span>Region</span><input v-model="form1.region" :disabled="isPicked1" class="input" placeholder="z. B. Bordeaux" /></label>
+						<label class="field"><span>{{ t('vinarium', 'Land') }}</span><input v-model="form1.country" :disabled="isPicked1" class="input" :placeholder="t('vinarium', 'z. B. Frankreich')" /></label>
+						<label class="field"><span>{{ t('vinarium', 'Region') }}</span><input v-model="form1.region" :disabled="isPicked1" class="input" :placeholder="t('vinarium', 'z. B. Bordeaux')" /></label>
 					</div>
-					<label class="field"><span>Website</span><input v-model="form1.website" :disabled="isPicked1" class="input" placeholder="https://..." /></label>
-					<label class="field"><span>Notizen</span><textarea v-model="form1.notes" :disabled="isPicked1" class="input" rows="2" /></label>
+					<label class="field"><span>{{ t('vinarium', 'Website') }}</span><input v-model="form1.website" :disabled="isPicked1" class="input" :placeholder="t('vinarium', 'https://...')" /></label>
+					<label class="field"><span>{{ t('vinarium', 'Notizen') }}</span><textarea v-model="form1.notes" :disabled="isPicked1" class="input" rows="2" /></label>
 				</fieldset>
 			</section>
 
 			<!-- Step 2: Wine -->
 			<section v-else-if="step === 2" class="wizard__section">
-				<p class="hint">
-					Der Wein entspricht einer <em>Cuvée (Name + Farbe)</em>, ohne Jahrgang oder Rebsortenanteile —
-					die variieren pro Jahrgang und gehören in Schritt 3.
-				</p>
+				<p class="hint">{{ t('vinarium', 'Der Wein entspricht einer Cuvée (Name + Farbe), ohne Jahrgang oder Rebsortenanteile — die variieren pro Jahrgang und gehören in Schritt 3.') }}</p>
 				<label v-if="winesForProducer.length > 0" class="field">
-					<span>Bestehender Wein</span>
+					<span>{{ t('vinarium', 'Bestehender Wein') }}</span>
 					<select v-model.number="wineId" class="input">
-						<option :value="null">-- bitte wählen --</option>
-						<option v-for="w in winesForProducer" :key="w.id" :value="w.id">{{ w.name }} ({{ WINE_COLOR_LABELS[w.color] }})</option>
+						<option :value="null">{{ t('vinarium', '-- bitte wählen --') }}</option>
+						<option v-for="w in winesForProducer" :key="w.id" :value="w.id">{{ w.name }} ({{ t('vinarium', WINE_COLOR_LABELS[w.color]) }})</option>
 					</select>
 				</label>
 
 				<fieldset class="fieldset">
-					<label class="field"><span>Name *</span><input v-model="form2.name" :disabled="isPicked2" class="input" placeholder="z. B. Chateau Clos Louie (ohne Jahrgang)" /></label>
+					<label class="field"><span>{{ t('vinarium', 'Name *') }}</span><input v-model="form2.name" :disabled="isPicked2" class="input" :placeholder="t('vinarium', 'z. B. Chateau Clos Louie (ohne Jahrgang)')" /></label>
 					<div class="field-row">
-						<label class="field"><span>Farbe *</span>
+						<label class="field"><span>{{ t('vinarium', 'Farbe *') }}</span>
 							<select v-model="form2.color" :disabled="isPicked2" class="input">
-								<option v-for="c in WINE_COLORS" :key="c" :value="c">{{ WINE_COLOR_LABELS[c] }}</option>
+								<option v-for="c in WINE_COLORS" :key="c" :value="c">{{ t('vinarium', WINE_COLOR_LABELS[c]) }}</option>
 							</select>
 						</label>
-						<label class="field"><span>Appellation</span><input v-model="form2.appellation" :disabled="isPicked2" class="input" placeholder="z. B. Saint-Émilion GC" /></label>
+						<label class="field"><span>{{ t('vinarium', 'Appellation') }}</span><input v-model="form2.appellation" :disabled="isPicked2" class="input" :placeholder="t('vinarium', 'z. B. Saint-Émilion GC')" /></label>
 					</div>
-					<label class="field"><span>Barcode</span><input v-model="form2.barcode" :disabled="isPicked2" class="input" /></label>
-					<label class="field"><span>Notizen zur Cuvée</span><textarea v-model="form2.notes" :disabled="isPicked2" class="input" rows="2" /></label>
+					<label class="field"><span>{{ t('vinarium', 'Barcode') }}</span><input v-model="form2.barcode" :disabled="isPicked2" class="input" /></label>
+					<label class="field"><span>{{ t('vinarium', 'Notizen zur Cuvée') }}</span><textarea v-model="form2.notes" :disabled="isPicked2" class="input" rows="2" /></label>
 				</fieldset>
 			</section>
 
 			<!-- Step 3: Vintage -->
 			<section v-else-if="step === 3" class="wizard__section">
 				<label v-if="vintagesForWine.length > 0" class="field">
-					<span>Bestehender Jahrgang</span>
+					<span>{{ t('vinarium', 'Bestehender Jahrgang') }}</span>
 					<select v-model.number="vintageId" class="input">
-						<option :value="null">-- bitte wählen --</option>
+						<option :value="null">{{ t('vinarium', '-- bitte wählen --') }}</option>
 						<option v-for="v in vintagesForWine" :key="v.id" :value="v.id">{{ v.year }}</option>
 					</select>
 				</label>
 
 				<fieldset class="fieldset">
 					<div class="field-row">
-						<label class="field"><span>Jahr *</span><input v-model.number="form3.year" :disabled="isPicked3" type="number" class="input" /></label>
-						<label class="field"><span>Alkohol %</span><input v-model.number="form3.alcoholPercent" :disabled="isPicked3" type="number" step="0.1" class="input" placeholder="z. B. 13.5" /></label>
+						<label class="field"><span>{{ t('vinarium', 'Jahr *') }}</span><input v-model.number="form3.year" :disabled="isPicked3" type="number" class="input" /></label>
+						<label class="field"><span>{{ t('vinarium', 'Alkohol %') }}</span><input v-model.number="form3.alcoholPercent" :disabled="isPicked3" type="number" step="0.1" class="input" :placeholder="t('vinarium', 'z. B. 92')" /></label>
 					</div>
 					<label class="field">
-						<span>Rebsorten (jahrgangsspezifisch)</span>
-						<input v-model="form3.grapeVarieties" :disabled="isPicked3" class="input" placeholder="z. B. Merlot 70%, Cabernet Franc 30%" />
+						<span>{{ t('vinarium', 'Rebsorten (jahrgangsspezifisch)') }}</span>
+						<input v-model="form3.grapeVarieties" :disabled="isPicked3" class="input" :placeholder="t('vinarium', 'z. B. Merlot 70%, Cabernet Franc 30%')" />
 					</label>
 					<div class="field-row">
-						<label class="field"><span>Trinken ab (Jahr)</span><input v-model.number="form3.drinkFromYear" :disabled="isPicked3" type="number" min="1900" class="input" placeholder="z. B. 2025" /></label>
-						<label class="field"><span>Trinken bis (Jahr)</span><input v-model.number="form3.drinkUntilYear" :disabled="isPicked3" type="number" min="1900" class="input" placeholder="z. B. 2032" /></label>
+						<label class="field"><span>{{ t('vinarium', 'Trinken ab (Jahr)') }}</span><input v-model.number="form3.drinkFromYear" :disabled="isPicked3" type="number" min="1900" class="input" :placeholder="t('vinarium', 'z. B. 2025')" /></label>
+						<label class="field"><span>{{ t('vinarium', 'Trinken bis (Jahr)') }}</span><input v-model.number="form3.drinkUntilYear" :disabled="isPicked3" type="number" min="1900" class="input" :placeholder="t('vinarium', 'z. B. 2032')" /></label>
 					</div>
 					<div class="field-row">
-						<label class="field"><span>Externe Bewertung</span><input v-model.number="form3.externalRating" :disabled="isPicked3" type="number" step="0.1" class="input" placeholder="z. B. 92" /></label>
-						<label class="field"><span>Quelle</span><input v-model="form3.externalRatingSource" :disabled="isPicked3" class="input" placeholder="z. B. Parker" /></label>
+						<label class="field"><span>{{ t('vinarium', 'Externe Bewertung') }}</span><input v-model.number="form3.externalRating" :disabled="isPicked3" type="number" step="0.1" class="input" :placeholder="t('vinarium', 'z. B. 92')" /></label>
+						<label class="field"><span>{{ t('vinarium', 'Quelle') }}</span><input v-model="form3.externalRatingSource" :disabled="isPicked3" class="input" :placeholder="t('vinarium', 'z. B. Parker')" /></label>
 					</div>
-					<label class="field"><span>Referenz-URL</span><input v-model="form3.referenceUrl" :disabled="isPicked3" class="input" /></label>
-					<label class="field"><span>Beschreibung</span><textarea v-model="form3.description" :disabled="isPicked3" class="input" rows="2" /></label>
+					<label class="field"><span>{{ t('vinarium', 'Referenz-URL') }}</span><input v-model="form3.referenceUrl" :disabled="isPicked3" class="input" /></label>
+					<label class="field"><span>{{ t('vinarium', 'Beschreibung') }}</span><textarea v-model="form3.description" :disabled="isPicked3" class="input" rows="2" /></label>
 				</fieldset>
 			</section>
 
 			<!-- Step 4: Purchase -->
 			<section v-else-if="step === 4" class="wizard__section">
-				<p class="hint">
-					Hier landet der eigentliche Kauf: <em>Anzahl Flaschen</em>, Flaschengröße, optional Händler/Preis.
-					Die Flaschen kommen automatisch in die Parkzone.
-				</p>
+				<p class="hint">{{ t('vinarium', 'Hier landet der eigentliche Kauf: Anzahl Flaschen, Flaschengröße, optional Händler/Preis. Die Flaschen kommen automatisch in die Parkzone.') }}</p>
 				<fieldset class="fieldset">
 					<div class="field-row">
-						<label class="field"><span>Kaufdatum *</span><input v-model="form4.purchasedAt" type="date" class="input" /></label>
-						<label class="field"><span>Anzahl Flaschen *</span><input v-model.number="form4.quantity" type="number" min="1" class="input" /></label>
+						<label class="field"><span>{{ t('vinarium', 'Kaufdatum *') }}</span><input v-model="form4.purchasedAt" type="date" class="input" /></label>
+						<label class="field"><span>{{ t('vinarium', 'Anzahl Flaschen *') }}</span><input v-model.number="form4.quantity" type="number" min="1" class="input" /></label>
 					</div>
 					<div class="field-row">
-						<label class="field"><span>Flaschengröße *</span>
+						<label class="field"><span>{{ t('vinarium', 'Flaschengröße *') }}</span>
 							<select v-model.number="form4.bottleSizeMl" class="input">
-								<option v-for="size in BOTTLE_SIZES" :key="size" :value="size">{{ BOTTLE_SIZE_LABELS[size] }}</option>
+								<option v-for="size in BOTTLE_SIZES" :key="size" :value="size">{{ t('vinarium', BOTTLE_SIZE_LABELS[size]) }}</option>
 							</select>
 						</label>
-						<label class="field"><span>Händler</span><input v-model="form4.vendor" class="input" placeholder="z. B. Weinhandlung Müller" /></label>
+						<label class="field"><span>{{ t('vinarium', 'Händler') }}</span><input v-model="form4.vendor" class="input" :placeholder="t('vinarium', 'z. B. Weinhandlung Müller')" /></label>
 					</div>
 					<div class="field-row">
-						<label class="field"><span>Stückpreis</span><input v-model.number="form4.unitPrice" type="number" step="0.01" class="input" placeholder="z. B. 24.50" /></label>
-						<label class="field"><span>Währung</span>
+						<label class="field"><span>{{ t('vinarium', 'Stückpreis') }}</span><input v-model.number="form4.unitPrice" type="number" step="0.01" class="input" /></label>
+						<label class="field"><span>{{ t('vinarium', 'Währung') }}</span>
 							<select v-model="form4.currency" class="input">
 								<option value="EUR">EUR</option>
 								<option value="USD">USD</option>
@@ -118,20 +112,20 @@
 							</select>
 						</label>
 					</div>
-					<label class="field"><span>Notizen</span><textarea v-model="form4.notes" class="input" rows="2" /></label>
+					<label class="field"><span>{{ t('vinarium', 'Notizen') }}</span><textarea v-model="form4.notes" class="input" rows="2" /></label>
 				</fieldset>
 			</section>
 
 			<p v-if="errorMsg" class="error">{{ errorMsg }}</p>
 
 			<div class="wizard__actions">
-				<NcButton @click="cancel">Abbrechen</NcButton>
-				<NcButton v-if="step > 1" @click="step--">Zurück</NcButton>
+				<NcButton @click="cancel">{{ t('vinarium', 'Abbrechen') }}</NcButton>
+				<NcButton v-if="step > 1" @click="step--">{{ t('vinarium', 'Zurück') }}</NcButton>
 				<NcButton v-if="step < 4" type="primary" :disabled="!canAdvance || saving" @click="advance">
-					Weiter
+					{{ t('vinarium', 'Weiter') }}
 				</NcButton>
 				<NcButton v-if="step === 4" type="primary" :disabled="!isValidPurchase || saving" @click="complete">
-					Fertig (Kauf erfassen)
+					{{ t('vinarium', 'Fertig (Kauf erfassen)') }}
 				</NcButton>
 			</div>
 		</div>
@@ -140,6 +134,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { translate as t } from '@nextcloud/l10n'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { BOTTLE_SIZES, BOTTLE_SIZE_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleSizeMl, type WineColor } from '@/types/api'
@@ -186,7 +181,13 @@ const form4 = ref<{
 	vendor: '', unitPrice: null, currency: 'EUR', quantity: 6, bottleSizeMl: 750, notes: '',
 })
 
-const titles = { 1: 'Schritt 1: Weingut', 2: 'Schritt 2: Wein', 3: 'Schritt 3: Jahrgang', 4: 'Schritt 4: Kauf' } as const
+const titles = computed(() => ({
+	1: t('vinarium', 'Schritt 1: Weingut'),
+	2: t('vinarium', 'Schritt 2: Wein'),
+	3: t('vinarium', 'Schritt 3: Jahrgang'),
+	4: t('vinarium', 'Schritt 4: Kauf'),
+} as const))
+
 const winesForProducer = computed(() => (producerId.value ? store.winesByProducer(producerId.value) : []))
 const vintagesForWine = computed(() => (wineId.value ? store.vintagesByWine(wineId.value) : []))
 
@@ -315,7 +316,7 @@ async function advance() {
 		}
 		step.value++
 	} catch (e: any) {
-		errorMsg.value = e?.message ?? 'Speichern fehlgeschlagen'
+		errorMsg.value = e?.message ?? t('vinarium', 'Speichern fehlgeschlagen')
 	} finally {
 		saving.value = false
 	}
@@ -341,7 +342,7 @@ async function complete() {
 		emit('complete', { purchaseId: result.purchase.id, bottleCount: result.bottles.length })
 		emit('close')
 	} catch (e: any) {
-		errorMsg.value = e?.message ?? 'Kauf konnte nicht erfasst werden'
+		errorMsg.value = e?.message ?? t('vinarium', 'Kauf konnte nicht erfasst werden')
 	} finally {
 		saving.value = false
 	}
@@ -427,11 +428,6 @@ async function complete() {
 	margin-bottom: 1rem;
 	font-size: 0.9rem;
 	color: var(--color-text-maxcontrast);
-}
-.hint em {
-	color: var(--color-main-text);
-	font-style: normal;
-	font-weight: 500;
 }
 .error {
 	padding: 0.75rem;

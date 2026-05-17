@@ -1,54 +1,54 @@
 <template>
 	<div class="dashboard">
-		<h2>Dashboard</h2>
+		<h2>{{ t('vinarium', 'Dashboard') }}</h2>
 
 		<div v-if="stats" class="widgets">
 			<div class="widget">
 				<div class="widget__value">{{ stats.inStorage }}</div>
-				<div class="widget__label">Im Bestand</div>
+				<div class="widget__label">{{ t('vinarium', 'Im Bestand') }}</div>
 			</div>
 			<div class="widget">
 				<div class="widget__value">{{ stats.consumed }}</div>
-				<div class="widget__label">Getrunken</div>
+				<div class="widget__label">{{ t('vinarium', 'Getrunken') }}</div>
 			</div>
 			<div class="widget">
 				<div class="widget__value">{{ stats.parked }}</div>
-				<div class="widget__label">In Parkzone</div>
+				<div class="widget__label">{{ t('vinarium', 'In Parkzone') }}</div>
 			</div>
 			<div class="widget">
 				<div class="widget__value">{{ stats.totalBottles }}</div>
-				<div class="widget__label">Gesamt</div>
+				<div class="widget__label">{{ t('vinarium', 'Gesamt') }}</div>
 			</div>
 		</div>
 
 		<div v-if="stats" class="sections">
 			<section v-if="Object.keys(stats.colorDistribution).length > 0" class="section">
-				<h3>Farb-Verteilung</h3>
+				<h3>{{ t('vinarium', 'Farb-Verteilung') }}</h3>
 				<div class="color-bars">
 					<div v-for="(count, color) in stats.colorDistribution" :key="color" class="color-bar">
 						<div class="color-bar__fill" :style="{ background: cssColorFor(color as any), width: barWidth(count) }"></div>
-						<span class="color-bar__label">{{ WINE_COLOR_LABELS[color as WineColor] ?? color }} ({{ count }})</span>
+						<span class="color-bar__label">{{ t('vinarium', WINE_COLOR_LABELS[color as WineColor] ?? color) }} ({{ count }})</span>
 					</div>
 				</div>
 			</section>
 
 			<section v-if="stats.drinkSoon.length > 0" class="section">
-				<h3>Bald trinken</h3>
+				<h3>{{ t('vinarium', 'Bald trinken') }}</h3>
 				<ul class="drink-soon">
 					<li v-for="(d, i) in stats.drinkSoon" :key="i">
 						<strong>{{ d.producer_name }}</strong> · {{ d.wine_name }} {{ d.year }}
-						— bis {{ d.drink_until_year }} ({{ d.bottle_count }}×)
+						— {{ t('vinarium', 'bis {year} ({count}×)', { year: d.drink_until_year, count: d.bottle_count }) }}
 					</li>
 				</ul>
 			</section>
 
 			<section v-if="stats.recentTastings.length > 0" class="section">
-				<h3>Letzte Verkostungen</h3>
+				<h3>{{ t('vinarium', 'Letzte Verkostungen') }}</h3>
 				<ul class="recent">
-					<li v-for="(t, i) in stats.recentTastings" :key="i">
-						<strong>{{ t.wine_name }} {{ t.year }}</strong>
-						<span v-if="t.rating" class="rating">{{ Number(t.rating).toFixed(1) }}</span>
-						<span class="muted"> · {{ t.producer_name }}</span>
+					<li v-for="(tasting, i) in stats.recentTastings" :key="i">
+						<strong>{{ tasting.wine_name }} {{ tasting.year }}</strong>
+						<span v-if="tasting.rating" class="rating">{{ Number(tasting.rating).toFixed(1) }}</span>
+						<span class="muted"> · {{ tasting.producer_name }}</span>
 					</li>
 				</ul>
 			</section>
@@ -57,13 +57,14 @@
 		<p v-if="errorMsg" class="error">{{ errorMsg }}</p>
 
 		<div class="export">
-			<a :href="csvUrl" class="export-link">CSV-Export herunterladen</a>
+			<a :href="csvUrl" class="export-link">{{ t('vinarium', 'CSV-Export herunterladen') }}</a>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { translate as t } from '@nextcloud/l10n'
 import { fetchStats, exportCsvUrl, type DashboardStats } from '@/api/dashboard'
 import { WINE_COLOR_LABELS, type WineColor } from '@/types/api'
 

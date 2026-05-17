@@ -1,36 +1,36 @@
 <template>
 	<div class="tastings-view">
-		<h2>Verkostungen</h2>
-		<p v-if="loading" class="muted">Laden...</p>
-		<p v-else-if="tastings.length === 0" class="empty">Noch keine Verkostungen erfasst.</p>
+		<h2>{{ t('vinarium', 'Verkostungen') }}</h2>
+		<p v-if="loading" class="muted">{{ t('vinarium', 'Laden...') }}</p>
+		<p v-else-if="tastings.length === 0" class="empty">{{ t('vinarium', 'Noch keine Verkostungen erfasst.') }}</p>
 		<table v-else class="tastings-table">
 			<thead>
 				<tr>
-					<th>Datum</th>
-					<th>Weingut</th>
-					<th>Wein</th>
-					<th>Jahrgang</th>
-					<th>Bewertung</th>
-					<th>Anlass</th>
-					<th>Notizen</th>
+					<th>{{ t('vinarium', 'Datum') }}</th>
+					<th>{{ t('vinarium', 'Weingut') }}</th>
+					<th>{{ t('vinarium', 'Wein') }}</th>
+					<th>{{ t('vinarium', 'Jahrgang') }}</th>
+					<th>{{ t('vinarium', 'Bewertung') }}</th>
+					<th>{{ t('vinarium', 'Anlass') }}</th>
+					<th>{{ t('vinarium', 'Notizen') }}</th>
 				</tr>
 			</thead>
 			<tbody>
-				<tr v-for="t in tastings" :key="t.id" @click="openEdit(t)">
-					<td>{{ formatDate(t.tasted_at) }}</td>
-					<td class="wrap-cell producer-cell">{{ t.producer_name }}</td>
+				<tr v-for="tasting in tastings" :key="tasting.id" @click="openEdit(tasting)">
+					<td>{{ formatDate(tasting.tasted_at) }}</td>
+					<td class="wrap-cell producer-cell">{{ tasting.producer_name }}</td>
 					<td>
-						<span class="dot" :style="{ background: cssColorFor(t.wine_color) }"></span>
-						{{ t.wine_name }}
+						<span class="dot" :style="{ background: cssColorFor(tasting.wine_color) }"></span>
+						{{ tasting.wine_name }}
 					</td>
-					<td>{{ t.year }}</td>
+					<td>{{ tasting.year }}</td>
 					<td>
-						<span v-if="t.rating !== null" class="rating">{{ Number(t.rating).toFixed(1) }}</span>
+						<span v-if="tasting.rating !== null" class="rating">{{ Number(tasting.rating).toFixed(1) }}</span>
 						<span v-else class="muted">—</span>
 					</td>
-					<td class="wrap-cell occasion-cell">{{ t.occasion ?? '—' }}</td>
+					<td class="wrap-cell occasion-cell">{{ tasting.occasion ?? '—' }}</td>
 					<td class="notes-cell">
-						<div class="notes-text">{{ t.notes ?? '—' }}</div>
+						<div class="notes-text">{{ tasting.notes ?? '—' }}</div>
 					</td>
 				</tr>
 			</tbody>
@@ -47,9 +47,10 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
+import { translate as t } from '@nextcloud/l10n'
+import moment from '@nextcloud/moment'
 import { listAllTastings, type TastingListItem } from '@/api/tastings'
 import TastingDialog from '@/components/TastingDialog.vue'
-import type { WineColor } from '@/types/api'
 
 const tastings = ref<TastingListItem[]>([])
 const loading = ref(true)
@@ -65,7 +66,7 @@ function openEdit(tasting: TastingListItem) {
 }
 
 function onUpdated(updated: TastingListItem) {
-	const idx = tastings.value.findIndex(t => t.id === updated.id)
+	const idx = tastings.value.findIndex(item => item.id === updated.id)
 	if (idx !== -1) tastings.value[idx] = updated
 }
 
@@ -78,7 +79,7 @@ onMounted(async () => {
 })
 
 function formatDate(iso: string): string {
-	try { return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }) }
+	try { return moment(iso).format('L') }
 	catch { return iso }
 }
 

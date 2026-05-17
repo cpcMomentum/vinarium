@@ -1,31 +1,31 @@
 <template>
-	<NcDialog :open="open" name="Neues Regal anlegen" @update:open="$emit('close')">
+	<NcDialog :open="open" :name="t('vinarium', 'Neues Regal anlegen')" @update:open="$emit('close')">
 		<div class="wizard">
 			<!-- Step 1: Name + Fächer -->
 			<div v-if="step === 1" class="wizard__step">
-				<h3 class="wizard__title">Regal-Grunddaten</h3>
+				<h3 class="wizard__title">{{ t('vinarium', 'Regal-Grunddaten') }}</h3>
 				<label class="wizard__label">
-					Name des Regals
+					{{ t('vinarium', 'Name des Regals') }}
 					<input v-model="name" type="text" class="wizard__input" placeholder="z. B. Holzregal Keller" />
 				</label>
 				<label class="wizard__label">
-					Anzahl Fächer (1–20)
+					{{ t('vinarium', 'Anzahl Fächer (1–20)') }}
 					<input v-model.number="compartmentCount" type="number" min="1" max="20" class="wizard__input wizard__input--short" />
 				</label>
 			</div>
 
 			<!-- Step 2: Ebenen konfigurieren -->
 			<div v-else-if="step === 2" class="wizard__step">
-				<h3 class="wizard__title">Ebenen konfigurieren</h3>
-				<p class="wizard__hint">Diese Konfiguration gilt für alle {{ compartmentCount }} Fächer.</p>
+				<h3 class="wizard__title">{{ t('vinarium', 'Ebenen konfigurieren') }}</h3>
+				<p class="wizard__hint">{{ t('vinarium', 'Diese Konfiguration gilt für alle {n} Fächer.', { n: compartmentCount }) }}</p>
 				<div class="levels-config">
 					<div class="levels-config__header">
-						<span>Ebene</span>
-						<span>Vorne</span>
-						<span>Hinten (leer = keine)</span>
+						<span>{{ t('vinarium', 'Ebene') }}</span>
+						<span>{{ t('vinarium', 'Vorne') }}</span>
+						<span>{{ t('vinarium', 'Hinten (leer = keine)') }}</span>
 					</div>
 					<div v-for="(level, idx) in levelsConfig" :key="idx" class="levels-config__row">
-						<span class="levels-config__label">Ebene {{ idx + 1 }}</span>
+						<span class="levels-config__label">{{ t('vinarium', 'Ebene {n}', { n: idx + 1 }) }}</span>
 						<input v-model.number="level.columnsFront" type="number" min="1" max="30" class="wizard__input wizard__input--short" />
 						<input
 							:value="level.columnsBack ?? ''"
@@ -38,19 +38,19 @@
 						/>
 						<button v-if="levelsConfig.length > 1" class="levels-config__remove" @click="removeLevel(idx)">✕</button>
 					</div>
-					<button class="wizard__add-level" @click="addLevel">+ Ebene hinzufügen</button>
+					<button class="wizard__add-level" @click="addLevel">{{ t('vinarium', '+ Ebene hinzufügen') }}</button>
 				</div>
 			</div>
 
 			<!-- Step 3: Zusammenfassung -->
 			<div v-else-if="step === 3" class="wizard__step">
-				<h3 class="wizard__title">Zusammenfassung</h3>
+				<h3 class="wizard__title">{{ t('vinarium', 'Zusammenfassung') }}</h3>
 				<table class="wizard__summary">
-					<tr><td>Name</td><td><strong>{{ name }}</strong></td></tr>
-					<tr><td>Fächer</td><td><strong>{{ compartmentCount }}</strong></td></tr>
-					<tr><td>Ebenen</td><td><strong>{{ levelsConfig.length }}</strong></td></tr>
+					<tr><td>{{ t('vinarium', 'Name') }}</td><td><strong>{{ name }}</strong></td></tr>
+					<tr><td>{{ t('vinarium', 'Fächer') }}</td><td><strong>{{ compartmentCount }}</strong></td></tr>
+					<tr><td>{{ t('vinarium', 'Ebenen') }}</td><td><strong>{{ levelsConfig.length }}</strong></td></tr>
 					<tr>
-						<td>Slots gesamt</td>
+						<td>{{ t('vinarium', 'Slots gesamt') }}</td>
 						<td><strong>{{ totalSlots }}</strong></td>
 					</tr>
 				</table>
@@ -60,10 +60,10 @@
 		</div>
 
 		<template #actions>
-			<NcButton v-if="step > 1" type="secondary" :disabled="saving" @click="step--">Zurück</NcButton>
-			<NcButton v-if="step < 3" type="primary" :disabled="!canProceed" @click="step++">Weiter</NcButton>
+			<NcButton v-if="step > 1" type="secondary" :disabled="saving" @click="step--">{{ t('vinarium', 'Zurück') }}</NcButton>
+			<NcButton v-if="step < 3" type="primary" :disabled="!canProceed" @click="step++">{{ t('vinarium', 'Weiter') }}</NcButton>
 			<NcButton v-else type="primary" :disabled="saving" @click="submit">
-				{{ saving ? 'Wird angelegt…' : 'Regal anlegen' }}
+				{{ saving ? t('vinarium', 'Wird angelegt…') : t('vinarium', 'Regal anlegen') }}
 			</NcButton>
 		</template>
 	</NcDialog>
@@ -71,6 +71,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { translate as t } from '@nextcloud/l10n'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { createShelf, type LevelConfig } from '@/api/cellar'
@@ -138,7 +139,7 @@ async function submit() {
 		emit('created')
 		emit('close')
 	} catch (e: any) {
-		errorMsg.value = e?.message ?? 'Fehler beim Anlegen'
+		errorMsg.value = e?.message ?? t('vinarium', 'Fehler beim Anlegen')
 	} finally {
 		saving.value = false
 	}
