@@ -2,7 +2,7 @@
 	<div class="inventory-view">
 		<header class="inventory-view__header">
 			<h2>{{ t('vinarium', 'Bestand') }}</h2>
-			<span class="count">{{ t('vinarium', '{count} Flaschen', { count: store.totalCount }) }}</span>
+			<span class="count">{{ n('vinarium', '{count} Flasche', '{count} Flaschen', store.totalCount, { count: store.totalCount }) }}</span>
 		</header>
 
 		<section class="filters">
@@ -65,7 +65,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { translate as t } from '@nextcloud/l10n'
+import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import TastingDialog from '@/components/TastingDialog.vue'
 import { BOTTLE_STATUS_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleStatus, type WineColor } from '@/types/api'
