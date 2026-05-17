@@ -128,6 +128,20 @@ class PhotoService {
 	}
 
 	/**
+	 * Delete all photos for a tasting (the entire tasting subfolder).
+	 */
+	public function deleteTastingFolder(string $userId, int $tastingId): void {
+		$userFolder = $this->rootFolder->getUserFolder($userId);
+		$path = self::TASTINGS_DIR . '/' . $tastingId;
+		try {
+			$node = $userFolder->get($path);
+			$node->delete();
+		} catch (FilesNotFoundException) {
+			// nothing to do
+		}
+	}
+
+	/**
 	 * Delete a specific tasting photo by its NC file ID.
 	 * Verifies the file belongs to the expected tasting folder.
 	 */
