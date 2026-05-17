@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import type { Tasting } from '@/types/api'
+import type { Tasting, WineColor } from '@/types/api'
 import { apiDelete, apiGet, apiPatch, apiPost } from './client'
 
 export interface TastingListItem {
@@ -15,7 +15,7 @@ export interface TastingListItem {
 	occasion: string | null
 	companions: string | null
 	wine_name: string
-	wine_color: string
+	wine_color: WineColor
 	year: number
 	producer_name: string
 }

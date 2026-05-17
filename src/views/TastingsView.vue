@@ -95,7 +95,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import { listAllTastings, type TastingListItem } from '@/api/tastings'
 import { listBottles } from '@/api/bottles'
-import type { BottleListItem } from '@/types/api'
+import type { BottleListItem, WineColor } from '@/types/api'
 import TastingDialog from '@/components/TastingDialog.vue'
 
 const tastings = ref<TastingListItem[]>([])
@@ -161,8 +161,8 @@ function formatDate(iso: string): string {
 	catch { return iso }
 }
 
-function cssColorFor(color: string): string {
-	const palette: Record<string, string> = {
+function cssColorFor(color: WineColor): string {
+	const palette: Record<WineColor, string> = {
 		red: '#7a1c1c', white: '#e8d57a', rose: '#e8a3b8',
 		sparkling: '#fff7c0', dessert: '#c2934e', fortified: '#4a1010',
 	}
