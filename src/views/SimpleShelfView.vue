@@ -424,14 +424,9 @@ async function reload() {
 }
 
 async function loadAllSlots() {
-	const slots: Slot[] = []
-	for (const entry of shelves.value) {
-		for (const compData of entry.compartments) {
-			const compSlots = await fetchSlots(compData.compartment.id)
-			slots.push(...compSlots)
-		}
-	}
-	allSlots.value = slots
+	const ids = shelves.value.flatMap(e => e.compartments.map(c => c.compartment.id))
+	const results = await Promise.all(ids.map(id => fetchSlots(id)))
+	allSlots.value = results.flat()
 }
 
 async function createDefault() {
