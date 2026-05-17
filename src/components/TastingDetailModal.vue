@@ -3,6 +3,9 @@
 		<div v-if="loading" class="detail-modal detail-modal--loading">
 			<p class="muted">{{ t('vinarium', 'Laden...') }}</p>
 		</div>
+		<div v-else-if="error" class="detail-modal detail-modal--loading">
+			<p class="error-text">{{ t('vinarium', 'Fehler beim Laden der Verkostung.') }}</p>
+		</div>
 		<div v-else-if="detail" class="detail-modal">
 			<!-- Header -->
 			<div class="detail-modal__header">
@@ -116,13 +119,17 @@ const emit = defineEmits<{
 
 const detail = ref<TastingDetail | null>(null)
 const loading = ref(false)
+const error = ref(false)
 
 watch([() => props.open, () => props.tastingId], async () => {
 	if (!props.open || props.tastingId === null) return
 	loading.value = true
 	detail.value = null
+	error.value = false
 	try {
 		detail.value = await getTastingDetails(props.tastingId)
+	} catch {
+		error.value = true
 	} finally {
 		loading.value = false
 	}
@@ -131,8 +138,11 @@ watch([() => props.open, () => props.tastingId], async () => {
 async function navigateTo(id: number) {
 	loading.value = true
 	detail.value = null
+	error.value = false
 	try {
 		detail.value = await getTastingDetails(id)
+	} catch {
+		error.value = true
 	} finally {
 		loading.value = false
 	}
@@ -281,6 +291,9 @@ function cssColorFor(color: string): string {
 }
 .muted {
 	color: var(--color-text-maxcontrast);
+}
+.error-text {
+	color: var(--color-error);
 }
 .detail-modal__actions {
 	display: flex;
