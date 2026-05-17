@@ -141,6 +141,7 @@ class BottleService {
 			'purchase_id' => (int)$row['purchase_id'],
 			'slot_id' => $row['slot_id'] !== null ? (int)$row['slot_id'] : null,
 			'status' => $row['status'],
+			'photo_file_id' => $row['photo_file_id'] !== null ? (int)$row['photo_file_id'] : null,
 			'notes' => $row['notes'],
 			'wine_name' => $row['wine_name'],
 			'wine_color' => $row['wine_color'],
@@ -163,6 +164,10 @@ class BottleService {
 			'slot_column' => $row['slot_column'] !== null ? (int)$row['slot_column'] : null,
 			'compartment_label' => $row['compartment_label'],
 		];
+	}
+
+	public function update(Bottle $bottle): Bottle {
+		return $this->bottleMapper->update($bottle);
 	}
 
 	public function delete(int $id, string $userId): Bottle {

@@ -4,7 +4,7 @@
  */
 
 import type { Bottle, BottleFilter, BottleListItem } from '@/types/api'
-import { apiDelete, apiGet, apiPatch, apiPost } from './client'
+import { apiDelete, apiGet, apiPatch, apiPost, apiUrl } from './client'
 
 function buildQuery(filter: BottleFilter): string {
 	const params = new URLSearchParams()
@@ -21,6 +21,7 @@ export interface BottleDetail {
 	purchase_id: number
 	slot_id: number | null
 	status: string
+	photo_file_id: number | null
 	notes: string | null
 	wine_name: string
 	wine_color: string
@@ -46,6 +47,24 @@ export interface BottleDetail {
 
 export const getBottleDetails = (id: number): Promise<BottleDetail> =>
 	apiGet<BottleDetail>(`/bottles/${id}/details`)
+
+export async function uploadBottlePhoto(id: number, file: File): Promise<{ photo_file_id: number }> {
+	const axios = (await import('@nextcloud/axios')).default
+	const { generateUrl } = await import('@nextcloud/router')
+	const url = generateUrl(`/apps/vinarium/api/v1/bottles/${id}/photo`)
+	const form = new FormData()
+	form.append('photo', file)
+	const { data } = await axios.post<{ photo_file_id: number }>(url, form, {
+		headers: { 'Content-Type': 'multipart/form-data' },
+	})
+	return data
+}
+
+export const deleteBottlePhoto = (id: number): Promise<void> =>
+	apiDelete(`/bottles/${id}/photo`)
+
+export const getBottlePhotoUrl = (id: number): string =>
+	apiUrl(`/bottles/${id}/photo`)
 
 export const listBottles = (filter: BottleFilter = {}): Promise<BottleListItem[]> =>
 	apiGet<BottleListItem[]>(`/bottles${buildQuery(filter)}`)

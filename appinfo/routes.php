@@ -49,7 +49,10 @@ return [
 		['name' => 'purchase#destroy', 'url' => '/api/v1/purchases/{id}', 'verb' => 'DELETE'],
 
 		// Bottles
-		['name' => 'bottle#details', 'url' => '/api/v1/bottles/{id}/details', 'verb' => 'GET'],
+		['name' => 'bottle#details',      'url' => '/api/v1/bottles/{id}/details',   'verb' => 'GET'],
+		['name' => 'bottle#uploadPhoto',  'url' => '/api/v1/bottles/{id}/photo',     'verb' => 'POST'],
+		['name' => 'bottle#deletePhoto',  'url' => '/api/v1/bottles/{id}/photo',     'verb' => 'DELETE'],
+		['name' => 'bottle#getPhoto',     'url' => '/api/v1/bottles/{id}/photo',     'verb' => 'GET'],
 		['name' => 'bottle#index',   'url' => '/api/v1/bottles',           'verb' => 'GET'],
 		['name' => 'bottle#parked',  'url' => '/api/v1/bottles/parked',    'verb' => 'GET'],
 		['name' => 'bottle#show',    'url' => '/api/v1/bottles/{id}',      'verb' => 'GET'],

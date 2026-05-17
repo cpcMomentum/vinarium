@@ -184,7 +184,14 @@ OC.L10N.register(
     "Kaufdetails": "Purchase details",
     "Weitere Verkostungen dieses Weins": "Other tastings of this wine",
     "Vom gleichen Weingut": "From the same producer",
-    "Schließen": "Close"
+    "Schließen": "Close",
+    "Kein Foto": "No photo",
+    "Foto hinzufügen": "Add photo",
+    "Ersetzen": "Replace",
+    "Foto entfernen": "Remove photo",
+    "Foto hochladen": "Upload photo",
+    "Upload fehlgeschlagen": "Upload failed",
+    "Entfernen fehlgeschlagen": "Remove failed"
     },
     "nplurals=2; plural=(n != 1);"
 );

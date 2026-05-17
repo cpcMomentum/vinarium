@@ -14,9 +14,11 @@ use OCA\Vinarium\Exception\NotFoundException;
 use OCA\Vinarium\Exception\PermissionDeniedException;
 use OCA\Vinarium\Exception\SlotOccupiedException;
 use OCA\Vinarium\Service\BottleService;
+use OCA\Vinarium\Service\PhotoService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\DataDisplayResponse;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
 
@@ -26,6 +28,7 @@ class BottleController extends Controller {
 		IRequest $request,
 		private readonly ?string $userId,
 		private readonly BottleService $bottleService,
+		private readonly PhotoService $photoService,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -71,6 +74,62 @@ class BottleController extends Controller {
 		}
 		try {
 			return new DataResponse($this->bottleService->getDetails($id, $this->userId));
+		} catch (NotFoundException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
+		}
+	}
+
+	#[NoAdminRequired]
+	public function uploadPhoto(int $id): DataResponse {
+		if ($this->userId === null) {
+			return $this->unauthorized();
+		}
+		$file = $this->request->getUploadedFile('photo');
+		if (empty($file) || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+			return new DataResponse(['error' => 'Keine Datei übermittelt'], Http::STATUS_BAD_REQUEST);
+		}
+		try {
+			$bottle = $this->bottleService->get($id, $this->userId);
+			$content = (string)file_get_contents($file['tmp_name']);
+			$mimeType = mime_content_type($file['tmp_name']) ?: 'application/octet-stream';
+			$fileId = $this->photoService->saveBottlePhoto($this->userId, $id, $content, $mimeType);
+			$bottle->setPhotoFileId($fileId);
+			$this->bottleService->update($bottle);
+			return new DataResponse(['photo_file_id' => $fileId]);
+		} catch (NotFoundException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
+		} catch (\InvalidArgumentException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
+		}
+	}
+
+	#[NoAdminRequired]
+	public function deletePhoto(int $id): DataResponse {
+		if ($this->userId === null) {
+			return $this->unauthorized();
+		}
+		try {
+			$bottle = $this->bottleService->get($id, $this->userId);
+			$this->photoService->deleteBottlePhoto($this->userId, $id);
+			$bottle->setPhotoFileId(null);
+			$this->bottleService->update($bottle);
+			return new DataResponse(null, Http::STATUS_NO_CONTENT);
+		} catch (NotFoundException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
+		}
+	}
+
+	#[NoAdminRequired]
+	public function getPhoto(int $id): DataResponse|DataDisplayResponse {
+		if ($this->userId === null) {
+			return $this->unauthorized();
+		}
+		try {
+			$this->bottleService->get($id, $this->userId);
+			$photo = $this->photoService->serveBottlePhoto($this->userId, $id);
+			$response = new DataDisplayResponse($photo['content'], Http::STATUS_OK, ['Content-Type' => $photo['mimeType']]);
+			$response->cacheFor(3600);
+			return $response;
 		} catch (NotFoundException $e) {
 			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
 		}

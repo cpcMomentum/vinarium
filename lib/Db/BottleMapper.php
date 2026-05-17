@@ -113,7 +113,7 @@ class BottleMapper extends QBMapper {
 	public function findDetails(int $id, string $userId): ?array {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select(
-			'b.id', 'b.purchase_id', 'b.slot_id', 'b.status', 'b.notes',
+			'b.id', 'b.purchase_id', 'b.slot_id', 'b.status', 'b.photo_file_id', 'b.notes',
 			'v.year', 'v.grape_varieties', 'v.drink_from_year', 'v.drink_until_year',
 			'v.alcohol_percent', 'v.external_rating', 'v.external_rating_source',
 			'w.name AS wine_name', 'w.color AS wine_color', 'w.appellation',
