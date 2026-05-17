@@ -48,9 +48,10 @@ export async function apiPatch<T, B = unknown>(path: string, body: B): Promise<T
 	}
 }
 
-export async function apiDelete(path: string): Promise<void> {
+export async function apiDelete<T = void>(path: string): Promise<T> {
 	try {
-		await axios.delete(apiUrl(path))
+		const { data } = await axios.delete<T>(apiUrl(path))
+		return data
 	} catch (e) {
 		throw wrapError(e)
 	}

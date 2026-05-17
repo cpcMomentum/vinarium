@@ -17,6 +17,9 @@
 		</div>
 
 		<section v-if="activeTab === 'producers'" class="tab-panel">
+			<div class="tab-panel__actions">
+				<NcButton type="primary" @click="openCreate('producer')">{{ t('vinarium', '+ Weingut') }}</NcButton>
+			</div>
 			<p v-if="store.producers.length === 0" class="empty">{{ t('vinarium', 'Noch keine Weingüter erfasst.') }}</p>
 			<ul v-else class="list">
 				<li v-for="p in store.producers" :key="p.id" class="list-item">
@@ -162,6 +165,12 @@ function formatDate(iso: string): string {
 	}
 }
 
+function openCreate(type: EntityType) {
+	editType.value = type
+	editId.value = null
+	editOpen.value = true
+}
+
 function editEntity(type: EntityType, id: number) {
 	editType.value = type
 	editId.value = id
@@ -212,6 +221,11 @@ async function deleteEntity(type: EntityType, id: number) {
 .tab.active {
 	border-bottom-color: var(--color-primary-element);
 	color: var(--color-main-text);
+}
+.tab-panel__actions {
+	display: flex;
+	justify-content: flex-end;
+	margin-bottom: 0.75rem;
 }
 .list {
 	list-style: none;
