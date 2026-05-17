@@ -17,7 +17,7 @@
 
 			<!-- Foto -->
 			<div class="bottle-detail__photo-section">
-				<div v-if="detail.slot_id !== null || detail.photo_file_id !== null" class="bottle-detail__photo-wrap">
+				<div class="bottle-detail__photo-wrap">
 					<img
 						v-if="detail.photo_file_id !== null"
 						:src="photoUrl"
