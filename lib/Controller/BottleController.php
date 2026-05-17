@@ -88,6 +88,9 @@ class BottleController extends Controller {
 		if (empty($file) || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
 			return new DataResponse(['error' => 'Keine Datei übermittelt'], Http::STATUS_BAD_REQUEST);
 		}
+		if (!is_uploaded_file($file['tmp_name'])) {
+			return new DataResponse(['error' => 'Ungültiger Upload'], Http::STATUS_BAD_REQUEST);
+		}
 		try {
 			$bottle = $this->bottleService->get($id, $this->userId);
 			$content = file_get_contents($file['tmp_name']);
@@ -188,6 +191,7 @@ class BottleController extends Controller {
 		}
 		try {
 			$this->bottleService->delete($id, $this->userId);
+			$this->photoService->deleteBottlePhoto($this->userId, $id);
 			return new DataResponse(null, Http::STATUS_NO_CONTENT);
 		} catch (NotFoundException $e) {
 			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
