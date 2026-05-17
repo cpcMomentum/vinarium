@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<info xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="https://apps.nextcloud.com/schema/apps/info.xsd">
+
+    <id>vinarium</id>
+    <name>Vinarium</name>
+    <summary>Private Weinkeller-Verwaltung</summary>
+    <description><![CDATA[
+# Vinarium - Weinkeller-Verwaltung
+
+Native Nextcloud-App zur privaten Weinverwaltung. Bestand, Lagerposition und Verkostungsnotizen — selbstgehostet, ohne Cloud-Abhängigkeit.
+
+## Features
+
+- **Bestand** — Weingut, Wein, Jahrgang und einzelne Flaschen getrennt erfasst
+- **Lagerposition** — flexibles Regal-Modell (Fach, Ebene, Reihe) per Drag & Drop
+- **Verkostungsnotizen** — pro Flasche mit Datum, Bewertung und Freitext
+- **Trinkfenster** — Hinweis was bald getrunken werden sollte
+- **Barcode-Wiedererkennung** — Nachkäufe per Scan
+- **Filter & Suche** — nach Farbe, Region, Jahrgang, Trinkfenster
+
+Ideal für private Weinsammler mit 50-500 Flaschen.
+    ]]></description>
+
+    <version>0.1.0</version>
+    <licence>AGPL-3.0-or-later</licence>
+
+    <author mail="axel.deffner@cpcmomentum.com" homepage="https://github.com/cpcMomentum">Axel Deffner</author>
+
+    <namespace>Vinarium</namespace>
+
+    <category>tools</category>
+    <category>organization</category>
+
+    <bugs>https://github.com/cpcMomentum/vinarium/issues</bugs>
+    <repository type="git">https://github.com/cpcMomentum/vinarium.git</repository>
+
+    <dependencies>
+        <nextcloud min-version="32" max-version="33"/>
+        <php min-version="8.2"/>
+    </dependencies>
+
+    <navigations>
+        <navigation>
+            <name>Vinarium</name>
+            <route>vinarium.page.index</route>
+            <icon>app.svg</icon>
+            <order>10</order>
+        </navigation>
+    </navigations>
+</info>

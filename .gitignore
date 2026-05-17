@@ -36,5 +36,16 @@ credentials.json
 # Sessions / temp docs (nicht committen)
 sessions/
 
+# Internal dev artifacts (lokal behalten, nicht oeffentlich)
+CLAUDE.md
+.claude/
+archive/
+docs/produktbeschreibung.md
+docs/plan.md
+docs/Plan-Phase*-Details.md
+
 # App Store artifacts (lokale Tarballs)
 *.tar.gz
+
+# Vite build intermediate (final output goes to js/ and css/)
+dist/
