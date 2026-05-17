@@ -133,7 +133,7 @@ class PhotoService {
 	}
 
 	private function findPhoto(Folder $dir, int $bottleId): ?File {
-		foreach (array_keys(array_flip(['jpg', 'jpeg', 'png', 'webp', 'gif'])) as $ext) {
+		foreach (['jpg', 'jpeg', 'png', 'webp', 'gif'] as $ext) {
 			try {
 				$node = $dir->get($bottleId . '.' . $ext);
 				if ($node instanceof File) {
