@@ -51,7 +51,7 @@
 					<td>{{ t('vinarium', BOTTLE_STATUS_LABELS[b.status]) }}</td>
 					<td>{{ formatSlotLabel(b) }}</td>
 					<td>
-						<NcButton v-if="b.status === 'in_storage'" type="tertiary" @click="openTasting(b.id)">{{ t('vinarium', 'Öffnen') }}</NcButton>
+						<NcButton v-if="b.status === 'in_storage'" type="tertiary" @click="openTasting(b.id)">{{ t('vinarium', 'Entkorken') }}</NcButton>
 						<NcButton v-else type="tertiary" @click="doRestore(b.id)">{{ t('vinarium', 'Zurück in Bestand') }}</NcButton>
 					</td>
 				</tr>
