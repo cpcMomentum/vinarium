@@ -174,7 +174,11 @@ OC.L10N.register(
     "Weingut erfassen": "Create producer",
     "Wein erfassen": "Create wine",
     "Jahrgang erfassen": "Create vintage",
-    "+ Weingut": "+ Producer"
+    "+ Weingut": "+ Producer",
+    "Kaufdetails": "Purchase details",
+    "Weitere Verkostungen dieses Weins": "Other tastings of this wine",
+    "Vom gleichen Weingut": "From the same producer",
+    "Schließen": "Close"
     },
     "nplurals=2; plural=(n != 1);"
 );

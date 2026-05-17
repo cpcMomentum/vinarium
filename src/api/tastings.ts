@@ -33,6 +33,41 @@ export interface ConsumeResult {
 	tasting: Tasting
 }
 
+export interface TastingRelated {
+	id: number
+	tasted_at: string
+	rating: number | null
+	notes: string | null
+	year: number
+	wine_name?: string
+}
+
+export interface TastingDetail {
+	id: number
+	bottle_id: number
+	tasted_at: string
+	rating: number | null
+	notes: string | null
+	occasion: string | null
+	companions: string | null
+	wine_id: number
+	wine_name: string
+	wine_color: string
+	vintage_id: number
+	year: number
+	producer_id: number
+	producer_name: string
+	purchase: {
+		purchased_at: string
+		vendor: string | null
+		unit_price: number | null
+		currency: string | null
+		bottle_size_ml: number
+	}
+	related_same_wine: TastingRelated[]
+	related_same_producer: TastingRelated[]
+}
+
 export const listAllTastings = (): Promise<TastingListItem[]> =>
 	apiGet<TastingListItem[]>('/tastings')
 
@@ -50,3 +85,6 @@ export const updateTasting = (id: number, data: TastingCreate): Promise<Tasting>
 
 export const deleteTasting = (id: number): Promise<void> =>
 	apiDelete(`/tastings/${id}`)
+
+export const getTastingDetails = (id: number): Promise<TastingDetail> =>
+	apiGet<TastingDetail>(`/tastings/${id}/details`)

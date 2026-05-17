@@ -174,7 +174,11 @@ OC.L10N.register(
     "Weingut erfassen": "Weingut erfassen",
     "Wein erfassen": "Wein erfassen",
     "Jahrgang erfassen": "Jahrgang erfassen",
-    "+ Weingut": "+ Weingut"
+    "+ Weingut": "+ Weingut",
+    "Kaufdetails": "Kaufdetails",
+    "Weitere Verkostungen dieses Weins": "Weitere Verkostungen dieses Weins",
+    "Vom gleichen Weingut": "Vom gleichen Weingut",
+    "Schließen": "Schließen"
     },
     "nplurals=2; plural=(n != 1);"
 );

@@ -30,6 +30,18 @@ class TastingController extends Controller {
 	}
 
 	#[NoAdminRequired]
+	public function details(int $id): DataResponse {
+		if ($this->userId === null) {
+			return new DataResponse(['error' => 'Not authenticated'], Http::STATUS_UNAUTHORIZED);
+		}
+		try {
+			return new DataResponse($this->tastingService->getDetails($id, $this->userId));
+		} catch (NotFoundException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
+		}
+	}
+
+	#[NoAdminRequired]
 	public function all(): DataResponse {
 		if ($this->userId === null) {
 			return new DataResponse(['error' => 'Not authenticated'], Http::STATUS_UNAUTHORIZED);
