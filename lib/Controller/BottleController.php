@@ -90,7 +90,10 @@ class BottleController extends Controller {
 		}
 		try {
 			$bottle = $this->bottleService->get($id, $this->userId);
-			$content = (string)file_get_contents($file['tmp_name']);
+			$content = file_get_contents($file['tmp_name']);
+			if ($content === false) {
+				return new DataResponse(['error' => 'Datei konnte nicht gelesen werden'], Http::STATUS_INTERNAL_SERVER_ERROR);
+			}
 			$mimeType = mime_content_type($file['tmp_name']) ?: 'application/octet-stream';
 			$fileId = $this->photoService->saveBottlePhoto($this->userId, $id, $content, $mimeType);
 			$bottle->setPhotoFileId($fileId);
