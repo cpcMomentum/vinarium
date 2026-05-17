@@ -19,6 +19,7 @@ use OCP\IURLGenerator;
 class PhotoService {
 
 	private const BASE_DIR = 'Vinarium/bottles';
+	private const TASTINGS_DIR = 'Vinarium/tastings';
 	private const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 	private const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
@@ -104,7 +105,64 @@ class PhotoService {
 		];
 	}
 
+	// --- Tasting photos (multiple per tasting, stored in Vinarium/tastings/{tastingId}/) ---
+
+	/**
+	 * Save a tasting photo and return its NC file ID.
+	 *
+	 * @throws \InvalidArgumentException on invalid type/size
+	 */
+	public function saveTastingPhoto(string $userId, int $tastingId, string $content, string $mimeType): int {
+		if (!in_array($mimeType, self::ALLOWED_MIME, true)) {
+			throw new \InvalidArgumentException('Ungültiger Dateityp. Erlaubt: JPEG, PNG, WebP, GIF.');
+		}
+		if (strlen($content) > self::MAX_SIZE_BYTES) {
+			throw new \InvalidArgumentException('Datei zu groß. Maximum: 10 MB.');
+		}
+
+		$ext = $this->extensionForMime($mimeType);
+		$dir = $this->getOrCreateTastingDir($userId, $tastingId);
+		$filename = time() . '_' . uniqid() . '.' . $ext;
+		$file = $dir->newFile($filename, $content);
+		return $file->getId();
+	}
+
+	/**
+	 * Delete a specific tasting photo by its NC file ID.
+	 * Verifies the file belongs to the expected tasting folder.
+	 */
+	public function deleteTastingPhoto(string $userId, int $tastingId, int $fileId): void {
+		$userFolder = $this->rootFolder->getUserFolder($userId);
+		$nodes = $userFolder->getById($fileId);
+		if (empty($nodes)) {
+			return;
+		}
+		$node = $nodes[0];
+		if (!$node instanceof File) {
+			throw new \InvalidArgumentException('Expected a file node');
+		}
+		$expectedPrefix = $userFolder->getPath() . '/' . self::TASTINGS_DIR . '/' . $tastingId . '/';
+		if (!str_starts_with($node->getPath() . '/', $expectedPrefix)) {
+			throw new \InvalidArgumentException('File does not belong to this tasting');
+		}
+		$node->delete();
+	}
+
 	// --- Helpers ---
+
+	private function getOrCreateTastingDir(string $userId, int $tastingId): Folder {
+		$userFolder = $this->rootFolder->getUserFolder($userId);
+		$path = self::TASTINGS_DIR . '/' . $tastingId;
+		try {
+			$node = $userFolder->get($path);
+			if ($node instanceof Folder) {
+				return $node;
+			}
+		} catch (FilesNotFoundException) {
+			// create below
+		}
+		return $userFolder->newFolder($path);
+	}
 
 	private function getOrCreateDir(string $userId): Folder {
 		$userFolder = $this->rootFolder->getUserFolder($userId);

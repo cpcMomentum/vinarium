@@ -191,7 +191,11 @@ OC.L10N.register(
     "Foto entfernen": "Remove photo",
     "Foto hochladen": "Upload photo",
     "Upload fehlgeschlagen": "Upload failed",
-    "Entfernen fehlgeschlagen": "Remove failed"
+    "Entfernen fehlgeschlagen": "Remove failed",
+    "Fotos": "Photos",
+    "Fotos hinzufügen": "Add photos",
+    "Foto": "Photo",
+    "Fotos ({count})": "Photos ({count})"
     },
     "nplurals=2; plural=(n != 1);"
 );

@@ -17,6 +17,7 @@
 					<th>{{ t('vinarium', 'Bewertung') }}</th>
 					<th>{{ t('vinarium', 'Anlass') }}</th>
 					<th>{{ t('vinarium', 'Notizen') }}</th>
+					<th class="photo-col"></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -35,6 +36,9 @@
 					<td class="wrap-cell occasion-cell">{{ tasting.occasion ?? '—' }}</td>
 					<td class="notes-cell">
 						<div class="notes-text">{{ tasting.notes ?? '—' }}</div>
+					</td>
+					<td class="photo-col">
+						<span v-if="tasting.photo_file_ids && tasting.photo_file_ids.length > 0" class="photo-badge" :title="t('vinarium', 'Fotos ({count})', { count: tasting.photo_file_ids.length })">📷 {{ tasting.photo_file_ids.length }}</span>
 					</td>
 				</tr>
 			</tbody>
@@ -227,4 +231,6 @@ function cssColorFor(color: string): string {
 .picker-item:hover { background: var(--color-background-hover); }
 .picker-item--selected { border-color: var(--color-primary-element); background: var(--color-primary-element-light, #e8f4ff); }
 .picker-item__label { font-size: 0.9rem; }
+.photo-col { width: 60px; white-space: nowrap; }
+.photo-badge { font-size: 0.8rem; color: var(--color-text-maxcontrast); }
 </style>

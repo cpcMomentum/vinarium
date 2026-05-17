@@ -30,6 +30,27 @@
 				</div>
 			</div>
 
+			<!-- Fotos -->
+			<section v-if="detail.photo_file_ids && detail.photo_file_ids.length > 0" class="detail-section">
+				<h3 class="detail-section__title">{{ t('vinarium', 'Fotos') }}</h3>
+				<div class="photo-strip">
+					<img
+						v-for="fid in detail.photo_file_ids"
+						:key="fid"
+						:src="thumbUrl(fid)"
+						class="photo-strip__thumb"
+						:alt="t('vinarium', 'Foto')"
+						@click="openLightbox(fid)"
+					/>
+				</div>
+			</section>
+
+			<!-- Lightbox overlay -->
+			<div v-if="lightboxFileId !== null" class="lightbox" @click.self="lightboxFileId = null">
+				<button class="lightbox__close" @click="lightboxFileId = null">✕</button>
+				<img :src="fullUrl(lightboxFileId)" class="lightbox__img" :alt="t('vinarium', 'Foto')" />
+			</div>
+
 			<!-- Notizen + Begleitung -->
 			<section v-if="detail.notes || detail.companions" class="detail-section">
 				<div v-if="detail.notes" class="detail-section__notes">{{ detail.notes }}</div>
@@ -105,7 +126,7 @@ import { translate as t } from '@nextcloud/l10n'
 import moment from '@nextcloud/moment'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import { getTastingDetails, type TastingDetail } from '@/api/tastings'
+import { getTastingDetails, tastingPhotoThumbnailUrl, tastingPhotoFullUrl, type TastingDetail } from '@/api/tastings'
 import { BOTTLE_SIZE_LABELS, WINE_COLOR_LABELS, type BottleSizeMl, type WineColor } from '@/types/api'
 
 const props = defineProps<{
@@ -120,6 +141,7 @@ const emit = defineEmits<{
 const detail = ref<TastingDetail | null>(null)
 const loading = ref(false)
 const error = ref(false)
+const lightboxFileId = ref<number | null>(null)
 
 watch([() => props.open, () => props.tastingId], async () => {
 	if (!props.open || props.tastingId === null) return
@@ -146,6 +168,18 @@ async function navigateTo(id: number) {
 	} finally {
 		loading.value = false
 	}
+}
+
+function thumbUrl(fileId: number): string {
+	return tastingPhotoThumbnailUrl(fileId)
+}
+
+function fullUrl(fileId: number): string {
+	return tastingPhotoFullUrl(fileId)
+}
+
+function openLightbox(fileId: number) {
+	lightboxFileId.value = fileId
 }
 
 function formatDate(iso: string): string {
@@ -300,5 +334,53 @@ function cssColorFor(color: string): string {
 	justify-content: flex-end;
 	gap: 0.5rem;
 	margin-top: 1.5rem;
+}
+.photo-strip {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+.photo-strip__thumb {
+	width: 80px;
+	height: 80px;
+	object-fit: cover;
+	border-radius: var(--border-radius);
+	cursor: pointer;
+	border: 2px solid transparent;
+}
+.photo-strip__thumb:hover {
+	border-color: var(--color-primary-element);
+}
+.lightbox {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.85);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 9999;
+}
+.lightbox__close {
+	position: absolute;
+	top: 1rem;
+	right: 1rem;
+	background: rgba(255,255,255,0.15);
+	border: none;
+	border-radius: 50%;
+	width: 36px;
+	height: 36px;
+	color: #fff;
+	font-size: 1rem;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.lightbox__close:hover { background: rgba(255,255,255,0.3); }
+.lightbox__img {
+	max-width: 90vw;
+	max-height: 90vh;
+	object-fit: contain;
+	border-radius: var(--border-radius);
 }
 </style>

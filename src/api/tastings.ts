@@ -5,6 +5,7 @@
 
 import type { Tasting } from '@/types/api'
 import { apiDelete, apiGet, apiPatch, apiPost } from './client'
+import { generateUrl } from '@nextcloud/router'
 
 export interface TastingListItem {
 	id: number
@@ -14,6 +15,7 @@ export interface TastingListItem {
 	notes: string | null
 	occasion: string | null
 	companions: string | null
+	photo_file_ids: number[]
 	wine_name: string
 	wine_color: string
 	year: number
@@ -50,6 +52,7 @@ export interface TastingDetail {
 	notes: string | null
 	occasion: string | null
 	companions: string | null
+	photo_file_ids: number[]
 	wine_id: number
 	wine_name: string
 	wine_color: string
@@ -88,3 +91,25 @@ export const deleteTasting = (id: number): Promise<void> =>
 
 export const getTastingDetails = (id: number): Promise<TastingDetail> =>
 	apiGet<TastingDetail>(`/tastings/${id}/details`)
+
+export async function uploadTastingPhoto(id: number, file: File): Promise<{ photo_file_ids: number[] }> {
+	const axios = (await import('@nextcloud/axios')).default
+	const url = generateUrl(`/apps/vinarium/api/v1/tastings/${id}/photo`)
+	const form = new FormData()
+	form.append('photo', file)
+	const { data } = await axios.post<{ photo_file_ids: number[] }>(url, form, {
+		headers: { 'Content-Type': 'multipart/form-data' },
+	})
+	return data
+}
+
+export const deleteTastingPhoto = (id: number, fileId: number): Promise<{ photo_file_ids: number[] }> =>
+	apiDelete<{ photo_file_ids: number[] }>(`/tastings/${id}/photo/${fileId}`)
+
+export function tastingPhotoThumbnailUrl(fileId: number): string {
+	return generateUrl('/core/preview') + `?fileId=${fileId}&x=128&y=128&forceIcon=0`
+}
+
+export function tastingPhotoFullUrl(fileId: number): string {
+	return generateUrl('/core/preview') + `?fileId=${fileId}&x=1920&y=1920&forceIcon=0&a=1`
+}
