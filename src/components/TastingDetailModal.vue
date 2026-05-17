@@ -45,11 +45,13 @@
 				</div>
 			</section>
 
-			<!-- Lightbox overlay -->
-			<div v-if="lightboxFileId !== null" class="lightbox" @click.self="lightboxFileId = null">
-				<button class="lightbox__close" @click="lightboxFileId = null">✕</button>
-				<img :src="fullUrl(lightboxFileId)" class="lightbox__img" :alt="t('vinarium', 'Foto')" />
-			</div>
+			<!-- Lightbox overlay — teleported to body so NcModal doesn't intercept clicks -->
+			<Teleport to="body">
+				<div v-if="lightboxFileId !== null" class="lightbox" @click.self="lightboxFileId = null">
+					<button class="lightbox__close" @click="lightboxFileId = null">✕</button>
+					<img :src="fullUrl(lightboxFileId)" class="lightbox__img" :alt="t('vinarium', 'Foto')" />
+				</div>
+			</Teleport>
 
 			<!-- Notizen + Begleitung -->
 			<section v-if="detail.notes || detail.companions" class="detail-section">
