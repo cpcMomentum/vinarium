@@ -170,7 +170,11 @@ OC.L10N.register(
     "Ebenen und Plätze anpassen. Flaschen die keinen Platz mehr haben kommen in die Parkzone.": "Ebenen und Plätze anpassen. Flaschen die keinen Platz mehr haben kommen in die Parkzone.",
     "⚠ Flaschen die keinen Platz mehr finden landen in der Parkzone.": "⚠ Flaschen die keinen Platz mehr finden landen in der Parkzone.",
     "Wird gespeichert…": "Wird gespeichert…",
-    "Fehler beim Speichern": "Fehler beim Speichern"
+    "Fehler beim Speichern": "Fehler beim Speichern",
+    "Weingut erfassen": "Weingut erfassen",
+    "Wein erfassen": "Wein erfassen",
+    "Jahrgang erfassen": "Jahrgang erfassen",
+    "+ Weingut": "+ Weingut"
     },
     "nplurals=2; plural=(n != 1);"
 );

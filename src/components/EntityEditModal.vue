@@ -135,9 +135,10 @@ const vintageDescription = computed({
 })
 
 const title = computed(() => {
-	if (props.type === 'producer') return t('vinarium', 'Weingut bearbeiten')
-	if (props.type === 'wine') return t('vinarium', 'Wein bearbeiten')
-	return t('vinarium', 'Jahrgang bearbeiten')
+	const isCreate = props.entityId === null
+	if (props.type === 'producer') return isCreate ? t('vinarium', 'Weingut erfassen') : t('vinarium', 'Weingut bearbeiten')
+	if (props.type === 'wine') return isCreate ? t('vinarium', 'Wein erfassen') : t('vinarium', 'Wein bearbeiten')
+	return isCreate ? t('vinarium', 'Jahrgang erfassen') : t('vinarium', 'Jahrgang bearbeiten')
 })
 
 const isValid = computed(() => {
@@ -151,7 +152,13 @@ const isValid = computed(() => {
 })
 
 watch([() => props.open, () => props.entityId, () => props.type], () => {
-	if (!props.open || props.entityId === null) return
+	if (!props.open) return
+	if (props.entityId === null) {
+		if (props.type === 'producer') {
+			producer.value = { id: 0, ownerUserId: '', name: '', country: null, region: null, website: null, notes: null }
+		}
+		return
+	}
 	if (props.type === 'producer') {
 		const found = store.producers.find(p => p.id === props.entityId)
 		producer.value = found ? { ...found } : null
@@ -167,7 +174,17 @@ watch([() => props.open, () => props.entityId, () => props.type], () => {
 async function save() {
 	saving.value = true
 	try {
-		if (props.type === 'producer' && producer.value) {
+		if (props.entityId === null) {
+			if (props.type === 'producer' && producer.value) {
+				await store.createProducer({
+					name: producer.value.name,
+					country: producer.value.country,
+					region: producer.value.region,
+					website: producer.value.website,
+					notes: producer.value.notes,
+				})
+			}
+		} else if (props.type === 'producer' && producer.value) {
 			await store.updateProducer(producer.value.id, {
 				name: producer.value.name,
 				country: producer.value.country,

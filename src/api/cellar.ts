@@ -36,7 +36,7 @@ export function createShelf(
 }
 
 export function destroyShelf(shelfId: number): Promise<{ movedToParkzone: number }> {
-	return apiDelete(`/cellar/shelves/${shelfId}`) as Promise<{ movedToParkzone: number }>
+	return apiDelete<{ movedToParkzone: number }>(`/cellar/shelves/${shelfId}`)
 }
 
 export function fetchSlots(compartmentId: number): Promise<Slot[]> {
