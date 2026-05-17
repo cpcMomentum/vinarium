@@ -116,6 +116,7 @@ class TastingController extends Controller {
 		}
 		try {
 			$this->tastingService->delete($id, $this->userId);
+			$this->photoService->deleteTastingFolder($this->userId, $id);
 			return new DataResponse(null, Http::STATUS_NO_CONTENT);
 		} catch (NotFoundException $e) {
 			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
@@ -141,6 +142,9 @@ class TastingController extends Controller {
 			$tasting = $this->tastingService->get($id, $this->userId);
 			$mimeType = mime_content_type($file['tmp_name']) ?: 'application/octet-stream';
 			$content = file_get_contents($file['tmp_name']);
+			if ($content === false) {
+				return new DataResponse(['error' => 'Datei konnte nicht gelesen werden'], Http::STATUS_INTERNAL_SERVER_ERROR);
+			}
 			$fileId = $this->photoService->saveTastingPhoto($this->userId, $id, $content, $mimeType);
 			$existing = $tasting->getPhotoFileIds() ?? [];
 			$existing[] = $fileId;
