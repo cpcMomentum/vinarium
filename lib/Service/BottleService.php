@@ -130,6 +130,41 @@ class BottleService {
 		return $this->bottleMapper->findFilteredByOwner($userId, $filter);
 	}
 
+	/** @return array<string, mixed> Fully denormalized bottle detail */
+	public function getDetails(int $id, string $userId): array {
+		$row = $this->bottleMapper->findDetails($id, $userId);
+		if ($row === null) {
+			throw new NotFoundException('Bottle not found');
+		}
+		return [
+			'id' => (int)$row['id'],
+			'purchase_id' => (int)$row['purchase_id'],
+			'slot_id' => $row['slot_id'] !== null ? (int)$row['slot_id'] : null,
+			'status' => $row['status'],
+			'notes' => $row['notes'],
+			'wine_name' => $row['wine_name'],
+			'wine_color' => $row['wine_color'],
+			'appellation' => $row['appellation'],
+			'producer_name' => $row['producer_name'],
+			'year' => (int)$row['year'],
+			'grape_varieties' => $row['grape_varieties'],
+			'drink_from_year' => $row['drink_from_year'] !== null ? (int)$row['drink_from_year'] : null,
+			'drink_until_year' => $row['drink_until_year'] !== null ? (int)$row['drink_until_year'] : null,
+			'alcohol_percent' => $row['alcohol_percent'] !== null ? (float)$row['alcohol_percent'] : null,
+			'external_rating' => $row['external_rating'] !== null ? (float)$row['external_rating'] : null,
+			'external_rating_source' => $row['external_rating_source'],
+			'purchased_at' => $row['purchased_at'],
+			'vendor' => $row['vendor'],
+			'unit_price' => $row['unit_price'] !== null ? (float)$row['unit_price'] : null,
+			'currency' => $row['currency'],
+			'bottle_size_ml' => (int)$row['bottle_size_ml'],
+			'slot_level' => $row['slot_level'] !== null ? (int)$row['slot_level'] : null,
+			'slot_row' => $row['slot_row'],
+			'slot_column' => $row['slot_column'] !== null ? (int)$row['slot_column'] : null,
+			'compartment_label' => $row['compartment_label'],
+		];
+	}
+
 	public function delete(int $id, string $userId): Bottle {
 		$bottle = $this->get($id, $userId);
 		return $this->bottleMapper->delete($bottle);
