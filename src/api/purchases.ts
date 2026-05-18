@@ -28,7 +28,7 @@ export const listAllPurchases = (): Promise<PurchaseListItem[]> =>
 	apiGet<PurchaseListItem[]>('/purchases/all')
 
 export const listPurchasesByVintage = (vintageId: number): Promise<Purchase[]> =>
-	apiGet<Purchase[]>(`/purchases?vintageId=${vintageId}`)
+	apiGet<Purchase[]>(`/purchases?${new URLSearchParams({ vintageId: String(vintageId) })}`)
 
 export const getPurchase = (id: number): Promise<Purchase> =>
 	apiGet<Purchase>(`/purchases/${id}`)
