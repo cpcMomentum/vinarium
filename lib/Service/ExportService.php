@@ -85,6 +85,10 @@ class ExportService {
 		if ($value === null || $value === '') {
 			return '';
 		}
+		// Prefix formula-injection starters so spreadsheets don't execute them
+		if (strlen($value) > 0 && in_array($value[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
+			$value = "'" . $value;
+		}
 		if (str_contains($value, ';') || str_contains($value, '"') || str_contains($value, "\n")) {
 			return '"' . str_replace('"', '""', $value) . '"';
 		}
