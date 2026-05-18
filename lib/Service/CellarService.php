@@ -130,14 +130,14 @@ class CellarService {
 
 	/** Destroys a shelf and all its compartments, levels and slots. Bottles go to Parkzone. */
 	public function destroyShelf(int $shelfId, string $userId): int {
+		$shelf = $this->shelfMapper->find($shelfId);
+		$cellar = $this->cellarMapper->find($shelf->getCellarId());
+		if ($cellar->getOwnerUserId() !== $userId) {
+			throw new PermissionDeniedException('Shelf not owned by user');
+		}
+
 		$this->db->beginTransaction();
 		try {
-			$shelf = $this->shelfMapper->find($shelfId);
-			$cellar = $this->cellarMapper->find($shelf->getCellarId());
-			if ($cellar->getOwnerUserId() !== $userId) {
-				throw new PermissionDeniedException('Shelf not owned by user');
-			}
-
 			$compartments = $this->compartmentMapper->findByShelf($shelfId);
 			$movedBottles = 0;
 			foreach ($compartments as $comp) {
@@ -194,11 +194,11 @@ class CellarService {
 			throw new \InvalidArgumentException('levelsConfig must not be empty');
 		}
 
+		$comp = $this->compartmentMapper->find($compartmentId);
+		$this->assertCompartmentOwnership($comp, $userId);
+
 		$this->db->beginTransaction();
 		try {
-			$comp = $this->compartmentMapper->find($compartmentId);
-			$this->assertCompartmentOwnership($comp, $userId);
-
 			$movedBottles = $this->wipeCompartment($compartmentId);
 
 			foreach ($levelsConfig as $idx => $levelDef) {
