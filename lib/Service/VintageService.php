@@ -19,6 +19,7 @@ class VintageService {
 
 	private const MIN_YEAR = 1900;
 	private const MAX_YEAR_OFFSET = 2;
+	private const MAX_DRINK_YEAR_OFFSET = 50;
 
 	public function __construct(
 		private readonly VintageMapper $vintageMapper,
@@ -97,7 +98,7 @@ class VintageService {
 			throw new ValidationException('Invalid year: ' . print_r($value, true));
 		}
 		$year = (int)$value;
-		$maxYear = (int)date('Y') + 50;
+		$maxYear = (int)date('Y') + self::MAX_DRINK_YEAR_OFFSET;
 		if ($year < self::MIN_YEAR || $year > $maxYear) {
 			throw new ValidationException(sprintf('Year %d out of range (%d..%d)', $year, self::MIN_YEAR, $maxYear));
 		}
