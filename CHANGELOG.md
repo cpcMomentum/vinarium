@@ -7,6 +7,11 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-05-18
+
+### Added
+- App Store Screenshots (Dashboard, Wines, Inventory, Tasting-Detail, Tastings)
+
 ## [0.1.1] - 2026-05-18
 
 ### Fixed
@@ -69,6 +74,7 @@ Erste offizielle Veröffentlichung — Weinverwaltung End-to-End.
 - 88 PHPUnit-Tests + 24 Vitest-Tests (112 gesamt)
 - Pre-Commit-Hook für OCP-only API-Enforcement
 
-[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/cpcMomentum/vinarium/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/cpcMomentum/vinarium/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/cpcMomentum/vinarium/releases/tag/v0.1.0
