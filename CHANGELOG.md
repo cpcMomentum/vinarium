@@ -7,6 +7,13 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-05-18
+
+### Fixed
+- l10n: JSON-Dateien hatten keinen `translations`-Wrapper → HTTP 500 für Nutzer mit EN-Locale
+- l10n: ASCII-Anführungszeichen `"` statt typografischem `"` in l10n-Keys → JS-Syntaxfehler beim Laden
+- NcModal: `name`-Prop in TastingDialog, TastingDetailModal, EntityEditModal und PurchaseWizardModal ergänzt (Accessibility)
+
 ## [0.1.0] - 2026-05-18
 
 Erste offizielle Veröffentlichung — Weinverwaltung End-to-End.
@@ -62,5 +69,6 @@ Erste offizielle Veröffentlichung — Weinverwaltung End-to-End.
 - 88 PHPUnit-Tests + 24 Vitest-Tests (112 gesamt)
 - Pre-Commit-Hook für OCP-only API-Enforcement
 
-[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/cpcMomentum/vinarium/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/cpcMomentum/vinarium/releases/tag/v0.1.0
