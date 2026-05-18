@@ -138,6 +138,9 @@ class TastingController extends Controller {
 		if (!is_uploaded_file($file['tmp_name'])) {
 			return new DataResponse(['error' => 'Ungültiger Upload'], Http::STATUS_BAD_REQUEST);
 		}
+		if (($file['size'] ?? 0) > 10 * 1024 * 1024) {
+			return new DataResponse(['error' => 'Datei zu groß (max. 10 MB)'], Http::STATUS_BAD_REQUEST);
+		}
 		try {
 			$tasting = $this->tastingService->get($id, $this->userId);
 			$mimeType = mime_content_type($file['tmp_name']) ?: 'application/octet-stream';

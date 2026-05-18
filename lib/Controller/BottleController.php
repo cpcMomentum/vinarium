@@ -91,6 +91,9 @@ class BottleController extends Controller {
 		if (!is_uploaded_file($file['tmp_name'])) {
 			return new DataResponse(['error' => 'Ungültiger Upload'], Http::STATUS_BAD_REQUEST);
 		}
+		if (($file['size'] ?? 0) > 10 * 1024 * 1024) {
+			return new DataResponse(['error' => 'Datei zu groß (max. 10 MB)'], Http::STATUS_BAD_REQUEST);
+		}
 		try {
 			$bottle = $this->bottleService->get($id, $this->userId);
 			$content = file_get_contents($file['tmp_name']);
