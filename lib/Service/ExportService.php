@@ -54,6 +54,7 @@ class ExportService {
 
 	/** @return list<array<string, mixed>> */
 	private function fetchDenormalized(string $userId): array {
+		$prefix = $this->db->getPrefix();
 		$qb = $this->db->getQueryBuilder();
 		$qb->select(
 			'p.name AS producer_name',
@@ -63,7 +64,7 @@ class ExportService {
 			'b.status', 'b.notes AS bottle_notes',
 		)
 			->selectAlias(
-				'(SELECT MAX(t2.rating) FROM *PREFIX*vinarium_tasting t2 WHERE t2.bottle_id = b.id)',
+				"(SELECT MAX(t2.rating) FROM {$prefix}vinarium_tasting t2 WHERE t2.bottle_id = b.id)",
 				'rating',
 			)
 			->from('vinarium_bottle', 'b')
