@@ -35,6 +35,12 @@ Ideal für private Weinsammler mit 50-500 Flaschen.
     <bugs>https://github.com/cpcMomentum/vinarium/issues</bugs>
     <repository type="git">https://github.com/cpcMomentum/vinarium.git</repository>
 
+    <screenshot>https://raw.githubusercontent.com/cpcMomentum/vinarium/main/screenshots/01-dashboard.png</screenshot>
+    <screenshot>https://raw.githubusercontent.com/cpcMomentum/vinarium/main/screenshots/02-wines.png</screenshot>
+    <screenshot>https://raw.githubusercontent.com/cpcMomentum/vinarium/main/screenshots/03-inventory.png</screenshot>
+    <screenshot>https://raw.githubusercontent.com/cpcMomentum/vinarium/main/screenshots/04-tasting-detail.png</screenshot>
+    <screenshot>https://raw.githubusercontent.com/cpcMomentum/vinarium/main/screenshots/05-tastings.png</screenshot>
+
     <dependencies>
         <nextcloud min-version="32" max-version="33"/>
         <php min-version="8.2"/>
