@@ -94,7 +94,7 @@ class VintageService {
 
 	private function parseYear(mixed $value): int {
 		if (!is_numeric($value)) {
-			throw new ValidationException('Invalid year: ' . print_r($value, true));
+			throw new ValidationException('Invalid year: ' . (is_scalar($value) ? (string)$value : gettype($value)));
 		}
 		$year = (int)$value;
 		$maxYear = (int)date('Y') + 50;
