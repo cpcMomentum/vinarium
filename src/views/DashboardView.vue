@@ -76,7 +76,7 @@ onMounted(async () => {
 	try {
 		stats.value = await fetchStats()
 	} catch (e: any) {
-		errorMsg.value = e?.message ?? JSON.stringify(e)
+		errorMsg.value = e?.message ?? t('vinarium', 'Failed to load statistics')
 		console.error('Dashboard stats error:', e)
 	}
 })
