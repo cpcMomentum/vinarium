@@ -136,7 +136,7 @@ OC.L10N.register(
     "https://...": "https://...",
     "Verkostung bearbeiten": "Verkostung bearbeiten",
     "Flasche öffnen + Verkostung": "Flasche öffnen + Verkostung",
-    "Die Flasche wird als „getrunken" markiert und der Slot freigegeben.": "Die Flasche wird als „getrunken" markiert und der Slot freigegeben.",
+    "Die Flasche wird als „getrunken“ markiert und der Slot freigegeben.": "Die Flasche wird als „getrunken“ markiert und der Slot freigegeben.",
     "Bewertung (0.5 – 10)": "Bewertung (0.5 – 10)",
     "Begleitung": "Begleitung",
     "Wie schmeckt der Wein?": "Wie schmeckt der Wein?",

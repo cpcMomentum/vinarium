@@ -1,5 +1,5 @@
 <template>
-	<NcModal v-if="open" @close="$emit('close')">
+	<NcModal v-if="open" :name="title" @close="$emit('close')">
 		<div class="edit-modal">
 			<h2>{{ title }}</h2>
 

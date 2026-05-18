@@ -1,5 +1,5 @@
 <template>
-	<NcModal v-if="open" @close="$emit('close')">
+	<NcModal v-if="open" :name="detail ? detail.wine_name + ' ' + detail.year : t('vinarium', 'Laden...')" @close="$emit('close')">
 		<div v-if="loading" class="detail-modal detail-modal--loading">
 			<p class="muted">{{ t('vinarium', 'Laden...') }}</p>
 		</div>
