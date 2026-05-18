@@ -1,8 +1,8 @@
 <template>
-	<NcModal v-if="open" @close="$emit('close')">
+	<NcModal v-if="open" :name="editMode ? t('vinarium', 'Verkostung bearbeiten') : t('vinarium', 'Flasche öffnen + Verkostung')" @close="$emit('close')">
 		<div class="tasting-dialog">
 			<h2>{{ editMode ? t('vinarium', 'Verkostung bearbeiten') : t('vinarium', 'Flasche öffnen + Verkostung') }}</h2>
-			<p v-if="!editMode" class="muted">{{ t('vinarium', 'Die Flasche wird als „getrunken" markiert und der Slot freigegeben.') }}</p>
+			<p v-if="!editMode" class="muted">{{ t('vinarium', 'Die Flasche wird als „getrunken“ markiert und der Slot freigegeben.') }}</p>
 
 			<fieldset class="fieldset">
 				<label class="field"><span>{{ t('vinarium', 'Datum') }}</span><input v-model="form.tastedAt" type="date" class="input" /></label>

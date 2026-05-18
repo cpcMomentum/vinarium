@@ -1,5 +1,5 @@
 <template>
-	<NcModal v-if="open" @close="cancel">
+	<NcModal v-if="open" :name="titles[step]" @close="cancel">
 		<div class="wizard">
 			<h2 class="wizard__title">{{ titles[step] }}</h2>
 			<div class="wizard__stepper">
