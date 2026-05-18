@@ -97,7 +97,8 @@ class BottleController extends Controller {
 			if ($content === false) {
 				return new DataResponse(['error' => 'Datei konnte nicht gelesen werden'], Http::STATUS_INTERNAL_SERVER_ERROR);
 			}
-			$mimeType = mime_content_type($file['tmp_name']) ?: 'application/octet-stream';
+			$finfo = new \finfo(FILEINFO_MIME_TYPE);
+			$mimeType = $finfo->file($file['tmp_name']) ?: 'application/octet-stream';
 			$fileId = $this->photoService->saveBottlePhoto($this->userId, $id, $content, $mimeType);
 			$bottle->setPhotoFileId($fileId);
 			$this->bottleService->update($bottle);
