@@ -85,6 +85,10 @@ class ExportService {
 		if ($value === null || $value === '') {
 			return '';
 		}
+		// Prevent formula injection when opened in spreadsheet applications
+		if (in_array($value[0], ['=', '+', '-', '@', "\t", "\r"], true)) {
+			$value = "'" . $value;
+		}
 		if (str_contains($value, ';') || str_contains($value, '"') || str_contains($value, "\n")) {
 			return '"' . str_replace('"', '""', $value) . '"';
 		}
