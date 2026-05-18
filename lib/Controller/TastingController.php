@@ -34,7 +34,7 @@ class TastingController extends Controller {
 	#[NoAdminRequired]
 	public function details(int $id): DataResponse {
 		if ($this->userId === null) {
-			return new DataResponse(['error' => 'Not authenticated'], Http::STATUS_UNAUTHORIZED);
+			return $this->unauthorized();
 		}
 		try {
 			return new DataResponse($this->tastingService->getDetails($id, $this->userId));
@@ -46,7 +46,7 @@ class TastingController extends Controller {
 	#[NoAdminRequired]
 	public function all(): DataResponse {
 		if ($this->userId === null) {
-			return new DataResponse(['error' => 'Not authenticated'], Http::STATUS_UNAUTHORIZED);
+			return $this->unauthorized();
 		}
 		return new DataResponse($this->tastingService->listAll($this->userId));
 	}
@@ -54,7 +54,7 @@ class TastingController extends Controller {
 	#[NoAdminRequired]
 	public function byBottle(int $bottleId): DataResponse {
 		if ($this->userId === null) {
-			return new DataResponse(['error' => 'Not authenticated'], Http::STATUS_UNAUTHORIZED);
+			return $this->unauthorized();
 		}
 		try {
 			return new DataResponse($this->tastingService->listByBottle($bottleId, $this->userId));
@@ -66,7 +66,7 @@ class TastingController extends Controller {
 	#[NoAdminRequired]
 	public function create(int $bottleId, array $data = []): DataResponse {
 		if ($this->userId === null) {
-			return new DataResponse(['error' => 'Not authenticated'], Http::STATUS_UNAUTHORIZED);
+			return $this->unauthorized();
 		}
 		try {
 			$tasting = $this->tastingService->create($this->userId, $bottleId, $data);
@@ -82,7 +82,7 @@ class TastingController extends Controller {
 	#[NoAdminRequired]
 	public function consume(int $bottleId, array $data = []): DataResponse {
 		if ($this->userId === null) {
-			return new DataResponse(['error' => 'Not authenticated'], Http::STATUS_UNAUTHORIZED);
+			return $this->unauthorized();
 		}
 		try {
 			$result = $this->tastingService->consumeWithTasting($this->userId, $bottleId, $data);
@@ -97,7 +97,7 @@ class TastingController extends Controller {
 	#[NoAdminRequired]
 	public function update(int $id, array $data = []): DataResponse {
 		if ($this->userId === null) {
-			return new DataResponse(['error' => 'Not authenticated'], Http::STATUS_UNAUTHORIZED);
+			return $this->unauthorized();
 		}
 		try {
 			$tasting = $this->tastingService->update($id, $this->userId, $data);
@@ -112,7 +112,7 @@ class TastingController extends Controller {
 	#[NoAdminRequired]
 	public function destroy(int $id): DataResponse {
 		if ($this->userId === null) {
-			return new DataResponse(['error' => 'Not authenticated'], Http::STATUS_UNAUTHORIZED);
+			return $this->unauthorized();
 		}
 		try {
 			$this->tastingService->delete($id, $this->userId);
@@ -126,7 +126,7 @@ class TastingController extends Controller {
 	#[NoAdminRequired]
 	public function uploadPhoto(int $id): DataResponse {
 		if ($this->userId === null) {
-			return new DataResponse(['error' => 'Not authenticated'], Http::STATUS_UNAUTHORIZED);
+			return $this->unauthorized();
 		}
 		$file = $this->request->getUploadedFile('photo');
 		if (empty($file) || !isset($file['tmp_name'])) {
@@ -161,7 +161,7 @@ class TastingController extends Controller {
 	#[NoAdminRequired]
 	public function deletePhoto(int $id, int $fileId): DataResponse {
 		if ($this->userId === null) {
-			return new DataResponse(['error' => 'Not authenticated'], Http::STATUS_UNAUTHORIZED);
+			return $this->unauthorized();
 		}
 		try {
 			$tasting = $this->tastingService->get($id, $this->userId);
@@ -178,5 +178,9 @@ class TastingController extends Controller {
 		} catch (\InvalidArgumentException $e) {
 			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
 		}
+	}
+
+	private function unauthorized(): DataResponse {
+		return new DataResponse(['error' => 'Not authenticated'], Http::STATUS_UNAUTHORIZED);
 	}
 }
