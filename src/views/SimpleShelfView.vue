@@ -162,6 +162,15 @@
 			@close="uncorkOpen = false"
 			@consumed="onConsumed"
 		/>
+		<ConfirmDialog
+			:open="deleteConfirmOpen"
+			:name="t('vinarium', 'Regal löschen')"
+			:message="deleteConfirmMessage"
+			:confirm-label="t('vinarium', 'Löschen')"
+			:destructive="true"
+			@close="deleteConfirmOpen = false"
+			@confirm="performDeleteShelf"
+		/>
 	</div>
 </template>
 
@@ -173,6 +182,7 @@ import NewShelfDialog from '@/components/NewShelfDialog.vue'
 import ShelfConfigDialog from '@/components/ShelfConfigDialog.vue'
 import BottleDetailPanel from '@/components/BottleDetailPanel.vue'
 import TastingDialog from '@/components/TastingDialog.vue'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import type { BottleListItem, CompartmentWithLevels, Level, Slot, WineColor } from '@/types/api'
 import type { CellarResponse } from '@/api/cellar'
 import { createDefaultCellar, destroyShelf, fetchCellar, fetchSlots } from '@/api/cellar'
@@ -380,10 +390,20 @@ async function onReconfigured() {
 
 // --- Shelf management ---
 
-async function confirmDeleteShelf() {
+const deleteConfirmOpen = ref(false)
+const deleteConfirmMessage = computed(() => {
+	const name = activeShelf.value?.shelf.name ?? ''
+	return t('vinarium', 'Regal "{name}" wirklich löschen? Alle Flaschen kommen in die Parkzone.', { name })
+})
+
+function confirmDeleteShelf() {
 	if (!activeShelf.value) return
-	const name = activeShelf.value.shelf.name
-	if (!confirm(t('vinarium', 'Regal "{name}" wirklich löschen? Alle Flaschen kommen in die Parkzone.', { name }))) return
+	deleteConfirmOpen.value = true
+}
+
+async function performDeleteShelf() {
+	deleteConfirmOpen.value = false
+	if (!activeShelf.value) return
 	try {
 		await destroyShelf(activeShelf.value.shelf.id)
 		await reload()
