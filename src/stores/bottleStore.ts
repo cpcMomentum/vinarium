@@ -7,7 +7,6 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import type { Bottle, BottleFilter, BottleListItem } from '@/types/api'
 import {
-	consumeBottle as apiConsume,
 	listBottles as apiList,
 	listParkedBottles as apiListParked,
 	moveBottle as apiMove,
@@ -67,14 +66,6 @@ export const useBottleStore = defineStore('bottle', () => {
 		await fetchBottles(filter.value)
 	}
 
-	async function consumeBottle(bottleId: number): Promise<void> {
-		await apiConsume(bottleId)
-		bottles.value = bottles.value.map(b =>
-			b.id === bottleId ? { ...b, status: 'consumed', slot_id: null } : b,
-		)
-		parked.value = parked.value.filter(b => b.id !== bottleId)
-	}
-
 	function $reset() {
 		bottles.value = []
 		parked.value = []
@@ -85,7 +76,7 @@ export const useBottleStore = defineStore('bottle', () => {
 	return {
 		bottles, parked, filter, loading,
 		parkedCount, totalCount,
-		fetchBottles, fetchParked, moveBottle, swapBottles, consumeBottle,
+		fetchBottles, fetchParked, moveBottle, swapBottles,
 		$reset,
 	}
 })
