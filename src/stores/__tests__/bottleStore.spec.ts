@@ -66,4 +66,17 @@ describe('bottleStore', () => {
 		expect(store.parked).toHaveLength(1)
 		expect(store.bottles[0].slot_id).toBeNull()
 	})
+
+	it('restoreBottle calls API and refreshes filtered list', async () => {
+		vi.mocked(bottlesApi.restoreBottle).mockResolvedValue(fakeBottle(1))
+		vi.mocked(bottlesApi.listBottles).mockResolvedValue([fakeListItem(1)])
+		const store = useBottleStore()
+		store.filter = { color: 'red' }
+
+		await store.restoreBottle(1)
+
+		expect(bottlesApi.restoreBottle).toHaveBeenCalledWith(1)
+		expect(bottlesApi.listBottles).toHaveBeenCalledWith({ color: 'red' })
+		expect(store.bottles).toHaveLength(1)
+	})
 })

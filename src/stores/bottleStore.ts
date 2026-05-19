@@ -10,6 +10,7 @@ import {
 	listBottles as apiList,
 	listParkedBottles as apiListParked,
 	moveBottle as apiMove,
+	restoreBottle as apiRestore,
 	swapBottles as apiSwap,
 } from '@/api/bottles'
 
@@ -66,6 +67,11 @@ export const useBottleStore = defineStore('bottle', () => {
 		await fetchBottles(filter.value)
 	}
 
+	async function restoreBottle(bottleId: number): Promise<void> {
+		await apiRestore(bottleId)
+		await fetchBottles(filter.value)
+	}
+
 	function $reset() {
 		bottles.value = []
 		parked.value = []
@@ -76,7 +82,7 @@ export const useBottleStore = defineStore('bottle', () => {
 	return {
 		bottles, parked, filter, loading,
 		parkedCount, totalCount,
-		fetchBottles, fetchParked, moveBottle, swapBottles,
+		fetchBottles, fetchParked, moveBottle, swapBottles, restoreBottle,
 		$reset,
 	}
 })
