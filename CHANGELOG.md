@@ -7,6 +7,9 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Fixed
+- TastingService: consumeWithTasting() ist jetzt atomar — Flasche und Verkostung werden in einer DB-Transaktion erstellt; schlägt die Verkostung fehl, wird der Flaschen-Status zurückgerollt (Fixes #36)
+
 ## [0.1.2] - 2026-05-18
 
 ### Added
