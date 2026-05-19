@@ -23,10 +23,6 @@ export function fetchCellar(): Promise<CellarResponse> {
 	return apiGet<CellarResponse>('/cellar')
 }
 
-export function createDefaultCellar(): Promise<Cellar> {
-	return apiPost<Cellar>('/cellar', {})
-}
-
 export function createShelf(
 	name: string,
 	compartmentCount: number,

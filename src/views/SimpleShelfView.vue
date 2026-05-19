@@ -7,41 +7,40 @@
 					<NcButton variant="primary" @click="newShelfOpen = true">{{ t('vinarium', '+ Neues Regal') }}</NcButton>
 				</header>
 
-				<!-- Kein Keller -->
-				<div v-if="!cellar" class="shelf-view__empty">
-					<p>{{ t('vinarium', 'Noch kein Weinkeller angelegt.') }}</p>
-					<NcButton variant="primary" :disabled="creating" @click="createDefault">{{ t('vinarium', 'Standard-Regal anlegen') }}</NcButton>
+				<!-- Parkzone (immer sichtbar, unabhaengig vom Cellar) -->
+				<section
+					:class="['parkzone', { 'parkzone--drag-over': parkzoneDragOver }]"
+					@dragover.prevent="parkzoneDragOver = true"
+					@dragleave="onParkzoneDragLeave"
+					@drop.prevent="onDropToParkzone"
+				>
+					<h3>{{ t('vinarium', 'Parkzone ({n})', { n: parkedBottles.length }) }}</h3>
+					<template v-if="parkedBottles.length > 0">
+						<p class="muted">{{ t('vinarium', 'Flaschen per Drag & Drop in einen Slot ziehen.') }}</p>
+						<ul class="park-list">
+							<li
+								v-for="b in parkedBottles"
+								:key="b.id"
+								:class="['park-card', { selected: selectedBottleId === b.id }]"
+								draggable="true"
+								@dragstart="onDragStart(b.id, $event)"
+								@dragend="onDragEnd"
+								@click="onParkCardClick(b.id)"
+							>
+								<span class="park-card__dot" :style="{ background: cssColorFor(b.wine_color) }"></span>
+								<span class="park-card__label">{{ b.wine_name }} {{ b.year }}</span>
+							</li>
+						</ul>
+					</template>
+					<p v-else class="empty-park">{{ t('vinarium', 'Keine Flaschen in der Parkzone.') }}</p>
+				</section>
+
+				<!-- Kein Regal -->
+				<div v-if="shelves.length === 0" class="shelf-view__empty">
+					<p>{{ t('vinarium', 'Noch kein Regal angelegt.') }}</p>
 				</div>
 
 				<template v-else>
-					<!-- Parkzone -->
-					<section
-						:class="['parkzone', { 'parkzone--drag-over': parkzoneDragOver }]"
-						@dragover.prevent="parkzoneDragOver = true"
-						@dragleave="onParkzoneDragLeave"
-						@drop.prevent="onDropToParkzone"
-					>
-						<h3>{{ t('vinarium', 'Parkzone ({n})', { n: parkedBottles.length }) }}</h3>
-						<template v-if="parkedBottles.length > 0">
-							<p class="muted">{{ t('vinarium', 'Flaschen per Drag & Drop in einen Slot ziehen.') }}</p>
-							<ul class="park-list">
-								<li
-									v-for="b in parkedBottles"
-									:key="b.id"
-									:class="['park-card', { selected: selectedBottleId === b.id }]"
-									draggable="true"
-									@dragstart="onDragStart(b.id, $event)"
-									@dragend="onDragEnd"
-									@click="onParkCardClick(b.id)"
-								>
-									<span class="park-card__dot" :style="{ background: cssColorFor(b.wine_color) }"></span>
-									<span class="park-card__label">{{ b.wine_name }} {{ b.year }}</span>
-								</li>
-							</ul>
-						</template>
-						<p v-else class="empty-park">{{ t('vinarium', 'Keine Flaschen in der Parkzone.') }}</p>
-					</section>
-
 					<!-- Regal-Tabs -->
 					<div v-if="shelves.length > 1" class="shelf-tabs">
 						<button
@@ -59,7 +58,6 @@
 						<div class="shelf-title-row">
 							<h3 class="shelf-title">{{ activeShelf.shelf.name }}</h3>
 							<button
-								v-if="shelves.length > 1"
 								class="shelf-delete-btn"
 								:title="t('vinarium', 'Regal löschen')"
 								@click="confirmDeleteShelf"
@@ -185,13 +183,13 @@ import TastingDialog from '@/components/TastingDialog.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import type { BottleListItem, CompartmentWithLevels, Level, Slot, WineColor } from '@/types/api'
 import type { CellarResponse } from '@/api/cellar'
-import { createDefaultCellar, destroyShelf, fetchCellar, fetchSlots } from '@/api/cellar'
+import { destroyShelf, fetchCellar, fetchSlots } from '@/api/cellar'
+
 import { useBottleStore } from '@/stores/bottleStore'
 import { cssColorFor } from '@/utils/wineColors'
 
 const store = useBottleStore()
 
-const cellar = ref<CellarResponse['cellar'] | null>(null)
 const shelves = ref<CellarResponse['shelves']>([])
 const allSlots = ref<Slot[]>([])
 const activeShelfId = ref<number | null>(null)
@@ -200,7 +198,6 @@ const selectedBottleId = ref<number | null>(null)
 const detailBottleId = ref<number | null>(null)
 const draggedBottleId = ref<number | null>(null)
 const parkzoneDragOver = ref(false)
-const creating = ref(false)
 const errorMsg = ref('')
 
 const newShelfOpen = ref(false)
@@ -424,15 +421,19 @@ async function reload() {
 	errorMsg.value = ''
 	try {
 		const data = await fetchCellar()
-		cellar.value = data.cellar
 		shelves.value = data.shelves
 		if (activeShelfId.value === null || !shelves.value.find(e => e.shelf.id === activeShelfId.value)) {
 			activeShelfId.value = shelves.value[0]?.shelf.id ?? null
 		}
 		await loadAllSlots()
 	} catch (e: any) {
-		if (e?.status === 404) cellar.value = null
-		else errorMsg.value = e?.message ?? t('vinarium', 'Fehler beim Laden')
+		if (e?.status === 404) {
+			shelves.value = []
+			activeShelfId.value = null
+			allSlots.value = []
+		} else {
+			errorMsg.value = e?.message ?? t('vinarium', 'Fehler beim Laden')
+		}
 	}
 }
 
@@ -442,18 +443,6 @@ async function loadAllSlots() {
 	allSlots.value = results.flat()
 }
 
-async function createDefault() {
-	creating.value = true
-	errorMsg.value = ''
-	try {
-		await createDefaultCellar()
-		await reload()
-	} catch (e: any) {
-		errorMsg.value = e?.message ?? t('vinarium', 'Anlegen fehlgeschlagen')
-	} finally {
-		creating.value = false
-	}
-}
 </script>
 
 <style scoped>
