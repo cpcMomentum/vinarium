@@ -187,6 +187,7 @@ import type { BottleListItem, CompartmentWithLevels, Level, Slot, WineColor } fr
 import type { CellarResponse } from '@/api/cellar'
 import { createDefaultCellar, destroyShelf, fetchCellar, fetchSlots } from '@/api/cellar'
 import { useBottleStore } from '@/stores/bottleStore'
+import { cssColorFor } from '@/utils/wineColors'
 
 const store = useBottleStore()
 
@@ -240,14 +241,6 @@ function slotsFor(compartmentId: number, levelNumber: number, row: string): Slot
 	return allSlots.value
 		.filter(s => s.compartmentId === compartmentId && s.level === levelNumber && s.row === row)
 		.sort((a, b) => a.column - b.column)
-}
-
-function cssColorFor(color: WineColor): string {
-	const palette: Record<WineColor, string> = {
-		red: '#7a1c1c', white: '#e8d57a', rose: '#e8a3b8',
-		sparkling: '#fff7c0', dessert: '#c2934e', fortified: '#4a1010',
-	}
-	return palette[color] ?? '#999'
 }
 
 function slotClasses(slotId: number): Record<string, boolean> {

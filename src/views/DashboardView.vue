@@ -67,6 +67,7 @@ import { onMounted, ref } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import { fetchStats, exportCsvUrl, type DashboardStats } from '@/api/dashboard'
 import { WINE_COLOR_LABELS, type WineColor } from '@/types/api'
+import { cssColorFor } from '@/utils/wineColors'
 
 const stats = ref<DashboardStats | null>(null)
 const errorMsg = ref('')
@@ -80,14 +81,6 @@ onMounted(async () => {
 		console.error('Dashboard stats error:', e)
 	}
 })
-
-function cssColorFor(color: WineColor): string {
-	const palette: Record<string, string> = {
-		red: '#7a1c1c', white: '#e8d57a', rose: '#e8a3b8',
-		sparkling: '#fff7c0', dessert: '#c2934e', fortified: '#4a1010',
-	}
-	return palette[color] ?? '#999'
-}
 
 function barWidth(count: number): string {
 	if (!stats.value) return '0'
