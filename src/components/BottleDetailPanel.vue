@@ -109,7 +109,7 @@
 			</section>
 
 			<div class="bottle-detail__actions">
-				<NcButton type="primary" @click="$emit('uncork', detail.id)">
+				<NcButton variant="primary" @click="$emit('uncork', detail.id)">
 					{{ t('vinarium', 'Entkorken') }}
 				</NcButton>
 			</div>

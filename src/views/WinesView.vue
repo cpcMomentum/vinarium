@@ -2,7 +2,7 @@
 	<div class="wines-view">
 		<header class="wines-view__header">
 			<h2>{{ t('vinarium', 'Weine') }}</h2>
-			<NcButton type="primary" @click="wizardOpen = true">{{ t('vinarium', '+ Kauf erfassen') }}</NcButton>
+			<NcButton variant="primary" @click="wizardOpen = true">{{ t('vinarium', '+ Kauf erfassen') }}</NcButton>
 		</header>
 
 		<div class="tabs">
@@ -18,7 +18,7 @@
 
 		<section v-if="activeTab === 'producers'" class="tab-panel">
 			<div class="tab-panel__actions">
-				<NcButton type="primary" @click="openCreate('producer')">{{ t('vinarium', '+ Weingut') }}</NcButton>
+				<NcButton variant="primary" @click="openCreate('producer')">{{ t('vinarium', '+ Weingut') }}</NcButton>
 			</div>
 			<p v-if="store.producers.length === 0" class="empty">{{ t('vinarium', 'Noch keine Weingüter erfasst.') }}</p>
 			<ul v-else class="list">
@@ -30,7 +30,7 @@
 					</div>
 					<div class="list-item__actions">
 						<NcButton @click="editEntity('producer', p.id)">{{ t('vinarium', 'Bearbeiten') }}</NcButton>
-						<NcButton type="tertiary" @click="deleteEntity('producer', p.id)">{{ t('vinarium', 'Löschen') }}</NcButton>
+						<NcButton variant="tertiary" @click="deleteEntity('producer', p.id)">{{ t('vinarium', 'Löschen') }}</NcButton>
 					</div>
 				</li>
 			</ul>
@@ -47,7 +47,7 @@
 					</div>
 					<div class="list-item__actions">
 						<NcButton @click="editEntity('wine', w.id)">{{ t('vinarium', 'Bearbeiten') }}</NcButton>
-						<NcButton type="tertiary" @click="deleteEntity('wine', w.id)">{{ t('vinarium', 'Löschen') }}</NcButton>
+						<NcButton variant="tertiary" @click="deleteEntity('wine', w.id)">{{ t('vinarium', 'Löschen') }}</NcButton>
 					</div>
 				</li>
 			</ul>
@@ -63,7 +63,7 @@
 					</div>
 					<div class="list-item__actions">
 						<NcButton @click="editEntity('vintage', v.id)">{{ t('vinarium', 'Bearbeiten') }}</NcButton>
-						<NcButton type="tertiary" @click="deleteEntity('vintage', v.id)">{{ t('vinarium', 'Löschen') }}</NcButton>
+						<NcButton variant="tertiary" @click="deleteEntity('vintage', v.id)">{{ t('vinarium', 'Löschen') }}</NcButton>
 					</div>
 				</li>
 			</ul>

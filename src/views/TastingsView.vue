@@ -2,7 +2,7 @@
 	<div class="tastings-view">
 		<header class="tastings-view__header">
 			<h2>{{ t('vinarium', 'Verkostungen') }}</h2>
-			<NcButton type="primary" @click="openPicker">{{ t('vinarium', 'Flasche entkorken') }}</NcButton>
+			<NcButton variant="primary" @click="openPicker">{{ t('vinarium', 'Flasche entkorken') }}</NcButton>
 		</header>
 
 		<p v-if="loading" class="muted">{{ t('vinarium', 'Laden...') }}</p>
@@ -68,7 +68,7 @@
 			</div>
 			<template #actions>
 				<NcButton @click="pickerOpen = false">{{ t('vinarium', 'Abbrechen') }}</NcButton>
-				<NcButton type="primary" :disabled="!pickerSelectedId" @click="startUncork">
+				<NcButton variant="primary" :disabled="!pickerSelectedId" @click="startUncork">
 					{{ t('vinarium', 'Entkorken') }}
 				</NcButton>
 			</template>

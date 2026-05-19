@@ -53,7 +53,7 @@
 
 			<div class="actions">
 				<NcButton @click="$emit('close')">{{ t('vinarium', 'Abbrechen') }}</NcButton>
-				<NcButton type="primary" :disabled="saving" @click="submit">
+				<NcButton variant="primary" :disabled="saving" @click="submit">
 					{{ editMode ? t('vinarium', 'Speichern') : t('vinarium', 'Flasche öffnen') }}
 				</NcButton>
 			</div>
