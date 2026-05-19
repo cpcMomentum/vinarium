@@ -79,7 +79,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import TastingDialog from '@/components/TastingDialog.vue'
 import { BOTTLE_STATUS_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleStatus, type WineColor } from '@/types/api'
 import { useBottleStore } from '@/stores/bottleStore'
-import { restoreBottle, getBottlePhotoUrl } from '@/api/bottles'
+import { getBottlePhotoUrl } from '@/api/bottles'
 
 const store = useBottleStore()
 const tastingOpen = ref(false)
@@ -100,8 +100,6 @@ async function applyFilter() {
 	})
 }
 
-// silence unused var when filter changes lock (kept for future drink-until-year filter)
-
 async function resetFilter() {
 	filterColor.value = ''
 	filterStatus.value = ''
@@ -119,8 +117,7 @@ async function onConsumed() {
 }
 
 async function doRestore(id: number) {
-	await restoreBottle(id)
-	await store.fetchBottles(store.filter)
+	await store.restoreBottle(id)
 }
 
 function cssColorFor(color: WineColor): string {
