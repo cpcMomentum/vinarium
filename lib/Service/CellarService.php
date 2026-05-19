@@ -196,8 +196,12 @@ class CellarService {
 
 		$this->db->beginTransaction();
 		try {
-			$shelf = $this->shelfMapper->find($shelfId);
-			$cellar = $this->cellarMapper->find($shelf->getCellarId());
+			try {
+				$shelf = $this->shelfMapper->find($shelfId);
+				$cellar = $this->cellarMapper->find($shelf->getCellarId());
+			} catch (DoesNotExistException $e) {
+				throw new NotFoundException("Shelf {$shelfId} not found", 0, $e);
+			}
 			if ($cellar->getOwnerUserId() !== $userId) {
 				throw new PermissionDeniedException('Shelf not owned by user');
 			}
@@ -234,7 +238,11 @@ class CellarService {
 	public function destroyCompartment(int $compartmentId, string $userId): int {
 		$this->db->beginTransaction();
 		try {
-			$comp = $this->compartmentMapper->find($compartmentId);
+			try {
+				$comp = $this->compartmentMapper->find($compartmentId);
+			} catch (DoesNotExistException $e) {
+				throw new NotFoundException("Compartment {$compartmentId} not found", 0, $e);
+			}
 			$this->assertCompartmentOwnership($comp, $userId);
 
 			$movedBottles = $this->wipeCompartment($compartmentId);
