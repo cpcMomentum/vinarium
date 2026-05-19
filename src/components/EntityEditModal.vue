@@ -44,7 +44,7 @@
 
 			<div class="actions">
 				<NcButton @click="$emit('close')">{{ t('vinarium', 'Abbrechen') }}</NcButton>
-				<NcButton type="primary" :disabled="saving || !isValid" @click="save">{{ t('vinarium', 'Speichern') }}</NcButton>
+				<NcButton variant="primary" :disabled="saving || !isValid" @click="save">{{ t('vinarium', 'Speichern') }}</NcButton>
 			</div>
 		</div>
 	</NcModal>

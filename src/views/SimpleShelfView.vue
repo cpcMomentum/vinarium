@@ -4,13 +4,13 @@
 			<div class="shelf-main">
 				<header class="shelf-view__header">
 					<h2>{{ t('vinarium', 'Regal') }}</h2>
-					<NcButton type="primary" @click="newShelfOpen = true">{{ t('vinarium', '+ Neues Regal') }}</NcButton>
+					<NcButton variant="primary" @click="newShelfOpen = true">{{ t('vinarium', '+ Neues Regal') }}</NcButton>
 				</header>
 
 				<!-- Kein Keller -->
 				<div v-if="!cellar" class="shelf-view__empty">
 					<p>{{ t('vinarium', 'Noch kein Weinkeller angelegt.') }}</p>
-					<NcButton type="primary" :disabled="creating" @click="createDefault">{{ t('vinarium', 'Standard-Regal anlegen') }}</NcButton>
+					<NcButton variant="primary" :disabled="creating" @click="createDefault">{{ t('vinarium', 'Standard-Regal anlegen') }}</NcButton>
 				</div>
 
 				<template v-else>

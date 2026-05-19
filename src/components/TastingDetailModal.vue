@@ -116,7 +116,7 @@
 			<!-- Aktionen -->
 			<div class="detail-modal__actions">
 				<NcButton @click="$emit('close')">{{ t('vinarium', 'Schließen') }}</NcButton>
-				<NcButton type="secondary" @click="$emit('edit', detail)">{{ t('vinarium', 'Bearbeiten') }}</NcButton>
+				<NcButton variant="secondary" @click="$emit('edit', detail)">{{ t('vinarium', 'Bearbeiten') }}</NcButton>
 			</div>
 		</div>
 	</NcModal>

@@ -34,8 +34,8 @@
 		</div>
 
 		<template #actions>
-			<NcButton type="secondary" @click="$emit('close')">{{ t('vinarium', 'Abbrechen') }}</NcButton>
-			<NcButton type="primary" :disabled="saving || !isValid" @click="submit">
+			<NcButton variant="secondary" @click="$emit('close')">{{ t('vinarium', 'Abbrechen') }}</NcButton>
+			<NcButton variant="primary" :disabled="saving || !isValid" @click="submit">
 				{{ saving ? t('vinarium', 'Wird gespeichert…') : t('vinarium', 'Speichern') }}
 			</NcButton>
 		</template>

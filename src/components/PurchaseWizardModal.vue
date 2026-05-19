@@ -121,10 +121,10 @@
 			<div class="wizard__actions">
 				<NcButton @click="cancel">{{ t('vinarium', 'Abbrechen') }}</NcButton>
 				<NcButton v-if="step > 1" @click="step--">{{ t('vinarium', 'Zurück') }}</NcButton>
-				<NcButton v-if="step < 4" type="primary" :disabled="!canAdvance || saving" @click="advance">
+				<NcButton v-if="step < 4" variant="primary" :disabled="!canAdvance || saving" @click="advance">
 					{{ t('vinarium', 'Weiter') }}
 				</NcButton>
-				<NcButton v-if="step === 4" type="primary" :disabled="!isValidPurchase || saving" @click="complete">
+				<NcButton v-if="step === 4" variant="primary" :disabled="!isValidPurchase || saving" @click="complete">
 					{{ t('vinarium', 'Fertig (Kauf erfassen)') }}
 				</NcButton>
 			</div>
