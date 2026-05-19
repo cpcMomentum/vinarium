@@ -4,44 +4,43 @@
 			<div class="shelf-main">
 				<header class="shelf-view__header">
 					<h2>{{ t('vinarium', 'Regal') }}</h2>
-					<NcButton type="primary" @click="newShelfOpen = true">{{ t('vinarium', '+ Neues Regal') }}</NcButton>
+					<NcButton variant="primary" @click="newShelfOpen = true">{{ t('vinarium', '+ Neues Regal') }}</NcButton>
 				</header>
 
-				<!-- Kein Keller -->
-				<div v-if="!cellar" class="shelf-view__empty">
-					<p>{{ t('vinarium', 'Noch kein Weinkeller angelegt.') }}</p>
-					<NcButton type="primary" :disabled="creating" @click="createDefault">{{ t('vinarium', 'Standard-Regal anlegen') }}</NcButton>
+				<!-- Parkzone (immer sichtbar, unabhaengig vom Cellar) -->
+				<section
+					:class="['parkzone', { 'parkzone--drag-over': parkzoneDragOver }]"
+					@dragover.prevent="parkzoneDragOver = true"
+					@dragleave="onParkzoneDragLeave"
+					@drop.prevent="onDropToParkzone"
+				>
+					<h3>{{ t('vinarium', 'Parkzone ({n})', { n: parkedBottles.length }) }}</h3>
+					<template v-if="parkedBottles.length > 0">
+						<p class="muted">{{ t('vinarium', 'Flaschen per Drag & Drop in einen Slot ziehen.') }}</p>
+						<ul class="park-list">
+							<li
+								v-for="b in parkedBottles"
+								:key="b.id"
+								:class="['park-card', { selected: selectedBottleId === b.id }]"
+								draggable="true"
+								@dragstart="onDragStart(b.id, $event)"
+								@dragend="onDragEnd"
+								@click="onParkCardClick(b.id)"
+							>
+								<span class="park-card__dot" :style="{ background: cssColorFor(b.wine_color) }"></span>
+								<span class="park-card__label">{{ b.wine_name }} {{ b.year }}</span>
+							</li>
+						</ul>
+					</template>
+					<p v-else class="empty-park">{{ t('vinarium', 'Keine Flaschen in der Parkzone.') }}</p>
+				</section>
+
+				<!-- Kein Regal -->
+				<div v-if="shelves.length === 0" class="shelf-view__empty">
+					<p>{{ t('vinarium', 'Noch kein Regal angelegt.') }}</p>
 				</div>
 
 				<template v-else>
-					<!-- Parkzone -->
-					<section
-						:class="['parkzone', { 'parkzone--drag-over': parkzoneDragOver }]"
-						@dragover.prevent="parkzoneDragOver = true"
-						@dragleave="onParkzoneDragLeave"
-						@drop.prevent="onDropToParkzone"
-					>
-						<h3>{{ t('vinarium', 'Parkzone ({n})', { n: parkedBottles.length }) }}</h3>
-						<template v-if="parkedBottles.length > 0">
-							<p class="muted">{{ t('vinarium', 'Flaschen per Drag & Drop in einen Slot ziehen.') }}</p>
-							<ul class="park-list">
-								<li
-									v-for="b in parkedBottles"
-									:key="b.id"
-									:class="['park-card', { selected: selectedBottleId === b.id }]"
-									draggable="true"
-									@dragstart="onDragStart(b.id, $event)"
-									@dragend="onDragEnd"
-									@click="onParkCardClick(b.id)"
-								>
-									<span class="park-card__dot" :style="{ background: cssColorFor(b.wine_color) }"></span>
-									<span class="park-card__label">{{ b.wine_name }} {{ b.year }}</span>
-								</li>
-							</ul>
-						</template>
-						<p v-else class="empty-park">{{ t('vinarium', 'Keine Flaschen in der Parkzone.') }}</p>
-					</section>
-
 					<!-- Regal-Tabs -->
 					<div v-if="shelves.length > 1" class="shelf-tabs">
 						<button
@@ -59,7 +58,6 @@
 						<div class="shelf-title-row">
 							<h3 class="shelf-title">{{ activeShelf.shelf.name }}</h3>
 							<button
-								v-if="shelves.length > 1"
 								class="shelf-delete-btn"
 								:title="t('vinarium', 'Regal löschen')"
 								@click="confirmDeleteShelf"
@@ -70,6 +68,11 @@
 							<div class="compartment__header">
 								<h4 class="compartment__title">{{ compData.compartment.label }}</h4>
 								<button class="compartment__config-btn" :title="t('vinarium', 'Fach konfigurieren')" @click="openConfig(compData)">⚙</button>
+								<button
+									class="compartment__delete-btn"
+									:title="t('vinarium', 'Fach löschen')"
+									@click="confirmDeleteCompartment(compData)"
+								>✕</button>
 							</div>
 
 							<div v-for="level in reversedLevels(compData.levels)" :key="level.id" class="level">
@@ -134,6 +137,12 @@
 								</div>
 							</div>
 						</div>
+
+						<div class="add-compartment-row">
+							<NcButton :disabled="addingCompartment" @click="onAddCompartment">
+								{{ t('vinarium', '+ Fach hinzufügen') }}
+							</NcButton>
+						</div>
 					</div>
 				</template>
 
@@ -162,6 +171,24 @@
 			@close="uncorkOpen = false"
 			@consumed="onConsumed"
 		/>
+		<ConfirmDialog
+			:open="deleteConfirmOpen"
+			:name="t('vinarium', 'Regal löschen')"
+			:message="deleteConfirmMessage"
+			:confirm-label="t('vinarium', 'Löschen')"
+			:destructive="true"
+			@close="deleteConfirmOpen = false"
+			@confirm="performDeleteShelf"
+		/>
+		<ConfirmDialog
+			:open="deleteCompartmentConfirmOpen"
+			:name="t('vinarium', 'Fach löschen')"
+			:message="deleteCompartmentConfirmMessage"
+			:confirm-label="t('vinarium', 'Löschen')"
+			:destructive="true"
+			@close="deleteCompartmentConfirmOpen = false"
+			@confirm="performDeleteCompartment"
+		/>
 	</div>
 </template>
 
@@ -173,14 +200,15 @@ import NewShelfDialog from '@/components/NewShelfDialog.vue'
 import ShelfConfigDialog from '@/components/ShelfConfigDialog.vue'
 import BottleDetailPanel from '@/components/BottleDetailPanel.vue'
 import TastingDialog from '@/components/TastingDialog.vue'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import type { BottleListItem, CompartmentWithLevels, Level, Slot, WineColor } from '@/types/api'
 import type { CellarResponse } from '@/api/cellar'
-import { createDefaultCellar, destroyShelf, fetchCellar, fetchSlots } from '@/api/cellar'
+import { addCompartment, destroyCompartment, destroyShelf, fetchCellar, fetchSlots } from '@/api/cellar'
 import { useBottleStore } from '@/stores/bottleStore'
+import { cssColorFor } from '@/utils/wineColors'
 
 const store = useBottleStore()
 
-const cellar = ref<CellarResponse['cellar'] | null>(null)
 const shelves = ref<CellarResponse['shelves']>([])
 const allSlots = ref<Slot[]>([])
 const activeShelfId = ref<number | null>(null)
@@ -189,7 +217,6 @@ const selectedBottleId = ref<number | null>(null)
 const detailBottleId = ref<number | null>(null)
 const draggedBottleId = ref<number | null>(null)
 const parkzoneDragOver = ref(false)
-const creating = ref(false)
 const errorMsg = ref('')
 
 const newShelfOpen = ref(false)
@@ -230,14 +257,6 @@ function slotsFor(compartmentId: number, levelNumber: number, row: string): Slot
 	return allSlots.value
 		.filter(s => s.compartmentId === compartmentId && s.level === levelNumber && s.row === row)
 		.sort((a, b) => a.column - b.column)
-}
-
-function cssColorFor(color: WineColor): string {
-	const palette: Record<WineColor, string> = {
-		red: '#7a1c1c', white: '#e8d57a', rose: '#e8a3b8',
-		sparkling: '#fff7c0', dessert: '#c2934e', fortified: '#4a1010',
-	}
-	return palette[color] ?? '#999'
 }
 
 function slotClasses(slotId: number): Record<string, boolean> {
@@ -380,16 +399,75 @@ async function onReconfigured() {
 
 // --- Shelf management ---
 
-async function confirmDeleteShelf() {
+const deleteConfirmOpen = ref(false)
+const deleteConfirmMessage = computed(() => {
+	const name = activeShelf.value?.shelf.name ?? ''
+	return t('vinarium', 'Regal "{name}" wirklich löschen? Alle Flaschen kommen in die Parkzone.', { name })
+})
+
+function confirmDeleteShelf() {
 	if (!activeShelf.value) return
-	const name = activeShelf.value.shelf.name
-	if (!confirm(t('vinarium', 'Regal "{name}" wirklich löschen? Alle Flaschen kommen in die Parkzone.', { name }))) return
+	deleteConfirmOpen.value = true
+}
+
+async function performDeleteShelf() {
+	deleteConfirmOpen.value = false
+	if (!activeShelf.value) return
 	try {
 		await destroyShelf(activeShelf.value.shelf.id)
 		await reload()
 		await store.fetchBottles({ status: 'in_storage' })
 	} catch (e: any) {
 		errorMsg.value = e?.message ?? t('vinarium', 'Löschen fehlgeschlagen')
+	}
+}
+
+// --- Compartment add/delete ---
+
+const addingCompartment = ref(false)
+const deleteCompartmentConfirmOpen = ref(false)
+const deleteCompartmentTarget = ref<CompartmentWithLevels | null>(null)
+const deleteCompartmentConfirmMessage = computed(() => {
+	const label = deleteCompartmentTarget.value?.compartment.label ?? ''
+	return t('vinarium', 'Fach "{label}" wirklich löschen? Alle Flaschen kommen in die Parkzone.', { label })
+})
+
+async function onAddCompartment() {
+	if (!activeShelf.value || addingCompartment.value) return
+	addingCompartment.value = true
+	errorMsg.value = ''
+	try {
+		// Default config: 3 levels, 6 columns front, 7 columns back (matches CellarService defaults)
+		const defaultLevels = [
+			{ columnsFront: 6, columnsBack: 7 },
+			{ columnsFront: 6, columnsBack: 7 },
+			{ columnsFront: 6, columnsBack: 7 },
+		]
+		await addCompartment(activeShelf.value.shelf.id, defaultLevels)
+		await reload()
+	} catch (e: any) {
+		errorMsg.value = e?.message ?? t('vinarium', 'Fach hinzufügen fehlgeschlagen')
+	} finally {
+		addingCompartment.value = false
+	}
+}
+
+function confirmDeleteCompartment(compData: CompartmentWithLevels) {
+	deleteCompartmentTarget.value = compData
+	deleteCompartmentConfirmOpen.value = true
+}
+
+async function performDeleteCompartment() {
+	deleteCompartmentConfirmOpen.value = false
+	const target = deleteCompartmentTarget.value
+	deleteCompartmentTarget.value = null
+	if (!target) return
+	try {
+		await destroyCompartment(target.compartment.id)
+		await reload()
+		await store.fetchBottles({ status: 'in_storage' })
+	} catch (e: any) {
+		errorMsg.value = e?.message ?? t('vinarium', 'Fach löschen fehlgeschlagen')
 	}
 }
 
@@ -411,15 +489,19 @@ async function reload() {
 	errorMsg.value = ''
 	try {
 		const data = await fetchCellar()
-		cellar.value = data.cellar
 		shelves.value = data.shelves
 		if (activeShelfId.value === null || !shelves.value.find(e => e.shelf.id === activeShelfId.value)) {
 			activeShelfId.value = shelves.value[0]?.shelf.id ?? null
 		}
 		await loadAllSlots()
 	} catch (e: any) {
-		if (e?.status === 404) cellar.value = null
-		else errorMsg.value = e?.message ?? t('vinarium', 'Fehler beim Laden')
+		if (e?.status === 404) {
+			shelves.value = []
+			activeShelfId.value = null
+			allSlots.value = []
+		} else {
+			errorMsg.value = e?.message ?? t('vinarium', 'Fehler beim Laden')
+		}
 	}
 }
 
@@ -429,18 +511,6 @@ async function loadAllSlots() {
 	allSlots.value = results.flat()
 }
 
-async function createDefault() {
-	creating.value = true
-	errorMsg.value = ''
-	try {
-		await createDefaultCellar()
-		await reload()
-	} catch (e: any) {
-		errorMsg.value = e?.message ?? t('vinarium', 'Anlegen fehlgeschlagen')
-	} finally {
-		creating.value = false
-	}
-}
 </script>
 
 <style scoped>
@@ -591,6 +661,23 @@ async function createDefault() {
 	color: var(--color-text-maxcontrast);
 }
 .compartment__config-btn:hover { background: var(--color-background-hover); }
+.compartment__delete-btn {
+	background: none;
+	border: none;
+	color: #c0392b;
+	font-size: 1rem;
+	font-weight: bold;
+	padding: 0 6px;
+	line-height: 1;
+	cursor: pointer;
+}
+.compartment__delete-btn:hover { color: #b71c1c; }
+.add-compartment-row {
+	margin-top: 0.5rem;
+	max-width: 720px;
+	display: flex;
+	justify-content: flex-start;
+}
 .level {
 	display: flex;
 	align-items: stretch;

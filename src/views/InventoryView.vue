@@ -60,8 +60,8 @@
 					<td>{{ t('vinarium', BOTTLE_STATUS_LABELS[b.status]) }}</td>
 					<td>{{ formatSlotLabel(b) }}</td>
 					<td>
-						<NcButton v-if="b.status === 'in_storage'" type="tertiary" @click="openTasting(b.id)">{{ t('vinarium', 'Entkorken') }}</NcButton>
-						<NcButton v-else type="tertiary" @click="doRestore(b.id)">{{ t('vinarium', 'Zurück in Bestand') }}</NcButton>
+						<NcButton v-if="b.status === 'in_storage'" variant="tertiary" @click="openTasting(b.id)">{{ t('vinarium', 'Entkorken') }}</NcButton>
+						<NcButton v-else variant="tertiary" @click="doRestore(b.id)">{{ t('vinarium', 'Zurück in Bestand') }}</NcButton>
 					</td>
 				</tr>
 			</tbody>
@@ -79,7 +79,8 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import TastingDialog from '@/components/TastingDialog.vue'
 import { BOTTLE_STATUS_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleStatus, type WineColor } from '@/types/api'
 import { useBottleStore } from '@/stores/bottleStore'
-import { restoreBottle, getBottlePhotoUrl } from '@/api/bottles'
+import { getBottlePhotoUrl } from '@/api/bottles'
+import { cssColorFor } from '@/utils/wineColors'
 
 const store = useBottleStore()
 const tastingOpen = ref(false)
@@ -100,8 +101,6 @@ async function applyFilter() {
 	})
 }
 
-// silence unused var when filter changes lock (kept for future drink-until-year filter)
-
 async function resetFilter() {
 	filterColor.value = ''
 	filterStatus.value = ''
@@ -119,20 +118,7 @@ async function onConsumed() {
 }
 
 async function doRestore(id: number) {
-	await restoreBottle(id)
-	await store.fetchBottles(store.filter)
-}
-
-function cssColorFor(color: WineColor): string {
-	const palette: Record<WineColor, string> = {
-		red: '#7a1c1c',
-		white: '#e8d57a',
-		rose: '#e8a3b8',
-		sparkling: '#fff7c0',
-		dessert: '#c2934e',
-		fortified: '#4a1010',
-	}
-	return palette[color]
+	await store.restoreBottle(id)
 }
 
 function bottlePhotoUrl(id: number): string {

@@ -4,7 +4,7 @@
  */
 
 import type { Bottle, BottleFilter, BottleListItem } from '@/types/api'
-import { apiDelete, apiGet, apiPatch, apiPost, apiUrl } from './client'
+import { apiDelete, apiGet, apiPatch, apiUrl } from './client'
 
 function buildQuery(filter: BottleFilter): string {
 	const params = new URLSearchParams()
@@ -80,9 +80,6 @@ export const moveBottle = (id: number, slotId: number | null): Promise<Bottle> =
 
 export const swapBottles = (id: number, targetBottleId: number): Promise<Bottle[]> =>
 	apiPatch<Bottle[], { targetBottleId: number }>(`/bottles/${id}/swap`, { targetBottleId })
-
-export const consumeBottle = (id: number): Promise<Bottle> =>
-	apiPost<Bottle, Record<string, never>>(`/bottles/${id}/consume`, {})
 
 export const restoreBottle = (id: number): Promise<Bottle> =>
 	apiPatch<Bottle, Record<string, never>>(`/bottles/${id}/restore`, {})

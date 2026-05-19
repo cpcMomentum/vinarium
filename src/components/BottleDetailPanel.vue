@@ -109,7 +109,7 @@
 			</section>
 
 			<div class="bottle-detail__actions">
-				<NcButton type="primary" @click="$emit('uncork', detail.id)">
+				<NcButton variant="primary" @click="$emit('uncork', detail.id)">
 					{{ t('vinarium', 'Entkorken') }}
 				</NcButton>
 			</div>
@@ -132,6 +132,7 @@ import moment from '@nextcloud/moment'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { getBottleDetails, getBottlePhotoUrl, uploadBottlePhoto, deleteBottlePhoto, type BottleDetail } from '@/api/bottles'
 import { BOTTLE_SIZE_LABELS, type BottleSizeMl, type WineColor } from '@/types/api'
+import { cssColorFor } from '@/utils/wineColors'
 
 const props = defineProps<{ bottleId: number | null }>()
 const emit = defineEmits<{
@@ -198,13 +199,6 @@ function formatDate(iso: string): string {
 	catch { return iso }
 }
 
-function cssColorFor(color: string): string {
-	const palette: Record<string, string> = {
-		red: '#7a1c1c', white: '#e8d57a', rose: '#e8a3b8',
-		sparkling: '#fff7c0', dessert: '#c2934e', fortified: '#4a1010',
-	}
-	return palette[color] ?? '#999'
-}
 </script>
 
 <style scoped>

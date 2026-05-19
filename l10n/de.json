@@ -197,7 +197,9 @@
         "Fotos": "Fotos",
         "Fotos hinzufügen": "Fotos hinzufügen",
         "Foto": "Foto",
-        "Fotos ({count})": "Fotos ({count})"
+        "Fotos ({count})": "Fotos ({count})",
+        "Bestätigen": "Bestätigen",
+        "{entity} löschen": "{entity} löschen"
     },
     "pluralForm": "nplurals=2; plural=(n != 1);"
 }

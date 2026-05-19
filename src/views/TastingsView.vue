@@ -2,7 +2,7 @@
 	<div class="tastings-view">
 		<header class="tastings-view__header">
 			<h2>{{ t('vinarium', 'Verkostungen') }}</h2>
-			<NcButton type="primary" @click="openPicker">{{ t('vinarium', 'Flasche entkorken') }}</NcButton>
+			<NcButton variant="primary" @click="openPicker">{{ t('vinarium', 'Flasche entkorken') }}</NcButton>
 		</header>
 
 		<p v-if="loading" class="muted">{{ t('vinarium', 'Laden...') }}</p>
@@ -52,6 +52,7 @@
 		>
 			<div class="picker">
 				<p v-if="pickerLoading" class="muted">{{ t('vinarium', 'Laden...') }}</p>
+				<p v-else-if="pickerError" class="picker-error">{{ pickerError }}</p>
 				<p v-else-if="pickerBottles.length === 0" class="empty">{{ t('vinarium', 'Keine Flaschen im Bestand.') }}</p>
 				<ul v-else class="picker-list">
 					<li
@@ -67,7 +68,7 @@
 			</div>
 			<template #actions>
 				<NcButton @click="pickerOpen = false">{{ t('vinarium', 'Abbrechen') }}</NcButton>
-				<NcButton type="primary" :disabled="!pickerSelectedId" @click="startUncork">
+				<NcButton variant="primary" :disabled="!pickerSelectedId" @click="startUncork">
 					{{ t('vinarium', 'Entkorken') }}
 				</NcButton>
 			</template>
@@ -110,6 +111,7 @@ import { listBottles } from '@/api/bottles'
 import type { BottleListItem } from '@/types/api'
 import TastingDialog from '@/components/TastingDialog.vue'
 import TastingDetailModal from '@/components/TastingDetailModal.vue'
+import { cssColorFor } from '@/utils/wineColors'
 
 const tastings = ref<TastingListItem[]>([])
 const loading = ref(true)
@@ -133,6 +135,7 @@ const pickerOpen = ref(false)
 const pickerLoading = ref(false)
 const pickerBottles = ref<BottleListItem[]>([])
 const pickerSelectedId = ref<number | null>(null)
+const pickerError = ref<string | null>(null)
 
 function openDetail(id: number) {
 	detailModal.tastingId = id
@@ -155,8 +158,12 @@ async function openPicker() {
 	pickerOpen.value = true
 	pickerLoading.value = true
 	pickerSelectedId.value = null
+	pickerError.value = null
+	pickerBottles.value = []
 	try {
 		pickerBottles.value = await listBottles({ status: 'in_storage' })
+	} catch (e: any) {
+		pickerError.value = e?.message ?? t('vinarium', 'Flaschen konnten nicht geladen werden')
 	} finally {
 		pickerLoading.value = false
 	}
@@ -186,13 +193,6 @@ function formatDate(iso: string): string {
 	catch { return iso }
 }
 
-function cssColorFor(color: string): string {
-	const palette: Record<string, string> = {
-		red: '#7a1c1c', white: '#e8d57a', rose: '#e8a3b8',
-		sparkling: '#fff7c0', dessert: '#c2934e', fortified: '#4a1010',
-	}
-	return palette[color] ?? '#999'
-}
 </script>
 
 <style scoped>
@@ -217,6 +217,15 @@ function cssColorFor(color: string): string {
 .tastings-table tbody tr:hover { background: var(--color-background-hover); }
 .muted { color: var(--color-text-maxcontrast); }
 .empty { color: var(--color-text-maxcontrast); font-style: italic; padding: 1rem 0; }
+.picker-error {
+	margin: 0;
+	padding: 0.5rem 0.75rem;
+	background: rgba(198, 40, 40, 0.1);
+	border-left: 3px solid #c62828;
+	border-radius: var(--border-radius);
+	color: #c62828;
+	font-size: 0.9rem;
+}
 .picker { padding: 0.5rem 0; min-width: 400px; }
 .picker-list { list-style: none; padding: 0; margin: 0; max-height: 320px; overflow-y: auto; }
 .picker-item {

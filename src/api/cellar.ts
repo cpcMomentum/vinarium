@@ -4,7 +4,7 @@
  */
 
 import { apiDelete, apiGet, apiPatch, apiPost } from './client'
-import type { Cellar, CompartmentWithLevels, Level, Shelf, Slot } from '@/types/api'
+import type { Cellar, Compartment, CompartmentWithLevels, Level, Shelf, Slot } from '@/types/api'
 
 export interface CellarResponse {
 	cellar: Cellar
@@ -21,10 +21,6 @@ export interface LevelConfig {
 
 export function fetchCellar(): Promise<CellarResponse> {
 	return apiGet<CellarResponse>('/cellar')
-}
-
-export function createDefaultCellar(): Promise<Cellar> {
-	return apiPost<Cellar>('/cellar', {})
 }
 
 export function createShelf(
@@ -48,4 +44,16 @@ export function reconfigureCompartment(
 	levelsConfig: LevelConfig[],
 ): Promise<{ movedToParkzone: number }> {
 	return apiPatch<{ movedToParkzone: number }>(`/compartments/${compartmentId}/reconfigure`, { levelsConfig })
+}
+
+export function addCompartment(
+	shelfId: number,
+	levelsConfig: LevelConfig[],
+	label?: string,
+): Promise<Compartment> {
+	return apiPost<Compartment>(`/cellar/shelves/${shelfId}/compartments`, { levelsConfig, label })
+}
+
+export function destroyCompartment(compartmentId: number): Promise<{ movedToParkzone: number }> {
+	return apiDelete<{ movedToParkzone: number }>(`/compartments/${compartmentId}`)
 }

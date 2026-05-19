@@ -116,7 +116,7 @@
 			<!-- Aktionen -->
 			<div class="detail-modal__actions">
 				<NcButton @click="$emit('close')">{{ t('vinarium', 'Schließen') }}</NcButton>
-				<NcButton type="secondary" @click="$emit('edit', detail)">{{ t('vinarium', 'Bearbeiten') }}</NcButton>
+				<NcButton variant="secondary" @click="$emit('edit', detail)">{{ t('vinarium', 'Bearbeiten') }}</NcButton>
 			</div>
 		</div>
 	</NcModal>
@@ -130,6 +130,7 @@ import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { getTastingDetails, tastingPhotoThumbnailUrl, tastingPhotoFullUrl, type TastingDetail } from '@/api/tastings'
 import { BOTTLE_SIZE_LABELS, WINE_COLOR_LABELS, type BottleSizeMl, type WineColor } from '@/types/api'
+import { cssColorFor } from '@/utils/wineColors'
 
 const props = defineProps<{
 	open: boolean
@@ -193,13 +194,6 @@ function truncate(text: string, max = 60): string {
 	return text.length > max ? text.slice(0, max) + '…' : text
 }
 
-function cssColorFor(color: string): string {
-	const palette: Record<string, string> = {
-		red: '#7a1c1c', white: '#e8d57a', rose: '#e8a3b8',
-		sparkling: '#fff7c0', dessert: '#c2934e', fortified: '#4a1010',
-	}
-	return palette[color] ?? '#999'
-}
 </script>
 
 <style scoped>

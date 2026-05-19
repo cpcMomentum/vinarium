@@ -2,7 +2,7 @@
 	<div class="wines-view">
 		<header class="wines-view__header">
 			<h2>{{ t('vinarium', 'Weine') }}</h2>
-			<NcButton type="primary" @click="wizardOpen = true">{{ t('vinarium', '+ Kauf erfassen') }}</NcButton>
+			<NcButton variant="primary" @click="wizardOpen = true">{{ t('vinarium', '+ Kauf erfassen') }}</NcButton>
 		</header>
 
 		<div class="tabs">
@@ -18,7 +18,7 @@
 
 		<section v-if="activeTab === 'producers'" class="tab-panel">
 			<div class="tab-panel__actions">
-				<NcButton type="primary" @click="openCreate('producer')">{{ t('vinarium', '+ Weingut') }}</NcButton>
+				<NcButton variant="primary" @click="openCreate('producer')">{{ t('vinarium', '+ Weingut') }}</NcButton>
 			</div>
 			<p v-if="store.producers.length === 0" class="empty">{{ t('vinarium', 'Noch keine Weingüter erfasst.') }}</p>
 			<ul v-else class="list">
@@ -30,7 +30,7 @@
 					</div>
 					<div class="list-item__actions">
 						<NcButton @click="editEntity('producer', p.id)">{{ t('vinarium', 'Bearbeiten') }}</NcButton>
-						<NcButton type="tertiary" @click="deleteEntity('producer', p.id)">{{ t('vinarium', 'Löschen') }}</NcButton>
+						<NcButton variant="tertiary" @click="deleteEntity('producer', p.id)">{{ t('vinarium', 'Löschen') }}</NcButton>
 					</div>
 				</li>
 			</ul>
@@ -47,7 +47,7 @@
 					</div>
 					<div class="list-item__actions">
 						<NcButton @click="editEntity('wine', w.id)">{{ t('vinarium', 'Bearbeiten') }}</NcButton>
-						<NcButton type="tertiary" @click="deleteEntity('wine', w.id)">{{ t('vinarium', 'Löschen') }}</NcButton>
+						<NcButton variant="tertiary" @click="deleteEntity('wine', w.id)">{{ t('vinarium', 'Löschen') }}</NcButton>
 					</div>
 				</li>
 			</ul>
@@ -63,7 +63,7 @@
 					</div>
 					<div class="list-item__actions">
 						<NcButton @click="editEntity('vintage', v.id)">{{ t('vinarium', 'Bearbeiten') }}</NcButton>
-						<NcButton type="tertiary" @click="deleteEntity('vintage', v.id)">{{ t('vinarium', 'Löschen') }}</NcButton>
+						<NcButton variant="tertiary" @click="deleteEntity('vintage', v.id)">{{ t('vinarium', 'Löschen') }}</NcButton>
 					</div>
 				</li>
 			</ul>
@@ -106,6 +106,15 @@
 			:entity-id="editId"
 			@close="closeEdit"
 		/>
+		<ConfirmDialog
+			:open="deleteConfirmOpen"
+			:name="deleteConfirmTitle"
+			:message="deleteConfirmMessage"
+			:confirm-label="t('vinarium', 'Löschen')"
+			:destructive="true"
+			@close="deleteConfirmOpen = false"
+			@confirm="performDelete"
+		/>
 	</div>
 </template>
 
@@ -116,6 +125,7 @@ import moment from '@nextcloud/moment'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import PurchaseWizardModal from '@/components/PurchaseWizardModal.vue'
 import EntityEditModal from '@/components/EntityEditModal.vue'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { BOTTLE_SIZE_LABELS, WINE_COLOR_LABELS, type BottleSizeMl } from '@/types/api'
 import { useWineStore } from '@/stores/wineStore'
 
@@ -182,12 +192,43 @@ function closeEdit() {
 	editId.value = null
 }
 
-async function deleteEntity(type: EntityType, id: number) {
-	const label = type === 'producer' ? t('vinarium', 'Weingut') : type === 'wine' ? t('vinarium', 'Wein') : t('vinarium', 'Jahrgang')
-	if (!window.confirm(t('vinarium', '{entity} wirklich löschen? Alle zugehörigen Einträge bleiben erhalten bis du sie separat löschst.', { entity: label }))) return
+const deleteConfirmOpen = ref(false)
+const deletePendingType = ref<EntityType>('producer')
+const deletePendingId = ref<number | null>(null)
+
+const deleteConfirmTitle = computed(() => {
+	const label = deletePendingType.value === 'producer'
+		? t('vinarium', 'Weingut')
+		: deletePendingType.value === 'wine'
+			? t('vinarium', 'Wein')
+			: t('vinarium', 'Jahrgang')
+	return t('vinarium', '{entity} löschen', { entity: label })
+})
+
+const deleteConfirmMessage = computed(() => {
+	const label = deletePendingType.value === 'producer'
+		? t('vinarium', 'Weingut')
+		: deletePendingType.value === 'wine'
+			? t('vinarium', 'Wein')
+			: t('vinarium', 'Jahrgang')
+	return t('vinarium', '{entity} wirklich löschen? Alle zugehörigen Einträge bleiben erhalten bis du sie separat löschst.', { entity: label })
+})
+
+function deleteEntity(type: EntityType, id: number) {
+	deletePendingType.value = type
+	deletePendingId.value = id
+	deleteConfirmOpen.value = true
+}
+
+async function performDelete() {
+	deleteConfirmOpen.value = false
+	const id = deletePendingId.value
+	if (id === null) return
+	const type = deletePendingType.value
 	if (type === 'producer') await store.deleteProducer(id)
 	else if (type === 'wine') await store.deleteWine(id)
 	else await store.deleteVintage(id)
+	deletePendingId.value = null
 }
 </script>
 
