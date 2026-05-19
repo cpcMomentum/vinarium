@@ -7,8 +7,33 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-05-19
+
+### Added
+- Fächer eines Regals lassen sich nachträglich hinzufügen und löschen — „+ Fach hinzufügen"-Button am Ende eines Regals, ✕-Button pro Fach mit Bestätigungsdialog; Flaschen aus gelöschten Fächern landen in der Parkzone (Fixes #49)
+- Cellar-View: Parkzone ist jetzt unabhängig vom Cellar immer sichtbar; das letzte Regal lässt sich löschen — die View fällt dann auf einen schlanken Empty-State zurück (Fixes #48)
+
+### Changed
+- Native Browser-`confirm()`-Dialoge ersetzt durch NC-styled `ConfirmDialog` (knallroter Delete-Button, NC-Look) — durchgängig in Wine-Picker, Bottle-Move, Shelf-Delete, Compartment-Delete (Fixes #50)
+- `NcButton`-Migration `type` → `variant` an 21 Stellen: Primary-Buttons sind jetzt wieder NC-blau, Tertiary transparent — die visuelle Hierarchie war zuvor verloren gegangen (Fixes #55)
+- Bessere Fehlermeldungen im `TastingDialog` und beim Bottle-Picker bei API-Fehlern statt stiller Fehlschläge (Fixes #41)
+- App-Beschreibung in `info.xml` gestrafft
+
 ### Fixed
-- TastingService: consumeWithTasting() ist jetzt atomar — Flasche und Verkostung werden in einer DB-Transaktion erstellt; schlägt die Verkostung fehl, wird der Flaschen-Status zurückgerollt (Fixes #36)
+- `TastingService::consumeWithTasting()` ist jetzt atomar — Flasche und Verkostung werden in einer DB-Transaktion erstellt; schlägt die Verkostung fehl, wird der Flaschen-Status zurückgerollt (Fixes #36)
+- `DoesNotExistException` in den neuen Compartment-Endpoints wird jetzt korrekt zu HTTP 404 statt 500
+
+### Removed
+- Toter Code: `consumeBottle()` aus API und Store entfernt (Fixes #37)
+- Toter Code: ungenutzter Frontend-Wrapper `createDefaultCellar()` aus `api/cellar.ts`
+- Standard-Regal-Button im Empty-State entfernt — Anlegepfad ist jetzt einheitlich der „+ Neues Regal"-Wizard
+
+### Refactored
+- `cssColorFor` in `src/utils/wineColors.ts` extrahiert (6 Aufrufer statt zuvor 2 dupliziert) (Fixes #39)
+- `restoreBottle` als Store-Action ergänzt (Fixes #40)
+
+### Compliance
+- Apache-2.0-Attribution für `mdi-grapes` in `THIRD_PARTY_NOTICES.md` ergänzt (Fixes #38)
 
 ## [0.1.2] - 2026-05-18
 
@@ -77,7 +102,8 @@ Erste offizielle Veröffentlichung — Weinverwaltung End-to-End.
 - 88 PHPUnit-Tests + 24 Vitest-Tests (112 gesamt)
 - Pre-Commit-Hook für OCP-only API-Enforcement
 
-[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/cpcMomentum/vinarium/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/cpcMomentum/vinarium/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/cpcMomentum/vinarium/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/cpcMomentum/vinarium/releases/tag/v0.1.0
