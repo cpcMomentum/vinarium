@@ -115,7 +115,7 @@ class CellarServiceTest extends IntegrationTestCase {
 		$userId = $this->uniqueId('user');
 		$this->service->createDefaultCellar($userId);
 		$activeCellar = $this->service->getActiveCellar($userId);
-		$comp = $activeCellar['shelves'][0]['compartments'][0];
+		$comp = $activeCellar['shelves'][0]['compartments'][0]['compartment'];
 
 		$slots = $this->slotMapper->findByCompartment($comp->getId());
 		$this->assertGreaterThanOrEqual(2, count($slots));
@@ -148,12 +148,83 @@ class CellarServiceTest extends IntegrationTestCase {
 		$userId = $this->uniqueId('user');
 		$this->service->createDefaultCellar($userId);
 		$active = $this->service->getActiveCellar($userId);
-		$comp = $active['shelves'][0]['compartments'][0];
+		$comp = $active['shelves'][0]['compartments'][0]['compartment'];
 
 		$this->expectException(PermissionDeniedException::class);
 		$this->service->reconfigureCompartment($comp->getId(), [
 			['columnsFront' => 6, 'columnsBack' => 7],
 		], $this->uniqueId('intruder'));
+	}
+
+	public function testAddCompartmentAppendsToShelfWithCorrectSortOrder(): void {
+		$userId = $this->uniqueId('user');
+		$this->service->createDefaultCellar($userId);
+		$active = $this->service->getActiveCellar($userId);
+		$shelfId = $active['shelves'][0]['shelf']->getId();
+		$initialCount = count($active['shelves'][0]['compartments']);
+
+		$comp = $this->service->addCompartmentToShelf($shelfId, $userId, [
+			['columnsFront' => 4, 'columnsBack' => 4],
+			['columnsFront' => 4, 'columnsBack' => 4],
+		]);
+
+		$this->assertSame($initialCount, $comp->getSortOrder());
+		$this->assertSame('Fach ' . ($initialCount + 1), $comp->getLabel());
+
+		$slots = $this->slotMapper->findByCompartment($comp->getId());
+		$this->assertCount(2 * (4 + 4), $slots);
+
+		$compartments = $this->compartmentMapper->findByShelf($shelfId);
+		$this->assertCount($initialCount + 1, $compartments);
+	}
+
+	public function testAddCompartmentRejectsForeignOwner(): void {
+		$userId = $this->uniqueId('user');
+		$this->service->createDefaultCellar($userId);
+		$active = $this->service->getActiveCellar($userId);
+		$shelfId = $active['shelves'][0]['shelf']->getId();
+
+		$this->expectException(PermissionDeniedException::class);
+		$this->service->addCompartmentToShelf($shelfId, $this->uniqueId('intruder'), [
+			['columnsFront' => 4, 'columnsBack' => null],
+		]);
+	}
+
+	public function testDestroyCompartmentMovesBottlesToParkzone(): void {
+		$userId = $this->uniqueId('user');
+		$this->service->createDefaultCellar($userId);
+		$active = $this->service->getActiveCellar($userId);
+		$comp = $active['shelves'][0]['compartments'][0]['compartment'];
+		$shelfId = $active['shelves'][0]['shelf']->getId();
+
+		$slots = $this->slotMapper->findByCompartment($comp->getId());
+		$this->assertGreaterThanOrEqual(1, count($slots));
+
+		$purchaseId = $this->seedPurchase($userId);
+		$bottle = new Bottle();
+		$bottle->setPurchaseId($purchaseId);
+		$bottle->setSlotId($slots[0]->getId());
+		$bottle->setStatus(Bottle::STATUS_IN_STORAGE);
+		$bottleId = $this->bottleMapper->insert($bottle)->getId();
+
+		$moved = $this->service->destroyCompartment($comp->getId(), $userId);
+
+		$this->assertSame(1, $moved);
+		$this->assertNull($this->bottleMapper->find($bottleId)->getSlotId());
+
+		$this->assertCount(0, $this->slotMapper->findByCompartment($comp->getId()));
+		$remaining = $this->compartmentMapper->findByShelf($shelfId);
+		$this->assertCount(CellarService::DEFAULT_COMPARTMENTS - 1, $remaining);
+	}
+
+	public function testDestroyCompartmentRejectsForeignOwner(): void {
+		$userId = $this->uniqueId('user');
+		$this->service->createDefaultCellar($userId);
+		$active = $this->service->getActiveCellar($userId);
+		$comp = $active['shelves'][0]['compartments'][0]['compartment'];
+
+		$this->expectException(PermissionDeniedException::class);
+		$this->service->destroyCompartment($comp->getId(), $this->uniqueId('intruder'));
 	}
 
 	private function seedPurchase(string $userId): int {

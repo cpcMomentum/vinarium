@@ -68,6 +68,11 @@
 							<div class="compartment__header">
 								<h4 class="compartment__title">{{ compData.compartment.label }}</h4>
 								<button class="compartment__config-btn" :title="t('vinarium', 'Fach konfigurieren')" @click="openConfig(compData)">⚙</button>
+								<button
+									class="compartment__delete-btn"
+									:title="t('vinarium', 'Fach löschen')"
+									@click="confirmDeleteCompartment(compData)"
+								>✕</button>
 							</div>
 
 							<div v-for="level in reversedLevels(compData.levels)" :key="level.id" class="level">
@@ -132,6 +137,12 @@
 								</div>
 							</div>
 						</div>
+
+						<div class="add-compartment-row">
+							<NcButton :disabled="addingCompartment" @click="onAddCompartment">
+								{{ t('vinarium', '+ Fach hinzufügen') }}
+							</NcButton>
+						</div>
 					</div>
 				</template>
 
@@ -169,6 +180,15 @@
 			@close="deleteConfirmOpen = false"
 			@confirm="performDeleteShelf"
 		/>
+		<ConfirmDialog
+			:open="deleteCompartmentConfirmOpen"
+			:name="t('vinarium', 'Fach löschen')"
+			:message="deleteCompartmentConfirmMessage"
+			:confirm-label="t('vinarium', 'Löschen')"
+			:destructive="true"
+			@close="deleteCompartmentConfirmOpen = false"
+			@confirm="performDeleteCompartment"
+		/>
 	</div>
 </template>
 
@@ -183,8 +203,7 @@ import TastingDialog from '@/components/TastingDialog.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import type { BottleListItem, CompartmentWithLevels, Level, Slot, WineColor } from '@/types/api'
 import type { CellarResponse } from '@/api/cellar'
-import { destroyShelf, fetchCellar, fetchSlots } from '@/api/cellar'
-
+import { addCompartment, destroyCompartment, destroyShelf, fetchCellar, fetchSlots } from '@/api/cellar'
 import { useBottleStore } from '@/stores/bottleStore'
 import { cssColorFor } from '@/utils/wineColors'
 
@@ -403,6 +422,55 @@ async function performDeleteShelf() {
 	}
 }
 
+// --- Compartment add/delete ---
+
+const addingCompartment = ref(false)
+const deleteCompartmentConfirmOpen = ref(false)
+const deleteCompartmentTarget = ref<CompartmentWithLevels | null>(null)
+const deleteCompartmentConfirmMessage = computed(() => {
+	const label = deleteCompartmentTarget.value?.compartment.label ?? ''
+	return t('vinarium', 'Fach "{label}" wirklich löschen? Alle Flaschen kommen in die Parkzone.', { label })
+})
+
+async function onAddCompartment() {
+	if (!activeShelf.value || addingCompartment.value) return
+	addingCompartment.value = true
+	errorMsg.value = ''
+	try {
+		// Default config: 3 levels, 6 columns front, 7 columns back (matches CellarService defaults)
+		const defaultLevels = [
+			{ columnsFront: 6, columnsBack: 7 },
+			{ columnsFront: 6, columnsBack: 7 },
+			{ columnsFront: 6, columnsBack: 7 },
+		]
+		await addCompartment(activeShelf.value.shelf.id, defaultLevels)
+		await reload()
+	} catch (e: any) {
+		errorMsg.value = e?.message ?? t('vinarium', 'Fach hinzufügen fehlgeschlagen')
+	} finally {
+		addingCompartment.value = false
+	}
+}
+
+function confirmDeleteCompartment(compData: CompartmentWithLevels) {
+	deleteCompartmentTarget.value = compData
+	deleteCompartmentConfirmOpen.value = true
+}
+
+async function performDeleteCompartment() {
+	deleteCompartmentConfirmOpen.value = false
+	const target = deleteCompartmentTarget.value
+	deleteCompartmentTarget.value = null
+	if (!target) return
+	try {
+		await destroyCompartment(target.compartment.id)
+		await reload()
+		await store.fetchBottles({ status: 'in_storage' })
+	} catch (e: any) {
+		errorMsg.value = e?.message ?? t('vinarium', 'Fach löschen fehlgeschlagen')
+	}
+}
+
 async function onShelfCreated() {
 	await reload()
 	// Switch to the newly created shelf (last in list)
@@ -593,6 +661,23 @@ async function loadAllSlots() {
 	color: var(--color-text-maxcontrast);
 }
 .compartment__config-btn:hover { background: var(--color-background-hover); }
+.compartment__delete-btn {
+	background: none;
+	border: none;
+	color: #c0392b;
+	font-size: 1rem;
+	font-weight: bold;
+	padding: 0 6px;
+	line-height: 1;
+	cursor: pointer;
+}
+.compartment__delete-btn:hover { color: #b71c1c; }
+.add-compartment-row {
+	margin-top: 0.5rem;
+	max-width: 720px;
+	display: flex;
+	justify-content: flex-start;
+}
 .level {
 	display: flex;
 	align-items: stretch;

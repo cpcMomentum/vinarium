@@ -94,6 +94,52 @@ class CellarController extends Controller {
 		}
 	}
 
+	/** Appends a new compartment to an existing shelf. */
+	#[NoAdminRequired]
+	public function addCompartment(int $shelfId): DataResponse {
+		if ($this->userId === null) {
+			return $this->unauthorized();
+		}
+		$levelsConfig = $this->request->getParam('levelsConfig') ?? [];
+		$label = $this->request->getParam('label');
+		$label = is_string($label) ? trim($label) : null;
+		if (!is_array($levelsConfig) || $levelsConfig === []) {
+			return new DataResponse(['error' => 'levelsConfig is required'], Http::STATUS_BAD_REQUEST);
+		}
+
+		try {
+			$comp = $this->cellarService->addCompartmentToShelf(
+				$shelfId,
+				$this->userId,
+				$levelsConfig,
+				$label,
+			);
+			return new DataResponse($comp, Http::STATUS_CREATED);
+		} catch (\InvalidArgumentException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
+		} catch (NotFoundException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
+		} catch (PermissionDeniedException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_FORBIDDEN);
+		}
+	}
+
+	/** Destroys a compartment and all its data. Bottles go to Parkzone. */
+	#[NoAdminRequired]
+	public function destroyCompartment(int $compartmentId): DataResponse {
+		if ($this->userId === null) {
+			return $this->unauthorized();
+		}
+		try {
+			$moved = $this->cellarService->destroyCompartment($compartmentId, $this->userId);
+			return new DataResponse(['movedToParkzone' => $moved]);
+		} catch (NotFoundException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
+		} catch (PermissionDeniedException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_FORBIDDEN);
+		}
+	}
+
 	/** Returns slots for a compartment (used by frontend to render shelf). */
 	#[NoAdminRequired]
 	public function slots(int $compartmentId): DataResponse {

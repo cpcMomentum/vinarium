@@ -180,6 +180,83 @@ class CellarService {
 	}
 
 	/**
+	 * Appends a new compartment to an existing shelf with the given level config.
+	 *
+	 * @param array<int, array{columnsFront: int, columnsBack: int|null}> $levelsConfig
+	 */
+	public function addCompartmentToShelf(
+		int $shelfId,
+		string $userId,
+		array $levelsConfig,
+		?string $label = null,
+	): Compartment {
+		if ($levelsConfig === []) {
+			throw new \InvalidArgumentException('levelsConfig must not be empty');
+		}
+
+		$this->db->beginTransaction();
+		try {
+			try {
+				$shelf = $this->shelfMapper->find($shelfId);
+				$cellar = $this->cellarMapper->find($shelf->getCellarId());
+			} catch (DoesNotExistException $e) {
+				throw new NotFoundException("Shelf {$shelfId} not found", 0, $e);
+			}
+			if ($cellar->getOwnerUserId() !== $userId) {
+				throw new PermissionDeniedException('Shelf not owned by user');
+			}
+
+			$existing = $this->compartmentMapper->findByShelf($shelfId);
+			$sortOrder = count($existing);
+
+			$comp = new Compartment();
+			$comp->setShelfId($shelfId);
+			$comp->setLabel($label !== null && $label !== '' ? $label : 'Fach ' . ($sortOrder + 1));
+			$comp->setSortOrder($sortOrder);
+			$comp = $this->compartmentMapper->insert($comp);
+
+			foreach ($levelsConfig as $idx => $levelDef) {
+				$front = max(0, (int)($levelDef['columnsFront'] ?? 0));
+				$back = isset($levelDef['columnsBack']) && $levelDef['columnsBack'] !== null
+					? max(0, (int)$levelDef['columnsBack'])
+					: null;
+				$this->insertLevelWithSlots($comp->getId(), $idx, $front, $back);
+			}
+
+			$this->db->commit();
+			return $comp;
+		} catch (Throwable $e) {
+			$this->db->rollBack();
+			throw $e;
+		}
+	}
+
+	/**
+	 * Destroys a compartment and all its levels/slots. Bottles go to Parkzone.
+	 * Returns the number of bottles moved.
+	 */
+	public function destroyCompartment(int $compartmentId, string $userId): int {
+		$this->db->beginTransaction();
+		try {
+			try {
+				$comp = $this->compartmentMapper->find($compartmentId);
+			} catch (DoesNotExistException $e) {
+				throw new NotFoundException("Compartment {$compartmentId} not found", 0, $e);
+			}
+			$this->assertCompartmentOwnership($comp, $userId);
+
+			$movedBottles = $this->wipeCompartment($compartmentId);
+			$this->compartmentMapper->delete($comp);
+
+			$this->db->commit();
+			return $movedBottles;
+		} catch (Throwable $e) {
+			$this->db->rollBack();
+			throw $e;
+		}
+	}
+
+	/**
 	 * Reconfigures levels for a compartment. Rebuilds all slots.
 	 * Returns the number of bottles moved to Parkzone.
 	 *
