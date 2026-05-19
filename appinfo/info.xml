@@ -18,11 +18,9 @@ Native Nextcloud-App zur privaten Weinverwaltung. Bestand, Lagerposition und Ver
 - **Trinkfenster** — Hinweis was bald getrunken werden sollte
 - **Barcode-Wiedererkennung** — Nachkäufe per Scan
 - **Filter & Suche** — nach Farbe, Region, Jahrgang, Trinkfenster
-
-Ideal für private Weinsammler mit 50-500 Flaschen.
     ]]></description>
 
-    <version>0.1.2</version>
+    <version>0.2.0</version>
     <licence>AGPL-3.0-or-later</licence>
 
     <author mail="axel.deffner@cpcmomentum.com" homepage="https://github.com/cpcMomentum">Axel Deffner</author>
