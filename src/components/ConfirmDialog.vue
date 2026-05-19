@@ -59,8 +59,6 @@ function onUpdateOpen(value: boolean) {
 	white-space: pre-wrap;
 	word-break: break-word;
 }
-
-
 </style>
 
 <!-- Globaler Style: NcDialog teleportiert in body, scoped CSS greift dort nicht. -->
