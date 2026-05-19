@@ -34,6 +34,9 @@ class CellarService {
 	public const DEFAULT_COLUMNS_FRONT = 6;
 	public const DEFAULT_COLUMNS_BACK = 7;
 
+	private const MAX_LEVELS = 10;
+	private const MAX_COLUMNS = 24;
+
 	public function __construct(
 		private readonly CellarMapper $cellarMapper,
 		private readonly ShelfMapper $shelfMapper,
@@ -90,6 +93,10 @@ class CellarService {
 		if ($levelsConfig === []) {
 			throw new \InvalidArgumentException('levelsConfig must not be empty');
 		}
+		if (count($levelsConfig) > self::MAX_LEVELS) {
+			throw new \InvalidArgumentException('levelsConfig must not exceed ' . self::MAX_LEVELS . ' levels');
+		}
+		$this->validateLevelsConfigBounds($levelsConfig);
 
 		$this->db->beginTransaction();
 		try {
@@ -193,6 +200,10 @@ class CellarService {
 		if ($levelsConfig === []) {
 			throw new \InvalidArgumentException('levelsConfig must not be empty');
 		}
+		if (count($levelsConfig) > self::MAX_LEVELS) {
+			throw new \InvalidArgumentException('levelsConfig must not exceed ' . self::MAX_LEVELS . ' levels');
+		}
+		$this->validateLevelsConfigBounds($levelsConfig);
 
 		$this->db->beginTransaction();
 		try {
@@ -270,6 +281,10 @@ class CellarService {
 		if ($levelsConfig === []) {
 			throw new \InvalidArgumentException('levelsConfig must not be empty');
 		}
+		if (count($levelsConfig) > self::MAX_LEVELS) {
+			throw new \InvalidArgumentException('levelsConfig must not exceed ' . self::MAX_LEVELS . ' levels');
+		}
+		$this->validateLevelsConfigBounds($levelsConfig);
 
 		$this->db->beginTransaction();
 		try {
@@ -374,6 +389,18 @@ class CellarService {
 		$slot->setRow($row);
 		$slot->setColumn($col);
 		$this->slotMapper->insert($slot);
+	}
+
+	/** @param array<int, array{columnsFront: int, columnsBack: int|null}> $levelsConfig */
+	private function validateLevelsConfigBounds(array $levelsConfig): void {
+		foreach ($levelsConfig as $levelDef) {
+			$front = (int)($levelDef['columnsFront'] ?? 0);
+			$back = isset($levelDef['columnsBack']) && $levelDef['columnsBack'] !== null
+				? (int)$levelDef['columnsBack'] : 0;
+			if ($front > self::MAX_COLUMNS || $back > self::MAX_COLUMNS) {
+				throw new \InvalidArgumentException('Column count must not exceed ' . self::MAX_COLUMNS);
+			}
+		}
 	}
 
 	private function assertCompartmentOwnership(Compartment $comp, string $userId): void {
