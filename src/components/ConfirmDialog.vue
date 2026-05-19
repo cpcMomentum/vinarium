@@ -6,7 +6,7 @@
 
 		<template #actions>
 			<NcButton @click="$emit('close')">{{ cancelLabel || t('vinarium', 'Abbrechen') }}</NcButton>
-			<NcButton :type="destructive ? 'error' : 'primary'" @click="onConfirm">
+			<NcButton :type="destructive ? 'error' : 'primary'" @click="$emit('confirm')">
 				{{ confirmLabel || t('vinarium', 'Bestätigen') }}
 			</NcButton>
 		</template>
@@ -31,10 +31,6 @@ const emit = defineEmits<{
 	close: []
 	confirm: []
 }>()
-
-function onConfirm() {
-	emit('confirm')
-}
 
 function onUpdateOpen(value: boolean) {
 	if (!value) emit('close')
