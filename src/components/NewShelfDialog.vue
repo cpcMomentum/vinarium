@@ -60,7 +60,7 @@
 		</div>
 
 		<template #actions>
-			<NcButton v-if="step > 1" type="secondary" :disabled="saving" @click="step--">{{ t('vinarium', 'Zurück') }}</NcButton>
+			<NcButton v-if="step > 1" variant="secondary" :disabled="saving" @click="step--">{{ t('vinarium', 'Zurück') }}</NcButton>
 			<NcButton v-if="step < 3" variant="primary" :disabled="!canProceed" @click="step++">{{ t('vinarium', 'Weiter') }}</NcButton>
 			<NcButton v-else variant="primary" :disabled="saving" @click="submit">
 				{{ saving ? t('vinarium', 'Wird angelegt…') : t('vinarium', 'Regal anlegen') }}
