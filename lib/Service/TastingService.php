@@ -48,7 +48,11 @@ class TastingService {
 
 		$tasting = new Tasting();
 		$tasting->setBottleId($bottleId);
-		$tasting->setTastedAt(new DateTime($data['tastedAt'] ?? 'now'));
+		try {
+			$tasting->setTastedAt(new DateTime($data['tastedAt'] ?? 'now'));
+		} catch (\Exception) {
+			throw new ValidationException('Invalid tastedAt date');
+		}
 
 		if (isset($data['rating'])) {
 			$rating = (float)$data['rating'];
@@ -156,7 +160,11 @@ class TastingService {
 		$tasting = $this->get($id, $userId);
 
 		if (isset($data['tastedAt'])) {
-			$tasting->setTastedAt(new DateTime($data['tastedAt']));
+			try {
+				$tasting->setTastedAt(new DateTime($data['tastedAt']));
+			} catch (\Exception) {
+				throw new ValidationException('Invalid tastedAt date');
+			}
 		}
 		if (array_key_exists('rating', $data)) {
 			if ($data['rating'] !== null) {
