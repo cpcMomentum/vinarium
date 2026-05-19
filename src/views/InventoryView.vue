@@ -100,8 +100,6 @@ async function applyFilter() {
 	})
 }
 
-// silence unused var when filter changes lock (kept for future drink-until-year filter)
-
 async function resetFilter() {
 	filterColor.value = ''
 	filterStatus.value = ''
