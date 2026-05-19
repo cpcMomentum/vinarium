@@ -80,6 +80,7 @@ import TastingDialog from '@/components/TastingDialog.vue'
 import { BOTTLE_STATUS_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleStatus, type WineColor } from '@/types/api'
 import { useBottleStore } from '@/stores/bottleStore'
 import { getBottlePhotoUrl } from '@/api/bottles'
+import { cssColorFor } from '@/utils/wineColors'
 
 const store = useBottleStore()
 const tastingOpen = ref(false)
@@ -118,18 +119,6 @@ async function onConsumed() {
 
 async function doRestore(id: number) {
 	await store.restoreBottle(id)
-}
-
-function cssColorFor(color: WineColor): string {
-	const palette: Record<WineColor, string> = {
-		red: '#7a1c1c',
-		white: '#e8d57a',
-		rose: '#e8a3b8',
-		sparkling: '#fff7c0',
-		dessert: '#c2934e',
-		fortified: '#4a1010',
-	}
-	return palette[color]
 }
 
 function bottlePhotoUrl(id: number): string {
