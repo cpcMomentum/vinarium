@@ -49,6 +49,8 @@
 				<p v-if="photoError" class="photo-error">{{ photoError }}</p>
 			</div>
 
+			<p v-if="submitError" class="submit-error">{{ submitError }}</p>
+
 			<div class="actions">
 				<NcButton @click="$emit('close')">{{ t('vinarium', 'Abbrechen') }}</NcButton>
 				<NcButton type="primary" :disabled="saving" @click="submit">
@@ -85,6 +87,7 @@ const pendingPhotos = ref<File[]>([])
 const pendingUrls = ref<string[]>([])
 const existingFileIds = ref<number[]>([])
 const photoError = ref<string | null>(null)
+const submitError = ref<string | null>(null)
 
 const form = ref({
 	tastedAt: new Date().toISOString().substring(0, 10),
@@ -97,6 +100,7 @@ const form = ref({
 watch(() => props.open, (isOpen) => {
 	if (!isOpen) return
 	photoError.value = null
+	submitError.value = null
 	pendingPhotos.value = []
 	pendingUrls.value.forEach(u => URL.revokeObjectURL(u))
 	pendingUrls.value = []
@@ -175,6 +179,7 @@ async function uploadPendingPhotos(tastingId: number): Promise<boolean> {
 
 async function submit() {
 	saving.value = true
+	submitError.value = null
 	try {
 		if (editMode.value && props.tasting) {
 			await updateTasting(props.tasting.id, {
@@ -207,6 +212,8 @@ async function submit() {
 			const photosOk = await uploadPendingPhotos(result.tasting.id)
 			if (photosOk) emit('close')
 		}
+	} catch (e: any) {
+		submitError.value = e?.message ?? t('vinarium', 'Speichern fehlgeschlagen')
 	} finally {
 		saving.value = false
 	}
@@ -228,6 +235,15 @@ async function submit() {
 .rating-slider { flex: 1; }
 .rating-value { font-size: 1.2rem; font-weight: 600; min-width: 40px; text-align: center; }
 .actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem; }
+.submit-error {
+	margin: 1rem 0 0;
+	padding: 0.5rem 0.75rem;
+	background: rgba(198, 40, 40, 0.1);
+	border-left: 3px solid #c62828;
+	border-radius: var(--border-radius);
+	color: #c62828;
+	font-size: 0.9rem;
+}
 
 .photo-section {
 	margin-top: 1rem;
