@@ -85,7 +85,8 @@ class ExportService {
 		if ($value === null || $value === '') {
 			return '';
 		}
-		if (str_contains($value, ';') || str_contains($value, '"') || str_contains($value, "\n")) {
+		if (str_contains($value, ';') || str_contains($value, '"') || str_contains($value, "\n")
+			|| preg_match('/^[=+\-@\t\r]/', $value)) {
 			return '"' . str_replace('"', '""', $value) . '"';
 		}
 		return $value;
