@@ -195,7 +195,9 @@ OC.L10N.register(
     "Fotos": "Fotos",
     "Fotos hinzufügen": "Fotos hinzufügen",
     "Foto": "Foto",
-    "Fotos ({count})": "Fotos ({count})"
+    "Fotos ({count})": "Fotos ({count})",
+    "Bestätigen": "Bestätigen",
+    "{entity} löschen": "{entity} löschen"
     },
     "nplurals=2; plural=(n != 1);"
 );

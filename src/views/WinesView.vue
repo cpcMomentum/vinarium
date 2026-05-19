@@ -106,6 +106,15 @@
 			:entity-id="editId"
 			@close="closeEdit"
 		/>
+		<ConfirmDialog
+			:open="deleteConfirmOpen"
+			:name="deleteConfirmTitle"
+			:message="deleteConfirmMessage"
+			:confirm-label="t('vinarium', 'Löschen')"
+			:destructive="true"
+			@close="deleteConfirmOpen = false"
+			@confirm="performDelete"
+		/>
 	</div>
 </template>
 
@@ -116,6 +125,7 @@ import moment from '@nextcloud/moment'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import PurchaseWizardModal from '@/components/PurchaseWizardModal.vue'
 import EntityEditModal from '@/components/EntityEditModal.vue'
+import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { BOTTLE_SIZE_LABELS, WINE_COLOR_LABELS, type BottleSizeMl } from '@/types/api'
 import { useWineStore } from '@/stores/wineStore'
 
@@ -182,12 +192,43 @@ function closeEdit() {
 	editId.value = null
 }
 
-async function deleteEntity(type: EntityType, id: number) {
-	const label = type === 'producer' ? t('vinarium', 'Weingut') : type === 'wine' ? t('vinarium', 'Wein') : t('vinarium', 'Jahrgang')
-	if (!window.confirm(t('vinarium', '{entity} wirklich löschen? Alle zugehörigen Einträge bleiben erhalten bis du sie separat löschst.', { entity: label }))) return
+const deleteConfirmOpen = ref(false)
+const deletePendingType = ref<EntityType>('producer')
+const deletePendingId = ref<number | null>(null)
+
+const deleteConfirmTitle = computed(() => {
+	const label = deletePendingType.value === 'producer'
+		? t('vinarium', 'Weingut')
+		: deletePendingType.value === 'wine'
+			? t('vinarium', 'Wein')
+			: t('vinarium', 'Jahrgang')
+	return t('vinarium', '{entity} löschen', { entity: label })
+})
+
+const deleteConfirmMessage = computed(() => {
+	const label = deletePendingType.value === 'producer'
+		? t('vinarium', 'Weingut')
+		: deletePendingType.value === 'wine'
+			? t('vinarium', 'Wein')
+			: t('vinarium', 'Jahrgang')
+	return t('vinarium', '{entity} wirklich löschen? Alle zugehörigen Einträge bleiben erhalten bis du sie separat löschst.', { entity: label })
+})
+
+function deleteEntity(type: EntityType, id: number) {
+	deletePendingType.value = type
+	deletePendingId.value = id
+	deleteConfirmOpen.value = true
+}
+
+async function performDelete() {
+	deleteConfirmOpen.value = false
+	const id = deletePendingId.value
+	if (id === null) return
+	const type = deletePendingType.value
 	if (type === 'producer') await store.deleteProducer(id)
 	else if (type === 'wine') await store.deleteWine(id)
 	else await store.deleteVintage(id)
+	deletePendingId.value = null
 }
 </script>
 
