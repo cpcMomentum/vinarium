@@ -602,7 +602,6 @@ async function loadAllSlots() {
 	background: var(--color-main-background);
 	padding-bottom: 1rem;
 	margin-bottom: 1rem;
-	box-shadow: 0 4px 6px -4px rgba(0, 0, 0, 0.25);
 }
 .parkzone {
 	display: flex;
