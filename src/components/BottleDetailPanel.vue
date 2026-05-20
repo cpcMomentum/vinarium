@@ -134,11 +134,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
-import moment from '@nextcloud/moment'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { getBottleDetails, getBottlePhotoUrl, uploadBottlePhoto, deleteBottlePhoto, type BottleDetail } from '@/api/bottles'
 import { BOTTLE_SIZE_LABELS, type BottleSizeMl, type WineColor } from '@/types/api'
 import { cssColorFor } from '@/utils/wineColors'
+import { formatDate } from '@/utils/date'
 
 const props = defineProps<{ bottleId: number | null }>()
 const emit = defineEmits<{
@@ -202,10 +202,6 @@ async function onRemovePhoto() {
 	}
 }
 
-function formatDate(iso: string): string {
-	try { return moment(iso).format('DD.MM.YYYY') }
-	catch { return iso }
-}
 
 </script>
 

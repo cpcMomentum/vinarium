@@ -103,7 +103,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
-import moment from '@nextcloud/moment'
+import { formatDate } from '@/utils/date'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import { listAllTastings, type TastingDetail, type TastingListItem } from '@/api/tastings'
@@ -187,11 +187,6 @@ onMounted(async () => {
 		loading.value = false
 	}
 })
-
-function formatDate(iso: string): string {
-	try { return moment(iso).format('DD.MM.YYYY') }
-	catch { return iso }
-}
 
 </script>
 

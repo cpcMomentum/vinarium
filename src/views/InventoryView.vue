@@ -86,6 +86,8 @@
 		</table>
 		<p v-else class="empty">{{ t('vinarium', 'Keine Flaschen gefunden.') }}</p>
 
+		<p v-if="restoreError" class="restore-error">{{ restoreError }}</p>
+
 		<TastingDialog :open="tastingOpen" :bottle-id="tastingBottleId" @close="tastingOpen = false" @consumed="onConsumed" />
 		<BottleEventDialog :open="eventOpen" :bottle-id="eventBottleId" :mode="eventMode" @close="eventOpen = false" @done="onEventDone" />
 	</div>
@@ -112,6 +114,7 @@ const tastingBottleId = ref<number | null>(null)
 const eventOpen = ref(false)
 const eventBottleId = ref<number | null>(null)
 const eventMode = ref<'gift' | 'lost'>('gift')
+const restoreError = ref<string | null>(null)
 const filterColor = ref<WineColor | ''>('')
 const filterStatus = ref<BottleStatus | ''>('in_storage')
 const filterYear = ref<number | null>(null)
@@ -179,10 +182,11 @@ function giftTooltip(b: BottleListItem): string {
 }
 
 async function doRestore(id: number) {
+	restoreError.value = null
 	try {
 		await store.restoreBottle(id)
-	} catch (e) {
-		console.error('restore bottle failed', e)
+	} catch (e: any) {
+		restoreError.value = e?.message ?? t('vinarium', 'Zurücksetzen fehlgeschlagen')
 	}
 }
 
@@ -273,6 +277,15 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 	color: var(--color-text-maxcontrast);
 	font-size: 0.85rem;
 	margin-left: 0.25rem;
+}
+.restore-error {
+	margin: 1rem 0 0;
+	padding: 0.5rem 0.75rem;
+	background: rgba(198, 40, 40, 0.1);
+	border-left: 3px solid #c62828;
+	border-radius: var(--border-radius);
+	color: #c62828;
+	font-size: 0.9rem;
 }
 .actions-cell {
 	display: flex;
