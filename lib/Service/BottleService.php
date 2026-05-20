@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace OCA\Vinarium\Service;
 
+use DateTime;
 use OCA\Vinarium\Db\Bottle;
 use OCA\Vinarium\Db\BottleMapper;
 use OCA\Vinarium\Db\CellarMapper;
@@ -93,7 +94,46 @@ class BottleService {
 		$bottle = $this->get($id, $userId);
 		$bottle->setStatus(Bottle::STATUS_IN_STORAGE);
 		$bottle->setSlotId(null);
+		$bottle->setEventDate(null);
+		$bottle->setEventRecipient(null);
+		$bottle->setEventNote(null);
 		return $this->bottleMapper->update($bottle);
+	}
+
+	public function giftBottle(int $id, string $userId, string $recipient, ?string $date, ?string $occasion): Bottle {
+		$bottle = $this->get($id, $userId);
+		$bottle->setStatus(Bottle::STATUS_GIFTED);
+		$bottle->setSlotId(null);
+		$bottle->setEventRecipient($recipient);
+		$bottle->setEventDate($this->parseDate($date));
+		$bottle->setEventNote($occasion !== null && $occasion !== '' ? $occasion : null);
+		return $this->bottleMapper->update($bottle);
+	}
+
+	public function loseBottle(int $id, string $userId, ?string $date, ?string $reason): Bottle {
+		$bottle = $this->get($id, $userId);
+		$bottle->setStatus(Bottle::STATUS_LOST);
+		$bottle->setSlotId(null);
+		$bottle->setEventRecipient(null);
+		$bottle->setEventDate($this->parseDate($date));
+		$bottle->setEventNote($reason !== null && $reason !== '' ? $reason : null);
+		return $this->bottleMapper->update($bottle);
+	}
+
+	/** @return list<string> distinct gift recipients for autosuggest */
+	public function getGiftRecipients(string $userId): array {
+		return $this->bottleMapper->findGiftRecipients($userId);
+	}
+
+	private function parseDate(?string $date): DateTime {
+		if ($date !== null && $date !== '') {
+			$parsed = DateTime::createFromFormat('Y-m-d', $date);
+			if ($parsed !== false) {
+				$parsed->setTime(0, 0);
+				return $parsed;
+			}
+		}
+		return new DateTime('today');
 	}
 
 	/**

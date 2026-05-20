@@ -112,6 +112,12 @@
 				<NcButton variant="primary" @click="$emit('uncork', detail.id)">
 					{{ t('vinarium', 'Entkorken') }}
 				</NcButton>
+				<NcButton @click="$emit('gift', detail.id)">
+					{{ t('vinarium', 'Verschenken') }}
+				</NcButton>
+				<NcButton @click="$emit('lose', detail.id)">
+					{{ t('vinarium', 'Verloren') }}
+				</NcButton>
 			</div>
 		</template>
 
@@ -138,6 +144,8 @@ const props = defineProps<{ bottleId: number | null }>()
 const emit = defineEmits<{
 	(e: 'close'): void
 	(e: 'uncork', bottleId: number): void
+	(e: 'gift', bottleId: number): void
+	(e: 'lose', bottleId: number): void
 }>()
 
 const detail = ref<BottleDetail | null>(null)

@@ -188,6 +188,58 @@ class BottleController extends Controller {
 	}
 
 	#[NoAdminRequired]
+	public function gift(int $id): DataResponse {
+		if ($this->userId === null) {
+			return $this->unauthorized();
+		}
+		$recipient = trim((string)($this->request->getParam('recipient') ?? ''));
+		if ($recipient === '') {
+			return new DataResponse(['error' => 'Recipient is required'], Http::STATUS_BAD_REQUEST);
+		}
+		$date = $this->request->getParam('date');
+		$occasion = $this->request->getParam('occasion');
+		try {
+			return new DataResponse($this->bottleService->giftBottle(
+				$id, $this->userId, $recipient,
+				is_string($date) ? $date : null,
+				is_string($occasion) ? $occasion : null,
+			));
+		} catch (NotFoundException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
+		} catch (PermissionDeniedException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_FORBIDDEN);
+		}
+	}
+
+	#[NoAdminRequired]
+	public function lose(int $id): DataResponse {
+		if ($this->userId === null) {
+			return $this->unauthorized();
+		}
+		$date = $this->request->getParam('date');
+		$reason = $this->request->getParam('reason');
+		try {
+			return new DataResponse($this->bottleService->loseBottle(
+				$id, $this->userId,
+				is_string($date) ? $date : null,
+				is_string($reason) ? $reason : null,
+			));
+		} catch (NotFoundException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
+		} catch (PermissionDeniedException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_FORBIDDEN);
+		}
+	}
+
+	#[NoAdminRequired]
+	public function giftRecipients(): DataResponse {
+		if ($this->userId === null) {
+			return $this->unauthorized();
+		}
+		return new DataResponse($this->bottleService->getGiftRecipients($this->userId));
+	}
+
+	#[NoAdminRequired]
 	public function destroy(int $id): DataResponse {
 		if ($this->userId === null) {
 			return $this->unauthorized();

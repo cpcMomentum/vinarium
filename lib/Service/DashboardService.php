@@ -24,6 +24,8 @@ class DashboardService {
 			'totalBottles' => $this->countBottles($userId),
 			'inStorage' => $this->countBottles($userId, 'in_storage'),
 			'consumed' => $this->countBottles($userId, 'consumed'),
+			'gifted' => $this->countBottles($userId, 'gifted'),
+			'lost' => $this->countBottles($userId, 'lost'),
 			'parked' => $this->countParked($userId),
 			'colorDistribution' => $this->colorDistribution($userId),
 			'drinkSoon' => $this->drinkSoon($userId),

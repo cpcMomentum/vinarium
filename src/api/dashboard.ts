@@ -9,6 +9,8 @@ export interface DashboardStats {
 	totalBottles: number
 	inStorage: number
 	consumed: number
+	gifted: number
+	lost: number
 	parked: number
 	colorDistribution: Record<string, number>
 	drinkSoon: Array<{

@@ -59,10 +59,18 @@
 						<span class="dot" :style="{ background: cssColorFor(b.wine_color) }"></span>
 						{{ t('vinarium', WINE_COLOR_LABELS[b.wine_color]) }}
 					</td>
-					<td>{{ t('vinarium', BOTTLE_STATUS_LABELS[b.status]) }}</td>
-					<td>{{ formatSlotLabel(b) }}</td>
 					<td>
-						<NcButton v-if="b.status === 'in_storage'" variant="tertiary" @click="openTasting(b.id)">{{ t('vinarium', 'Entkorken') }}</NcButton>
+						{{ t('vinarium', BOTTLE_STATUS_LABELS[b.status]) }}
+						<span v-if="b.status === 'gifted' && b.event_recipient" class="event-info" :title="giftTooltip(b)">→ {{ b.event_recipient }}</span>
+						<span v-else-if="b.status === 'lost' && b.event_note" class="event-info">({{ b.event_note }})</span>
+					</td>
+					<td>{{ formatSlotLabel(b) }}</td>
+					<td class="actions-cell">
+						<template v-if="b.status === 'in_storage'">
+							<NcButton variant="tertiary" @click="openTasting(b.id)">{{ t('vinarium', 'Entkorken') }}</NcButton>
+							<NcButton variant="tertiary" @click="openEvent(b.id, 'gift')">{{ t('vinarium', 'Verschenken') }}</NcButton>
+							<NcButton variant="tertiary" @click="openEvent(b.id, 'lost')">{{ t('vinarium', 'Verloren') }}</NcButton>
+						</template>
 						<NcButton v-else variant="tertiary" @click="doRestore(b.id)">{{ t('vinarium', 'Zurück in Bestand') }}</NcButton>
 					</td>
 				</tr>
@@ -71,6 +79,7 @@
 		<p v-else class="empty">{{ t('vinarium', 'Keine Flaschen gefunden.') }}</p>
 
 		<TastingDialog :open="tastingOpen" :bottle-id="tastingBottleId" @close="tastingOpen = false" @consumed="onConsumed" />
+		<BottleEventDialog :open="eventOpen" :bottle-id="eventBottleId" :mode="eventMode" @close="eventOpen = false" @done="onEventDone" />
 	</div>
 </template>
 
@@ -79,7 +88,8 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import TastingDialog from '@/components/TastingDialog.vue'
-import { BOTTLE_STATUS_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleStatus, type WineColor } from '@/types/api'
+import BottleEventDialog from '@/components/BottleEventDialog.vue'
+import { BOTTLE_STATUS_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleListItem, type BottleStatus, type WineColor } from '@/types/api'
 import { useBottleStore } from '@/stores/bottleStore'
 import { getBottlePhotoUrl } from '@/api/bottles'
 import { cssColorFor } from '@/utils/wineColors'
@@ -87,6 +97,9 @@ import { cssColorFor } from '@/utils/wineColors'
 const store = useBottleStore()
 const tastingOpen = ref(false)
 const tastingBottleId = ref<number | null>(null)
+const eventOpen = ref(false)
+const eventBottleId = ref<number | null>(null)
+const eventMode = ref<'gift' | 'lost'>('gift')
 const filterColor = ref<WineColor | ''>('')
 const filterStatus = ref<BottleStatus | ''>('in_storage')
 const filterYear = ref<number | null>(null)
@@ -133,6 +146,24 @@ function openTasting(bottleId: number) {
 
 async function onConsumed() {
 	await store.fetchBottles(store.filter)
+}
+
+function openEvent(bottleId: number, mode: 'gift' | 'lost') {
+	eventBottleId.value = bottleId
+	eventMode.value = mode
+	eventOpen.value = true
+}
+
+async function onEventDone() {
+	await store.fetchBottles(store.filter)
+}
+
+function giftTooltip(b: BottleListItem): string {
+	const parts: string[] = []
+	if (b.event_recipient) parts.push(b.event_recipient)
+	if (b.event_date) parts.push(b.event_date)
+	if (b.event_note) parts.push(b.event_note)
+	return parts.join(' · ')
 }
 
 async function doRestore(id: number) {
@@ -258,6 +289,16 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 .bottles {
 	width: 100%;
 	border-collapse: collapse;
+}
+.event-info {
+	color: var(--color-text-maxcontrast);
+	font-size: 0.85rem;
+	margin-left: 0.25rem;
+}
+.actions-cell {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.25rem;
 }
 .bottles th, .bottles td {
 	text-align: left;

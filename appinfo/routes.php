@@ -59,10 +59,13 @@ return [
 		['name' => 'bottle#getPhoto',     'url' => '/api/v1/bottles/{id}/photo',     'verb' => 'GET'],
 		['name' => 'bottle#index',   'url' => '/api/v1/bottles',           'verb' => 'GET'],
 		['name' => 'bottle#parked',  'url' => '/api/v1/bottles/parked',    'verb' => 'GET'],
+		['name' => 'bottle#giftRecipients', 'url' => '/api/v1/bottles/gift-recipients', 'verb' => 'GET'],
 		['name' => 'bottle#show',    'url' => '/api/v1/bottles/{id}',      'verb' => 'GET'],
 		['name' => 'bottle#move',    'url' => '/api/v1/bottles/{id}/move', 'verb' => 'PATCH'],
 		['name' => 'bottle#swap',    'url' => '/api/v1/bottles/{id}/swap',    'verb' => 'PATCH'],
 		['name' => 'bottle#restore', 'url' => '/api/v1/bottles/{id}/restore', 'verb' => 'PATCH'],
+		['name' => 'bottle#gift',    'url' => '/api/v1/bottles/{id}/gift', 'verb' => 'PATCH'],
+		['name' => 'bottle#lose',    'url' => '/api/v1/bottles/{id}/lose', 'verb' => 'PATCH'],
 		['name' => 'bottle#destroy', 'url' => '/api/v1/bottles/{id}',      'verb' => 'DELETE'],
 
 		// Tastings

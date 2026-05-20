@@ -12,6 +12,14 @@
 				<div class="widget__label">{{ t('vinarium', 'Getrunken') }}</div>
 			</div>
 			<div class="widget">
+				<div class="widget__value">{{ stats.gifted }}</div>
+				<div class="widget__label">{{ t('vinarium', 'Verschenkt') }}</div>
+			</div>
+			<div class="widget">
+				<div class="widget__value">{{ stats.lost }}</div>
+				<div class="widget__label">{{ t('vinarium', 'Verloren') }}</div>
+			</div>
+			<div class="widget">
 				<div class="widget__value">{{ stats.parked }}</div>
 				<div class="widget__label">{{ t('vinarium', 'In Parkzone') }}</div>
 			</div>
