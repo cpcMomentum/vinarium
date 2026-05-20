@@ -251,10 +251,6 @@ class CellarService {
 		}
 	}
 
-	/**
-	 * Destroys a compartment and all its levels/slots. Bottles go to Parkzone.
-	 * Returns the number of bottles moved.
-	 */
 	/** Renames a compartment after verifying ownership. */
 	public function updateCompartmentLabel(int $compartmentId, string $userId, string $label): Compartment {
 		try {
@@ -267,6 +263,10 @@ class CellarService {
 		return $this->compartmentMapper->update($comp);
 	}
 
+	/**
+	 * Destroys a compartment and all its levels/slots. Bottles go to Parkzone.
+	 * Returns the number of bottles moved.
+	 */
 	public function destroyCompartment(int $compartmentId, string $userId): int {
 		$this->db->beginTransaction();
 		try {
