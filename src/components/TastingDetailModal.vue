@@ -186,7 +186,7 @@ function openLightbox(fileId: number) {
 }
 
 function formatDate(iso: string): string {
-	try { return moment(iso).format('L') }
+	try { return moment(iso).format('DD.MM.YYYY') }
 	catch { return iso }
 }
 

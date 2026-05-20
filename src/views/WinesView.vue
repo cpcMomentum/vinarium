@@ -169,7 +169,7 @@ async function onComplete(_payload: { purchaseId: number; bottleCount: number })
 
 function formatDate(iso: string): string {
 	try {
-		return moment(iso).format('L')
+		return moment(iso).format('DD.MM.YYYY')
 	} catch {
 		return iso
 	}
