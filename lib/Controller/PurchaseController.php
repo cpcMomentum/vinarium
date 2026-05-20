@@ -14,6 +14,7 @@ use OCA\Vinarium\Exception\NotFoundException;
 use OCA\Vinarium\Exception\ValidationException;
 use OCA\Vinarium\Service\BottleService;
 use OCA\Vinarium\Service\PurchaseService;
+use OCA\Vinarium\Service\PurchaseWizardService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -27,8 +28,34 @@ class PurchaseController extends Controller {
 		private readonly ?string $userId,
 		private readonly PurchaseService $purchaseService,
 		private readonly BottleService $bottleService,
+		private readonly PurchaseWizardService $purchaseWizardService,
 	) {
 		parent::__construct(Application::APP_ID, $request);
+	}
+
+	/**
+	 * Creates producer/wine/vintage (as needed) plus the purchase and its
+	 * bottles in a single transaction. Used by the purchase wizard so nothing
+	 * is persisted until the wizard is completed.
+	 */
+	#[NoAdminRequired]
+	public function createFromWizard(): DataResponse {
+		if ($this->userId === null) {
+			return $this->unauthorized();
+		}
+		try {
+			$result = $this->purchaseWizardService->create($this->userId, [
+				'producer' => $this->request->getParam('producer'),
+				'wine' => $this->request->getParam('wine'),
+				'vintage' => $this->request->getParam('vintage'),
+				'purchase' => $this->request->getParam('purchase'),
+			]);
+			return new DataResponse($result, Http::STATUS_CREATED);
+		} catch (NotFoundException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
+		} catch (ValidationException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
+		}
 	}
 
 	#[NoAdminRequired]
