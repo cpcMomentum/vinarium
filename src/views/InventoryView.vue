@@ -1,32 +1,32 @@
 <template>
 	<div class="inventory-view">
 		<div ref="headEl" class="inventory-head">
-		<header class="inventory-view__header">
-			<h2>{{ t('vinarium', 'Bestand') }}</h2>
-			<span class="count">{{ n('vinarium', '{count} Flasche', '{count} Flaschen', store.totalCount, { count: store.totalCount }) }}</span>
-		</header>
+			<header class="inventory-view__header">
+				<h2>{{ t('vinarium', 'Bestand') }}</h2>
+				<span class="count">{{ n('vinarium', '{count} Flasche', '{count} Flaschen', store.totalCount, { count: store.totalCount }) }}</span>
+			</header>
 
-		<section class="filters">
-			<label>
-				{{ t('vinarium', 'Farbe') }}
-				<select v-model="filterColor" class="input" @change="applyFilter">
-					<option value="">{{ t('vinarium', 'alle') }}</option>
-					<option v-for="c in WINE_COLORS" :key="c" :value="c">{{ t('vinarium', WINE_COLOR_LABELS[c]) }}</option>
-				</select>
-			</label>
-			<label>
-				{{ t('vinarium', 'Status') }}
-				<select v-model="filterStatus" class="input" @change="applyFilter">
-					<option value="">{{ t('vinarium', 'alle') }}</option>
-					<option v-for="(label, key) in BOTTLE_STATUS_LABELS" :key="key" :value="key">{{ t('vinarium', label) }}</option>
-				</select>
-			</label>
-			<label>
-				{{ t('vinarium', 'Jahrgang') }}
-				<input v-model.number.lazy="filterYear" type="number" class="input" :placeholder="t('vinarium', 'z. B. 2020')" @change="applyFilter" />
-			</label>
-			<button class="reset" @click="resetFilter">{{ t('vinarium', 'Filter zurücksetzen') }}</button>
-		</section>
+			<section class="filters">
+				<label>
+					{{ t('vinarium', 'Farbe') }}
+					<select v-model="filterColor" class="input" @change="applyFilter">
+						<option value="">{{ t('vinarium', 'alle') }}</option>
+						<option v-for="c in WINE_COLORS" :key="c" :value="c">{{ t('vinarium', WINE_COLOR_LABELS[c]) }}</option>
+					</select>
+				</label>
+				<label>
+					{{ t('vinarium', 'Status') }}
+					<select v-model="filterStatus" class="input" @change="applyFilter">
+						<option value="">{{ t('vinarium', 'alle') }}</option>
+						<option v-for="(label, key) in BOTTLE_STATUS_LABELS" :key="key" :value="key">{{ t('vinarium', label) }}</option>
+					</select>
+				</label>
+				<label>
+					{{ t('vinarium', 'Jahrgang') }}
+					<input v-model.number.lazy="filterYear" type="number" class="input" :placeholder="t('vinarium', 'z. B. 2020')" @change="applyFilter" />
+				</label>
+				<button class="reset" @click="resetFilter">{{ t('vinarium', 'Filter zurücksetzen') }}</button>
+			</section>
 		</div>
 
 		<table v-if="store.bottles.length > 0" class="bottles">
@@ -174,44 +174,11 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 	align-items: center;
 	margin-bottom: 1.5rem;
 }
-.counts {
-	display: flex;
-	gap: 1rem;
-}
 .count {
 	padding: 0.25rem 0.75rem;
 	border-radius: var(--border-radius);
 	background: var(--color-background-dark);
 	font-size: 0.9rem;
-}
-.count--park {
-	background: var(--color-warning, #e3a000);
-	color: white;
-	font-weight: 500;
-}
-.parkzone {
-	margin-bottom: 1.5rem;
-	padding: 1rem;
-	background: var(--color-background-hover);
-	border-left: 3px solid var(--color-warning, #e3a000);
-	border-radius: var(--border-radius);
-}
-.parkzone h3 {
-	margin: 0 0 0.75rem 0;
-}
-.park-list {
-	list-style: none;
-	padding: 0;
-	margin: 0;
-}
-.park-item {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-	padding: 0.25rem 0;
-}
-.park-item__label {
-	font-weight: 500;
 }
 .dot {
 	display: inline-block;
@@ -219,10 +186,6 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 	height: 14px;
 	border-radius: 50%;
 	border: 1px solid var(--color-border);
-}
-.muted {
-	color: var(--color-text-maxcontrast);
-	font-size: 0.85rem;
 }
 .filters {
 	display: flex;
