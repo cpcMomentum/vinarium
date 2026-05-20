@@ -78,6 +78,7 @@ OC.L10N.register(
     "Hinten": "Back",
     "Vorne": "Front",
     "Fach konfigurieren": "Configure compartment",
+    "Zum Umbenennen klicken": "Click to rename",
     "Regal löschen": "Delete shelf",
     "Frei — Ebene {level}, {row}, Platz {col}": "Free — Level {level}, {row}, Position {col}",
     "Regal \"{name}\" wirklich löschen? Alle Flaschen kommen in die Parkzone.": "Really delete shelf \"{name}\"? All bottles will be moved to the parking zone.",

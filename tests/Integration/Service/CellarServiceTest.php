@@ -254,6 +254,33 @@ class CellarServiceTest extends IntegrationTestCase {
 		$this->service->updateShelf(999999, $this->uniqueId('user'), 'X');
 	}
 
+	public function testUpdateCompartmentLabelRenames(): void {
+		$userId = $this->uniqueId('user');
+		$this->service->createDefaultCellar($userId);
+		$active = $this->service->getActiveCellar($userId);
+		$compId = $active['shelves'][0]['compartments'][0]['compartment']->getId();
+
+		$updated = $this->service->updateCompartmentLabel($compId, $userId, 'Rotweine');
+
+		$this->assertSame('Rotweine', $updated->getLabel());
+		$this->assertSame('Rotweine', $this->compartmentMapper->find($compId)->getLabel());
+	}
+
+	public function testUpdateCompartmentLabelRejectsForeignOwner(): void {
+		$userId = $this->uniqueId('user');
+		$this->service->createDefaultCellar($userId);
+		$active = $this->service->getActiveCellar($userId);
+		$compId = $active['shelves'][0]['compartments'][0]['compartment']->getId();
+
+		$this->expectException(PermissionDeniedException::class);
+		$this->service->updateCompartmentLabel($compId, $this->uniqueId('intruder'), 'Hacked');
+	}
+
+	public function testUpdateCompartmentLabelThrowsWhenMissing(): void {
+		$this->expectException(NotFoundException::class);
+		$this->service->updateCompartmentLabel(999999, $this->uniqueId('user'), 'X');
+	}
+
 	private function seedPurchase(string $userId): int {
 		$producer = new Producer();
 		$producer->setOwnerUserId($userId);

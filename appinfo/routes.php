@@ -20,6 +20,7 @@ return [
 		['name' => 'cellar#slots',              'url' => '/api/v1/compartments/{compartmentId}/slots',       'verb' => 'GET'],
 		['name' => 'cellar#reconfigure',        'url' => '/api/v1/compartments/{compartmentId}/reconfigure', 'verb' => 'PATCH'],
 		['name' => 'cellar#addCompartment',     'url' => '/api/v1/cellar/shelves/{shelfId}/compartments',    'verb' => 'POST'],
+		['name' => 'cellar#updateCompartment',  'url' => '/api/v1/compartments/{compartmentId}',             'verb' => 'PATCH'],
 		['name' => 'cellar#destroyCompartment', 'url' => '/api/v1/compartments/{compartmentId}',             'verb' => 'DELETE'],
 
 		// Producers

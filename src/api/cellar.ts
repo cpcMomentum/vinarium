@@ -58,6 +58,10 @@ export function addCompartment(
 	return apiPost<Compartment>(`/cellar/shelves/${shelfId}/compartments`, { levelsConfig, label })
 }
 
+export function updateCompartment(compartmentId: number, label: string): Promise<Compartment> {
+	return apiPatch<Compartment>(`/compartments/${compartmentId}`, { label })
+}
+
 export function destroyCompartment(compartmentId: number): Promise<{ movedToParkzone: number }> {
 	return apiDelete<{ movedToParkzone: number }>(`/compartments/${compartmentId}`)
 }

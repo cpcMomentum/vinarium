@@ -150,7 +150,27 @@ class CellarController extends Controller {
 		}
 	}
 
-	/** Destroys a compartment and all its data. Bottles go to Parkzone. */
+	/** Renames a compartment. */
+	#[NoAdminRequired]
+	public function updateCompartment(int $compartmentId): DataResponse {
+		if ($this->userId === null) {
+			return $this->unauthorized();
+		}
+		$label = trim((string)($this->request->getParam('label') ?? ''));
+		if ($label === '') {
+			return new DataResponse(['error' => 'Label is required'], Http::STATUS_BAD_REQUEST);
+		}
+		try {
+			$comp = $this->cellarService->updateCompartmentLabel($compartmentId, $this->userId, $label);
+			return new DataResponse($comp);
+		} catch (NotFoundException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
+		} catch (PermissionDeniedException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_FORBIDDEN);
+		}
+	}
+
+	/** Deletes a compartment and its slots. Bottles go to Parkzone. */
 	#[NoAdminRequired]
 	public function destroyCompartment(int $compartmentId): DataResponse {
 		if ($this->userId === null) {
