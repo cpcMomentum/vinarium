@@ -85,6 +85,7 @@
         "Regal \"{name}\" wirklich löschen? Alle Flaschen kommen in die Parkzone.": "Really delete shelf \"{name}\"? All bottles will be moved to the parking zone.",
         "Verschieben fehlgeschlagen": "Moving failed",
         "Löschen fehlgeschlagen": "Deleting failed",
+        "Umbenennen fehlgeschlagen": "Renaming failed",
         "Fehler beim Laden": "Error loading",
         "Anlegen fehlgeschlagen": "Creating failed",
         "Schritt 1: Weingut": "Step 1: Producer",

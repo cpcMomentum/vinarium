@@ -31,6 +31,10 @@ export function createShelf(
 	return apiPost<Shelf>('/cellar/shelves', { name, compartmentCount, levelsConfig })
 }
 
+export function updateShelf(shelfId: number, name: string): Promise<Shelf> {
+	return apiPatch<Shelf>(`/cellar/shelves/${shelfId}`, { name })
+}
+
 export function destroyShelf(shelfId: number): Promise<{ movedToParkzone: number }> {
 	return apiDelete<{ movedToParkzone: number }>(`/cellar/shelves/${shelfId}`)
 }

@@ -2,6 +2,7 @@
 	<div class="shelf-view">
 		<div class="shelf-layout">
 			<div class="shelf-main">
+				<div class="shelf-head">
 				<header class="shelf-view__header">
 					<h2>{{ t('vinarium', 'Regal') }}</h2>
 					<NcButton variant="primary" @click="newShelfOpen = true">{{ t('vinarium', '+ Neues Regal') }}</NcButton>
@@ -35,34 +36,47 @@
 					<p v-else class="empty-park">{{ t('vinarium', 'Keine Flaschen in der Parkzone.') }}</p>
 				</section>
 
+				<!-- Regal-Tabs (immer sichtbar) -->
+				<div class="shelf-tabs">
+					<div
+						v-for="entry in shelves"
+						:key="entry.shelf.id"
+						:class="['shelf-tab', { active: activeShelfId === entry.shelf.id }]"
+					>
+						<input
+							v-if="renamingShelfId === entry.shelf.id"
+							:ref="setRenameInput"
+							v-model="renameValue"
+							class="shelf-tab__input"
+							@keyup.enter="commitRename"
+							@keyup.esc="cancelRename"
+							@blur="commitRename"
+						>
+						<template v-else>
+							<button class="shelf-tab__label" @click="onTabClick(entry.shelf.id)">{{ entry.shelf.name }}</button>
+							<button
+								v-if="activeShelfId === entry.shelf.id"
+								class="shelf-tab__delete"
+								:title="t('vinarium', 'Regal löschen')"
+								@click.stop="confirmDeleteShelf"
+							>✕</button>
+						</template>
+					</div>
+					<button
+						class="shelf-tab shelf-tab--add"
+						:title="t('vinarium', 'Neues Regal anlegen')"
+						@click="newShelfOpen = true"
+					>+</button>
+				</div>
+				</div>
+
 				<!-- Kein Regal -->
 				<div v-if="shelves.length === 0" class="shelf-view__empty">
 					<p>{{ t('vinarium', 'Noch kein Regal angelegt.') }}</p>
 				</div>
 
-				<template v-else>
-					<!-- Regal-Tabs -->
-					<div v-if="shelves.length > 1" class="shelf-tabs">
-						<button
-							v-for="entry in shelves"
-							:key="entry.shelf.id"
-							:class="['shelf-tab', { active: activeShelfId === entry.shelf.id }]"
-							@click="activeShelfId = entry.shelf.id"
-						>
-							{{ entry.shelf.name }}
-						</button>
-					</div>
-
-					<!-- Aktives Regal -->
-					<div v-if="activeShelf" class="shelves">
-						<div class="shelf-title-row">
-							<h3 class="shelf-title">{{ activeShelf.shelf.name }}</h3>
-							<button
-								class="shelf-delete-btn"
-								:title="t('vinarium', 'Regal löschen')"
-								@click="confirmDeleteShelf"
-							>✕</button>
-						</div>
+				<!-- Aktives Regal -->
+				<div v-else-if="activeShelf" class="shelves">
 
 						<div v-for="compData in activeShelf.compartments" :key="compData.compartment.id" class="compartment">
 							<div class="compartment__header">
@@ -144,7 +158,6 @@
 							</NcButton>
 						</div>
 					</div>
-				</template>
 
 				<p v-if="errorMsg" class="error">{{ errorMsg }}</p>
 			</div>
@@ -193,7 +206,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NewShelfDialog from '@/components/NewShelfDialog.vue'
@@ -203,7 +216,7 @@ import TastingDialog from '@/components/TastingDialog.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import type { BottleListItem, CompartmentWithLevels, Level, Slot, WineColor } from '@/types/api'
 import type { CellarResponse } from '@/api/cellar'
-import { addCompartment, destroyCompartment, destroyShelf, fetchCellar, fetchSlots } from '@/api/cellar'
+import { addCompartment, destroyCompartment, destroyShelf, fetchCellar, fetchSlots, updateShelf } from '@/api/cellar'
 import { useBottleStore } from '@/stores/bottleStore'
 import { cssColorFor } from '@/utils/wineColors'
 
@@ -220,6 +233,9 @@ const parkzoneDragOver = ref(false)
 const errorMsg = ref('')
 
 const newShelfOpen = ref(false)
+const renamingShelfId = ref<number | null>(null)
+const renameValue = ref('')
+let renameInputEl: HTMLInputElement | null = null
 const configOpen = ref(false)
 const configTarget = ref<CompartmentWithLevels | null>(null)
 
@@ -342,7 +358,7 @@ function onParkzoneDragLeave(event: DragEvent) {
 	if (!related || !section.contains(related)) parkzoneDragOver.value = false
 }
 
-function onSlotClick(slotId: number) {
+async function onSlotClick(slotId: number) {
 	const b = bottleInSlot(slotId)
 	if (b) {
 		if (selectedBottleId.value === b.id) {
@@ -353,7 +369,7 @@ function onSlotClick(slotId: number) {
 			detailBottleId.value = b.id
 		}
 	} else if (selectedBottleId.value) {
-		onDrop(slotId)
+		await onDrop(slotId)
 	}
 }
 
@@ -404,6 +420,45 @@ const deleteConfirmMessage = computed(() => {
 	const name = activeShelf.value?.shelf.name ?? ''
 	return t('vinarium', 'Regal "{name}" wirklich löschen? Alle Flaschen kommen in die Parkzone.', { name })
 })
+
+function setRenameInput(el: unknown) {
+	renameInputEl = (el as HTMLInputElement | null) ?? null
+}
+
+function onTabClick(shelfId: number) {
+	if (activeShelfId.value === shelfId) {
+		startRename(shelfId)
+	} else {
+		activeShelfId.value = shelfId
+	}
+}
+
+function startRename(shelfId: number) {
+	const entry = shelves.value.find(e => e.shelf.id === shelfId)
+	if (!entry) return
+	renamingShelfId.value = shelfId
+	renameValue.value = entry.shelf.name
+	nextTick(() => renameInputEl?.focus())
+}
+
+async function commitRename() {
+	const id = renamingShelfId.value
+	if (id === null) return
+	const entry = shelves.value.find(e => e.shelf.id === id)
+	const newName = renameValue.value.trim()
+	renamingShelfId.value = null
+	if (!entry || newName === '' || newName === entry.shelf.name) return
+	try {
+		await updateShelf(id, newName)
+		await reload()
+	} catch (e: any) {
+		errorMsg.value = e?.message ?? t('vinarium', 'Umbenennen fehlgeschlagen')
+	}
+}
+
+function cancelRename() {
+	renamingShelfId.value = null
+}
 
 function confirmDeleteShelf() {
 	if (!activeShelf.value) return
@@ -540,13 +595,24 @@ async function loadAllSlots() {
 	gap: 1rem;
 	padding: 2rem;
 }
+.shelf-head {
+	position: sticky;
+	top: 0;
+	z-index: 20;
+	background: var(--color-main-background);
+	padding-bottom: 1rem;
+	margin-bottom: 1rem;
+}
 .parkzone {
+	display: flex;
+	flex-direction: column;
+	max-height: 30vh;
 	background: var(--color-background-hover);
 	border: 1px solid var(--color-border-dark, #bbb);
 	border-left: 4px solid var(--color-warning, #e3a000);
 	border-radius: var(--border-radius);
 	padding: 1rem;
-	margin-bottom: 1.5rem;
+	margin-bottom: 1rem;
 	min-height: 60px;
 }
 .parkzone--drag-over {
@@ -561,9 +627,13 @@ async function loadAllSlots() {
 .park-list {
 	list-style: none;
 	padding: 0;
+	margin: 0;
 	display: flex;
 	flex-wrap: wrap;
 	gap: 0.5rem;
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
 }
 .park-card {
 	display: flex;
@@ -594,44 +664,67 @@ async function loadAllSlots() {
 }
 .shelf-tabs {
 	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
 	gap: 0;
 	border-bottom: 2px solid var(--color-border);
-	margin-bottom: 1.5rem;
 }
 .shelf-tab {
-	padding: 0.5rem 1.25rem;
-	background: none;
-	border: none;
+	display: inline-flex;
+	align-items: center;
 	border-bottom: 2px solid transparent;
 	margin-bottom: -2px;
-	cursor: pointer;
-	font-size: 0.9rem;
 	color: var(--color-text-maxcontrast);
 }
 .shelf-tab.active {
 	color: var(--color-main-text);
 	border-bottom-color: var(--color-primary-element);
+}
+.shelf-tab__label {
+	padding: 0.5rem 0.5rem 0.5rem 1.25rem;
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-size: 0.9rem;
+	color: inherit;
+}
+.shelf-tab.active .shelf-tab__label {
 	font-weight: 500;
 }
-.shelf-title-row {
-	display: flex;
-	align-items: center;
-	gap: 1rem;
-	margin-bottom: 1rem;
-}
-.shelf-title {
-	font-size: 1.2rem;
-	margin: 0;
-}
-.shelf-delete-btn {
+.shelf-tab__delete {
 	background: none;
 	border: none;
 	color: #c0392b;
-	font-size: 1.1rem;
+	font-size: 1rem;
 	font-weight: bold;
-	padding: 0 4px;
+	padding: 0 0.6rem 0 0.25rem;
 	line-height: 1;
 	cursor: pointer;
+}
+.shelf-tab__delete:hover {
+	color: #b71c1c;
+}
+.shelf-tab__input {
+	margin: 0.25rem 0.5rem;
+	padding: 0.25rem 0.5rem;
+	font-size: 0.9rem;
+	border: 1px solid var(--color-primary-element);
+	border-radius: var(--border-radius);
+	min-width: 8rem;
+}
+.shelf-tab--add {
+	padding: 0.5rem 1rem;
+	background: none;
+	border: none;
+	border-bottom: 2px solid transparent;
+	margin-bottom: -2px;
+	cursor: pointer;
+	font-size: 1.1rem;
+	font-weight: bold;
+	color: var(--color-text-maxcontrast);
+}
+.shelf-tab--add:hover {
+	color: var(--color-main-text);
 }
 .compartment {
 	border: 2px solid var(--color-border-dark, #999);

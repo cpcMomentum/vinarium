@@ -66,6 +66,9 @@ class CellarController extends Controller {
 		if ($name === '') {
 			return new DataResponse(['error' => 'Name is required'], Http::STATUS_BAD_REQUEST);
 		}
+		if (strlen($name) > 255) {
+			return new DataResponse(['error' => 'Name too long (max 255 characters)'], Http::STATUS_BAD_REQUEST);
+		}
 		if (!is_array($levelsConfig) || $levelsConfig === []) {
 			return new DataResponse(['error' => 'levelsConfig is required'], Http::STATUS_BAD_REQUEST);
 		}
@@ -75,6 +78,29 @@ class CellarController extends Controller {
 			return new DataResponse($shelf, Http::STATUS_CREATED);
 		} catch (\InvalidArgumentException $e) {
 			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
+		}
+	}
+
+	/** Renames a shelf. */
+	#[NoAdminRequired]
+	public function updateShelf(int $shelfId): DataResponse {
+		if ($this->userId === null) {
+			return $this->unauthorized();
+		}
+		$name = trim((string)($this->request->getParam('name') ?? ''));
+		if ($name === '') {
+			return new DataResponse(['error' => 'Name is required'], Http::STATUS_BAD_REQUEST);
+		}
+		if (strlen($name) > 255) {
+			return new DataResponse(['error' => 'Name too long (max 255 characters)'], Http::STATUS_BAD_REQUEST);
+		}
+		try {
+			$shelf = $this->cellarService->updateShelf($shelfId, $this->userId, $name);
+			return new DataResponse($shelf);
+		} catch (NotFoundException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
+		} catch (PermissionDeniedException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_FORBIDDEN);
 		}
 	}
 
