@@ -541,6 +541,12 @@ async function loadAllSlots() {
 	padding: 2rem;
 }
 .parkzone {
+	position: sticky;
+	top: 0;
+	z-index: 10;
+	max-height: 40vh;
+	display: flex;
+	flex-direction: column;
 	background: var(--color-background-hover);
 	border: 1px solid var(--color-border-dark, #bbb);
 	border-left: 4px solid var(--color-warning, #e3a000);
@@ -561,9 +567,13 @@ async function loadAllSlots() {
 .park-list {
 	list-style: none;
 	padding: 0;
+	margin: 0;
 	display: flex;
 	flex-wrap: wrap;
 	gap: 0.5rem;
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
 }
 .park-card {
 	display: flex;
