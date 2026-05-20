@@ -66,6 +66,9 @@ class CellarController extends Controller {
 		if ($name === '') {
 			return new DataResponse(['error' => 'Name is required'], Http::STATUS_BAD_REQUEST);
 		}
+		if (strlen($name) > 255) {
+			return new DataResponse(['error' => 'Name too long (max 255 characters)'], Http::STATUS_BAD_REQUEST);
+		}
 		if (!is_array($levelsConfig) || $levelsConfig === []) {
 			return new DataResponse(['error' => 'levelsConfig is required'], Http::STATUS_BAD_REQUEST);
 		}
@@ -87,6 +90,9 @@ class CellarController extends Controller {
 		$name = trim((string)($this->request->getParam('name') ?? ''));
 		if ($name === '') {
 			return new DataResponse(['error' => 'Name is required'], Http::STATUS_BAD_REQUEST);
+		}
+		if (strlen($name) > 255) {
+			return new DataResponse(['error' => 'Name too long (max 255 characters)'], Http::STATUS_BAD_REQUEST);
 		}
 		try {
 			$shelf = $this->cellarService->updateShelf($shelfId, $this->userId, $name);
