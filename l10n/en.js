@@ -18,6 +18,7 @@ OC.L10N.register(
     "Verschenkt": "Gifted",
     "Verloren": "Lost",
     "Verschenken": "Give away",
+    "Weitere Aktionen": "More actions",
     "Flasche verschenken": "Give bottle away",
     "Flasche als verloren markieren": "Mark bottle as lost",
     "Die Flasche wird als „verschenkt“ markiert und der Slot freigegeben.": "The bottle is marked as gifted and the slot is released.",
