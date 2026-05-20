@@ -23,6 +23,7 @@ use OCA\Vinarium\Db\Wine;
 use OCA\Vinarium\Db\WineMapper;
 use OCA\Vinarium\Exception\PermissionDeniedException;
 use OCA\Vinarium\Exception\SlotOccupiedException;
+use OCA\Vinarium\Exception\ValidationException;
 use OCA\Vinarium\Service\BottleService;
 use OCA\Vinarium\Service\CellarService;
 use OCA\Vinarium\Service\ProducerService;
@@ -156,6 +157,15 @@ class BottleServiceTest extends IntegrationTestCase {
 		$this->assertNull($lost->getSlotId());
 		$this->assertNull($lost->getEventRecipient());
 		$this->assertSame('zerbrochen', $lost->getEventNote());
+	}
+
+	public function testGiftRejectsNonStorageBottle(): void {
+		[$userId, $purchaseId] = $this->seedPurchase(1);
+		[$bottle] = $this->service->createBottlesForPurchase($purchaseId, $userId);
+		$this->service->loseBottle($bottle->getId(), $userId, '2026-05-20', 'weg');
+
+		$this->expectException(ValidationException::class);
+		$this->service->giftBottle($bottle->getId(), $userId, 'Anna', '2026-05-20', null);
 	}
 
 	public function testGiftRecipientsReturnsDistinct(): void {

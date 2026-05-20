@@ -13,6 +13,7 @@ use OCA\Vinarium\AppInfo\Application;
 use OCA\Vinarium\Exception\NotFoundException;
 use OCA\Vinarium\Exception\PermissionDeniedException;
 use OCA\Vinarium\Exception\SlotOccupiedException;
+use OCA\Vinarium\Exception\ValidationException;
 use OCA\Vinarium\Service\BottleService;
 use OCA\Vinarium\Service\PhotoService;
 use OCP\AppFramework\Controller;
@@ -208,6 +209,8 @@ class BottleController extends Controller {
 			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
 		} catch (PermissionDeniedException $e) {
 			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_FORBIDDEN);
+		} catch (ValidationException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
 		}
 	}
 
@@ -228,6 +231,8 @@ class BottleController extends Controller {
 			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
 		} catch (PermissionDeniedException $e) {
 			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_FORBIDDEN);
+		} catch (ValidationException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
 		}
 	}
 
