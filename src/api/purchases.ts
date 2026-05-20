@@ -38,6 +38,21 @@ export const createPurchaseWithBottles = (payload: PurchaseCreate): Promise<Purc
 	return apiPost<PurchaseWithBottlesResult, { vintageId: number; data: typeof data }>('/purchases', { vintageId, data })
 }
 
+export interface WizardEntity<D> {
+	id: number | null
+	data: D
+}
+
+export interface WizardPayload {
+	producer: WizardEntity<Record<string, unknown>>
+	wine: WizardEntity<Record<string, unknown>>
+	vintage: WizardEntity<Record<string, unknown>>
+	purchase: Record<string, unknown>
+}
+
+export const createPurchaseViaWizard = (payload: WizardPayload): Promise<PurchaseWithBottlesResult> =>
+	apiPost<PurchaseWithBottlesResult, WizardPayload>('/purchases/wizard', payload)
+
 export const updatePurchase = (id: number, data: PurchaseUpdate): Promise<Purchase> =>
 	apiPatch<Purchase, { data: PurchaseUpdate }>(`/purchases/${id}`, { data })
 

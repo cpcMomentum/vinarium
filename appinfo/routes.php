@@ -49,6 +49,7 @@ return [
 		['name' => 'purchase#index',   'url' => '/api/v1/purchases',      'verb' => 'GET'],
 		['name' => 'purchase#show',    'url' => '/api/v1/purchases/{id}', 'verb' => 'GET'],
 		['name' => 'purchase#create',  'url' => '/api/v1/purchases',      'verb' => 'POST'],
+		['name' => 'purchase#createFromWizard', 'url' => '/api/v1/purchases/wizard', 'verb' => 'POST'],
 		['name' => 'purchase#update',  'url' => '/api/v1/purchases/{id}', 'verb' => 'PATCH'],
 		['name' => 'purchase#destroy', 'url' => '/api/v1/purchases/{id}', 'verb' => 'DELETE'],
 

@@ -16,6 +16,7 @@ use OCA\Vinarium\Exception\NotFoundException;
 use OCA\Vinarium\Exception\ValidationException;
 use OCA\Vinarium\Service\BottleService;
 use OCA\Vinarium\Service\PurchaseService;
+use OCA\Vinarium\Service\PurchaseWizardService;
 use OCP\AppFramework\Http;
 use OCP\IRequest;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -24,16 +25,18 @@ use PHPUnit\Framework\TestCase;
 class PurchaseControllerTest extends TestCase {
 	private PurchaseService&MockObject $purchaseService;
 	private BottleService&MockObject $bottleService;
+	private PurchaseWizardService&MockObject $purchaseWizardService;
 	private IRequest&MockObject $request;
 
 	protected function setUp(): void {
 		$this->purchaseService = $this->createMock(PurchaseService::class);
 		$this->bottleService = $this->createMock(BottleService::class);
+		$this->purchaseWizardService = $this->createMock(PurchaseWizardService::class);
 		$this->request = $this->createMock(IRequest::class);
 	}
 
 	private function controller(?string $userId = 'alice'): PurchaseController {
-		return new PurchaseController($this->request, $userId, $this->purchaseService, $this->bottleService);
+		return new PurchaseController($this->request, $userId, $this->purchaseService, $this->bottleService, $this->purchaseWizardService);
 	}
 
 	public function testCreateAlsoCreatesBottles(): void {
