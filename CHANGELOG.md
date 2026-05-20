@@ -7,6 +7,9 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Added
+- Fächer lassen sich per Inline-Edit umbenennen — Klick auf den Fach-Titel öffnet ein Eingabefeld (Enter speichert, Esc bricht ab); leere Eingabe verwirft die Änderung. Neuer Endpoint `PATCH /compartments/{id}` mit Ownership-Prüfung (403/404) und Integrationstests (Fixes #73)
+
 ## [0.2.0] - 2026-05-19
 
 ### Added
