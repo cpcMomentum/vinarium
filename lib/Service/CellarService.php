@@ -255,6 +255,18 @@ class CellarService {
 	 * Destroys a compartment and all its levels/slots. Bottles go to Parkzone.
 	 * Returns the number of bottles moved.
 	 */
+	/** Renames a compartment after verifying ownership. */
+	public function updateCompartmentLabel(int $compartmentId, string $userId, string $label): Compartment {
+		try {
+			$comp = $this->compartmentMapper->find($compartmentId);
+		} catch (DoesNotExistException $e) {
+			throw new NotFoundException("Compartment {$compartmentId} not found", 0, $e);
+		}
+		$this->assertCompartmentOwnership($comp, $userId);
+		$comp->setLabel($label);
+		return $this->compartmentMapper->update($comp);
+	}
+
 	public function destroyCompartment(int $compartmentId, string $userId): int {
 		$this->db->beginTransaction();
 		try {

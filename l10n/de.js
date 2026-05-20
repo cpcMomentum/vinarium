@@ -78,6 +78,7 @@ OC.L10N.register(
     "Hinten": "Hinten",
     "Vorne": "Vorne",
     "Fach konfigurieren": "Fach konfigurieren",
+    "Zum Umbenennen klicken": "Zum Umbenennen klicken",
     "Regal löschen": "Regal löschen",
     "Frei — Ebene {level}, {row}, Platz {col}": "Frei — Ebene {level}, {row}, Platz {col}",
     "Regal \"{name}\" wirklich löschen? Alle Flaschen kommen in die Parkzone.": "Regal \"{name}\" wirklich löschen? Alle Flaschen kommen in die Parkzone.",

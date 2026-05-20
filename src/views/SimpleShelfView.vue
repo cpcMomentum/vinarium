@@ -80,7 +80,21 @@
 
 						<div v-for="compData in activeShelf.compartments" :key="compData.compartment.id" class="compartment">
 							<div class="compartment__header">
-								<h4 class="compartment__title">{{ compData.compartment.label }}</h4>
+								<input
+									v-if="renamingCompartmentId === compData.compartment.id"
+									:ref="setCompartmentRenameInput"
+									v-model="compartmentRenameValue"
+									class="compartment__title-input"
+									@keyup.enter="commitCompartmentRename"
+									@keyup.esc="cancelCompartmentRename"
+									@blur="commitCompartmentRename"
+								>
+								<h4
+									v-else
+									class="compartment__title compartment__title--editable"
+									:title="t('vinarium', 'Zum Umbenennen klicken')"
+									@click="startCompartmentRename(compData.compartment.id, compData.compartment.label)"
+								>{{ compData.compartment.label }}</h4>
 								<button class="compartment__config-btn" :title="t('vinarium', 'Fach konfigurieren')" @click="openConfig(compData)">⚙</button>
 								<button
 									class="compartment__delete-btn"
@@ -216,7 +230,7 @@ import TastingDialog from '@/components/TastingDialog.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import type { BottleListItem, CompartmentWithLevels, Level, Slot, WineColor } from '@/types/api'
 import type { CellarResponse } from '@/api/cellar'
-import { addCompartment, destroyCompartment, destroyShelf, fetchCellar, fetchSlots, updateShelf } from '@/api/cellar'
+import { addCompartment, destroyCompartment, destroyShelf, fetchCellar, fetchSlots, updateCompartment, updateShelf } from '@/api/cellar'
 import { useBottleStore } from '@/stores/bottleStore'
 import { cssColorFor } from '@/utils/wineColors'
 
@@ -236,6 +250,9 @@ const newShelfOpen = ref(false)
 const renamingShelfId = ref<number | null>(null)
 const renameValue = ref('')
 let renameInputEl: HTMLInputElement | null = null
+const renamingCompartmentId = ref<number | null>(null)
+const compartmentRenameValue = ref('')
+let compartmentRenameInputEl: HTMLInputElement | null = null
 const configOpen = ref(false)
 const configTarget = ref<CompartmentWithLevels | null>(null)
 
@@ -458,6 +475,35 @@ async function commitRename() {
 
 function cancelRename() {
 	renamingShelfId.value = null
+}
+
+function setCompartmentRenameInput(el: unknown) {
+	compartmentRenameInputEl = (el as HTMLInputElement | null) ?? null
+}
+
+function startCompartmentRename(compartmentId: number, currentLabel: string) {
+	renamingCompartmentId.value = compartmentId
+	compartmentRenameValue.value = currentLabel
+	nextTick(() => compartmentRenameInputEl?.focus())
+}
+
+async function commitCompartmentRename() {
+	const id = renamingCompartmentId.value
+	if (id === null) return
+	const newLabel = compartmentRenameValue.value.trim()
+	const current = activeShelf.value?.compartments.find(c => c.compartment.id === id)?.compartment.label
+	renamingCompartmentId.value = null
+	if (newLabel === '' || newLabel === current) return
+	try {
+		await updateCompartment(id, newLabel)
+		await reload()
+	} catch (e: any) {
+		errorMsg.value = e?.message ?? t('vinarium', 'Umbenennen fehlgeschlagen')
+	}
+}
+
+function cancelCompartmentRename() {
+	renamingCompartmentId.value = null
 }
 
 function confirmDeleteShelf() {
@@ -743,6 +789,22 @@ async function loadAllSlots() {
 	margin: 0;
 	font-size: 1rem;
 	flex: 1;
+}
+.compartment__title--editable {
+	cursor: pointer;
+	border-radius: var(--border-radius);
+	padding: 0.1rem 0.3rem;
+	margin: -0.1rem -0.3rem;
+}
+.compartment__title--editable:hover {
+	background: var(--color-background-hover);
+}
+.compartment__title-input {
+	flex: 1;
+	font-size: 1rem;
+	padding: 0.2rem 0.4rem;
+	border: 1px solid var(--color-primary-element);
+	border-radius: var(--border-radius);
 }
 .compartment__config-btn {
 	background: none;
