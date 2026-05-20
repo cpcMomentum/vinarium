@@ -128,7 +128,6 @@ class CellarService {
 		}
 	}
 
-	/** Destroys a shelf and all its compartments, levels and slots. Bottles go to Parkzone. */
 	/** Renames a shelf after verifying ownership. */
 	public function updateShelf(int $shelfId, string $userId, string $name): Shelf {
 		try {
@@ -144,10 +143,16 @@ class CellarService {
 		return $this->shelfMapper->update($shelf);
 	}
 
+	/** Destroys a shelf and all its compartments, levels and slots. Bottles go to Parkzone. */
 	public function destroyShelf(int $shelfId, string $userId): int {
 		$this->db->beginTransaction();
 		try {
-			$shelf = $this->shelfMapper->find($shelfId);
+			try {
+				$shelf = $this->shelfMapper->find($shelfId);
+			} catch (DoesNotExistException $e) {
+				$this->db->rollBack();
+				throw new NotFoundException('Shelf not found');
+			}
 			$cellar = $this->cellarMapper->find($shelf->getCellarId());
 			if ($cellar->getOwnerUserId() !== $userId) {
 				throw new PermissionDeniedException('Shelf not owned by user');
