@@ -18,6 +18,7 @@ OC.L10N.register(
     "Verschenkt": "Verschenkt",
     "Verloren": "Verloren",
     "Verschenken": "Verschenken",
+    "Weitere Aktionen": "Weitere Aktionen",
     "Flasche verschenken": "Flasche verschenken",
     "Flasche als verloren markieren": "Flasche als verloren markieren",
     "Die Flasche wird als „verschenkt“ markiert und der Slot freigegeben.": "Die Flasche wird als „verschenkt“ markiert und der Slot freigegeben.",

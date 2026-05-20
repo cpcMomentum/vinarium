@@ -65,12 +65,20 @@
 						<span v-else-if="b.status === 'lost' && b.event_note" class="event-info">({{ b.event_note }})</span>
 					</td>
 					<td>{{ formatSlotLabel(b) }}</td>
-					<td class="actions-cell">
-						<template v-if="b.status === 'in_storage'">
-							<NcButton variant="tertiary" @click="openTasting(b.id)">{{ t('vinarium', 'Entkorken') }}</NcButton>
-							<NcButton variant="tertiary" @click="openEvent(b.id, 'gift')">{{ t('vinarium', 'Verschenken') }}</NcButton>
-							<NcButton variant="tertiary" @click="openEvent(b.id, 'lost')">{{ t('vinarium', 'Verloren') }}</NcButton>
-						</template>
+					<td>
+						<div v-if="b.status === 'in_storage'" class="actions-cell">
+							<NcButton variant="secondary" @click="openTasting(b.id)">{{ t('vinarium', 'Entkorken') }}</NcButton>
+							<NcActions :aria-label="t('vinarium', 'Weitere Aktionen')">
+								<NcActionButton @click="openEvent(b.id, 'gift')">
+									<template #icon><Gift :size="20" /></template>
+									{{ t('vinarium', 'Verschenken') }}
+								</NcActionButton>
+								<NcActionButton @click="openEvent(b.id, 'lost')">
+									<template #icon><CloseCircleOutline :size="20" /></template>
+									{{ t('vinarium', 'Verloren') }}
+								</NcActionButton>
+							</NcActions>
+						</div>
 						<NcButton v-else variant="tertiary" @click="doRestore(b.id)">{{ t('vinarium', 'Zurück in Bestand') }}</NcButton>
 					</td>
 				</tr>
@@ -87,6 +95,10 @@
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcActions from '@nextcloud/vue/components/NcActions'
+import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+import Gift from 'vue-material-design-icons/Gift.vue'
+import CloseCircleOutline from 'vue-material-design-icons/CloseCircleOutline.vue'
 import TastingDialog from '@/components/TastingDialog.vue'
 import BottleEventDialog from '@/components/BottleEventDialog.vue'
 import { BOTTLE_STATUS_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleListItem, type BottleStatus, type WineColor } from '@/types/api'
@@ -297,7 +309,8 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 }
 .actions-cell {
 	display: flex;
-	flex-wrap: wrap;
+	flex-wrap: nowrap;
+	align-items: center;
 	gap: 0.25rem;
 }
 .bottles th, .bottles td {
