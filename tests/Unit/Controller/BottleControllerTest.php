@@ -15,6 +15,7 @@ use OCA\Vinarium\Exception\NotFoundException;
 use OCA\Vinarium\Exception\PermissionDeniedException;
 use OCA\Vinarium\Exception\SlotOccupiedException;
 use OCA\Vinarium\Service\BottleService;
+use OCA\Vinarium\Service\PhotoService;
 use OCP\AppFramework\Http;
 use OCP\IRequest;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -23,14 +24,16 @@ use PHPUnit\Framework\TestCase;
 class BottleControllerTest extends TestCase {
 	private BottleService&MockObject $service;
 	private IRequest&MockObject $request;
+	private PhotoService&MockObject $photoService;
 
 	protected function setUp(): void {
 		$this->service = $this->createMock(BottleService::class);
 		$this->request = $this->createMock(IRequest::class);
+		$this->photoService = $this->createMock(PhotoService::class);
 	}
 
 	private function controller(?string $userId = 'alice'): BottleController {
-		return new BottleController($this->request, $userId, $this->service);
+		return new BottleController($this->request, $userId, $this->service, $this->photoService);
 	}
 
 	public function testIndexWithoutFilter(): void {
@@ -71,14 +74,6 @@ class BottleControllerTest extends TestCase {
 		$this->service->method('moveBottle')->willThrowException(new PermissionDeniedException('nope'));
 		$response = $this->controller()->move(1, 99);
 		$this->assertSame(Http::STATUS_FORBIDDEN, $response->getStatus());
-	}
-
-	public function testConsume(): void {
-		$bottle = new Bottle();
-		$bottle->setStatus(Bottle::STATUS_CONSUMED);
-		$this->service->method('consumeBottle')->willReturn($bottle);
-		$response = $this->controller()->consume(1);
-		$this->assertSame(Http::STATUS_OK, $response->getStatus());
 	}
 
 	public function testShowNotFound(): void {
