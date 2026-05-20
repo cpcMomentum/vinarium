@@ -5,11 +5,7 @@
 
 import moment from '@nextcloud/moment'
 
-/**
- * Formats an ISO date string as DD.MM.YYYY (German format).
- * Returns the original input for invalid dates (moment yields "Invalid date"
- * instead of throwing, so an explicit isValid() check is required).
- */
+// isValid() required: moment returns "Invalid date" string instead of throwing
 export function formatDate(iso: string): string {
 	const m = moment(iso)
 	return m.isValid() ? m.format('DD.MM.YYYY') : iso
