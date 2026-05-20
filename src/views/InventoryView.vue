@@ -1,5 +1,6 @@
 <template>
 	<div class="inventory-view">
+		<div ref="headEl" class="inventory-head">
 		<header class="inventory-view__header">
 			<h2>{{ t('vinarium', 'Bestand') }}</h2>
 			<span class="count">{{ n('vinarium', '{count} Flasche', '{count} Flaschen', store.totalCount, { count: store.totalCount }) }}</span>
@@ -26,6 +27,7 @@
 			</label>
 			<button class="reset" @click="resetFilter">{{ t('vinarium', 'Filter zurücksetzen') }}</button>
 		</section>
+		</div>
 
 		<table v-if="store.bottles.length > 0" class="bottles">
 			<thead>
@@ -73,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import TastingDialog from '@/components/TastingDialog.vue'
@@ -89,8 +91,24 @@ const filterColor = ref<WineColor | ''>('')
 const filterStatus = ref<BottleStatus | ''>('in_storage')
 const filterYear = ref<number | null>(null)
 
+const headEl = ref<HTMLElement | null>(null)
+let headObserver: ResizeObserver | null = null
+
 onMounted(async () => {
 	await store.fetchBottles({ status: 'in_storage' })
+	if (headEl.value) {
+		const apply = () => {
+			const h = headEl.value?.offsetHeight ?? 0
+			headEl.value?.parentElement?.style.setProperty('--inventory-head-h', `${h}px`)
+		}
+		apply()
+		headObserver = new ResizeObserver(apply)
+		headObserver.observe(headEl.value)
+	}
+})
+
+onBeforeUnmount(() => {
+	headObserver?.disconnect()
 })
 
 async function applyFilter() {
@@ -142,6 +160,13 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 .inventory-view {
 	padding: 2rem 2rem 2rem 50px;
 	max-width: 1100px;
+}
+.inventory-head {
+	position: sticky;
+	top: 0;
+	z-index: 20;
+	background: var(--color-main-background);
+	padding-bottom: 1rem;
 }
 .inventory-view__header {
 	display: flex;
@@ -203,7 +228,7 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 	display: flex;
 	gap: 1rem;
 	align-items: end;
-	margin-bottom: 1rem;
+	margin-bottom: 0;
 	padding: 1rem;
 	background: var(--color-background-hover);
 	border-radius: var(--border-radius);
@@ -240,7 +265,10 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 	border-bottom: 1px solid var(--color-border);
 }
 .bottles th {
-	background: var(--color-background-hover);
+	position: sticky;
+	top: var(--inventory-head-h, 0px);
+	z-index: 10;
+	background: var(--color-background-dark);
 	font-weight: 500;
 	font-size: 0.9rem;
 }
