@@ -85,8 +85,10 @@ class ExportService {
 		if ($value === null || $value === '') {
 			return '';
 		}
-		if (str_contains($value, ';') || str_contains($value, '"') || str_contains($value, "\n")) {
-			return '"' . str_replace('"', '""', $value) . '"';
+		$formulaChar = in_array($value[0], ['=', '+', '-', '@'], true);
+		if ($formulaChar || str_contains($value, ';') || str_contains($value, '"') || str_contains($value, "\n")) {
+			$escaped = str_replace('"', '""', $value);
+			return '"' . ($formulaChar ? "\t" . $escaped : $escaped) . '"';
 		}
 		return $value;
 	}
