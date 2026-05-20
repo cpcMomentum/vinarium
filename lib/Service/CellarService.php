@@ -305,7 +305,11 @@ class CellarService {
 
 		$this->db->beginTransaction();
 		try {
-			$comp = $this->compartmentMapper->find($compartmentId);
+			try {
+				$comp = $this->compartmentMapper->find($compartmentId);
+			} catch (DoesNotExistException $e) {
+				throw new NotFoundException("Compartment {$compartmentId} not found", 0, $e);
+			}
 			$this->assertCompartmentOwnership($comp, $userId);
 
 			$movedBottles = $this->wipeCompartment($compartmentId);
