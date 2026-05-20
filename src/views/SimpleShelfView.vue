@@ -85,6 +85,7 @@
 									:ref="setCompartmentRenameInput"
 									v-model="compartmentRenameValue"
 									class="compartment__title-input"
+									maxlength="255"
 									@keyup.enter="commitCompartmentRename"
 									@keyup.esc="cancelCompartmentRename"
 									@blur="commitCompartmentRename"

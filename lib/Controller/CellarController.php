@@ -160,6 +160,9 @@ class CellarController extends Controller {
 		if ($label === '') {
 			return new DataResponse(['error' => 'Label is required'], Http::STATUS_BAD_REQUEST);
 		}
+		if (strlen($label) > 255) {
+			return new DataResponse(['error' => 'Label too long (max 255 characters)'], Http::STATUS_BAD_REQUEST);
+		}
 		try {
 			$comp = $this->cellarService->updateCompartmentLabel($compartmentId, $this->userId, $label);
 			return new DataResponse($comp);
