@@ -358,7 +358,7 @@ function onParkzoneDragLeave(event: DragEvent) {
 	if (!related || !section.contains(related)) parkzoneDragOver.value = false
 }
 
-function onSlotClick(slotId: number) {
+async function onSlotClick(slotId: number) {
 	const b = bottleInSlot(slotId)
 	if (b) {
 		if (selectedBottleId.value === b.id) {
@@ -369,7 +369,7 @@ function onSlotClick(slotId: number) {
 			detailBottleId.value = b.id
 		}
 	} else if (selectedBottleId.value) {
-		onDrop(slotId)
+		await onDrop(slotId)
 	}
 }
 
