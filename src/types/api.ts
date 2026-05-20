@@ -77,6 +77,9 @@ export interface Bottle {
 	status: BottleStatus
 	photoFileId: number | null
 	notes: string | null
+	eventDate: string | null
+	eventRecipient: string | null
+	eventNote: string | null
 }
 
 export interface Tasting {
@@ -190,6 +193,9 @@ export interface BottleListItem {
 	slot_row: string | null
 	slot_column: number | null
 	compartment_label: string | null
+	event_date: string | null
+	event_recipient: string | null
+	event_note: string | null
 }
 
 export interface BottleFilter {

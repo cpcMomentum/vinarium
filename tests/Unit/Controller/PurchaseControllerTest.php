@@ -16,6 +16,7 @@ use OCA\Vinarium\Exception\NotFoundException;
 use OCA\Vinarium\Exception\ValidationException;
 use OCA\Vinarium\Service\BottleService;
 use OCA\Vinarium\Service\PurchaseService;
+use OCA\Vinarium\Service\PurchaseWizardService;
 use OCP\AppFramework\Http;
 use OCP\IRequest;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -24,16 +25,18 @@ use PHPUnit\Framework\TestCase;
 class PurchaseControllerTest extends TestCase {
 	private PurchaseService&MockObject $purchaseService;
 	private BottleService&MockObject $bottleService;
+	private PurchaseWizardService&MockObject $purchaseWizardService;
 	private IRequest&MockObject $request;
 
 	protected function setUp(): void {
 		$this->purchaseService = $this->createMock(PurchaseService::class);
 		$this->bottleService = $this->createMock(BottleService::class);
+		$this->purchaseWizardService = $this->createMock(PurchaseWizardService::class);
 		$this->request = $this->createMock(IRequest::class);
 	}
 
 	private function controller(?string $userId = 'alice'): PurchaseController {
-		return new PurchaseController($this->request, $userId, $this->purchaseService, $this->bottleService);
+		return new PurchaseController($this->request, $userId, $this->purchaseService, $this->bottleService, $this->purchaseWizardService);
 	}
 
 	public function testCreateAlsoCreatesBottles(): void {
@@ -74,5 +77,44 @@ class PurchaseControllerTest extends TestCase {
 		$this->purchaseService->expects($this->once())->method('delete')->with(5, 'alice');
 		$response = $this->controller()->destroy(5);
 		$this->assertSame(Http::STATUS_NO_CONTENT, $response->getStatus());
+	}
+
+	public function testCreateFromWizardSuccess(): void {
+		$purchase = new Purchase();
+		$purchase->setId(10);
+		$purchase->setQuantity(3);
+		$bottle = new Bottle();
+		$this->request->method('getParam')->willReturn([]);
+		$this->purchaseWizardService->expects($this->once())
+			->method('create')
+			->with('alice', $this->isType('array'))
+			->willReturn(['purchase' => $purchase, 'bottles' => [$bottle, $bottle, $bottle]]);
+
+		$response = $this->controller()->createFromWizard();
+		$this->assertSame(Http::STATUS_CREATED, $response->getStatus());
+		$this->assertCount(3, $response->getData()['bottles']);
+	}
+
+	public function testCreateFromWizardValidationError(): void {
+		$this->request->method('getParam')->willReturn([]);
+		$this->purchaseWizardService->method('create')
+			->willThrowException(new ValidationException('Vintage year is required'));
+
+		$response = $this->controller()->createFromWizard();
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+	}
+
+	public function testCreateFromWizardNotFound(): void {
+		$this->request->method('getParam')->willReturn([]);
+		$this->purchaseWizardService->method('create')
+			->willThrowException(new NotFoundException('not found'));
+
+		$response = $this->controller()->createFromWizard();
+		$this->assertSame(Http::STATUS_NOT_FOUND, $response->getStatus());
+	}
+
+	public function testCreateFromWizardUnauthenticated(): void {
+		$response = $this->controller(null)->createFromWizard();
+		$this->assertSame(Http::STATUS_UNAUTHORIZED, $response->getStatus());
 	}
 }

@@ -13,6 +13,7 @@ use OCA\Vinarium\Db\Bottle;
 use OCA\Vinarium\Db\BottleMapper;
 use OCA\Vinarium\Db\CellarMapper;
 use OCA\Vinarium\Db\CompartmentMapper;
+use OCA\Vinarium\Db\LevelMapper;
 use OCA\Vinarium\Db\ProducerMapper;
 use OCA\Vinarium\Db\PurchaseMapper;
 use OCA\Vinarium\Db\ShelfMapper;
@@ -22,6 +23,7 @@ use OCA\Vinarium\Db\Wine;
 use OCA\Vinarium\Db\WineMapper;
 use OCA\Vinarium\Exception\PermissionDeniedException;
 use OCA\Vinarium\Exception\SlotOccupiedException;
+use OCA\Vinarium\Exception\ValidationException;
 use OCA\Vinarium\Service\BottleService;
 use OCA\Vinarium\Service\CellarService;
 use OCA\Vinarium\Service\ProducerService;
@@ -54,7 +56,7 @@ class BottleServiceTest extends IntegrationTestCase {
 
 		$this->cellarService = new CellarService(
 			$cellarMapper, $shelfMapper, $compartmentMapper,
-			$this->slotMapper, $bottleMapper, $this->db,
+			new LevelMapper($this->db), $this->slotMapper, $bottleMapper, $this->db,
 		);
 		$this->service = new BottleService(
 			$bottleMapper, $this->slotMapper, $compartmentMapper,
@@ -128,6 +130,56 @@ class BottleServiceTest extends IntegrationTestCase {
 		$this->assertNull($consumed->getSlotId());
 	}
 
+	public function testGiftReleasesSlotAndStoresRecipient(): void {
+		[$userId, $purchaseId] = $this->seedPurchase(1);
+		[$bottle] = $this->service->createBottlesForPurchase($purchaseId, $userId);
+		$slotId = $this->seedSlotForUser($userId);
+		$this->service->moveBottle($bottle->getId(), $slotId, $userId);
+
+		$gifted = $this->service->giftBottle($bottle->getId(), $userId, 'Anna', '2026-05-20', 'Geburtstag');
+
+		$this->assertSame(Bottle::STATUS_GIFTED, $gifted->getStatus());
+		$this->assertNull($gifted->getSlotId());
+		$this->assertSame('Anna', $gifted->getEventRecipient());
+		$this->assertSame('Geburtstag', $gifted->getEventNote());
+		$this->assertSame('2026-05-20', $gifted->getEventDate()?->format('Y-m-d'));
+	}
+
+	public function testLoseReleasesSlotAndStoresReason(): void {
+		[$userId, $purchaseId] = $this->seedPurchase(1);
+		[$bottle] = $this->service->createBottlesForPurchase($purchaseId, $userId);
+		$slotId = $this->seedSlotForUser($userId);
+		$this->service->moveBottle($bottle->getId(), $slotId, $userId);
+
+		$lost = $this->service->loseBottle($bottle->getId(), $userId, '2026-05-20', 'zerbrochen');
+
+		$this->assertSame(Bottle::STATUS_LOST, $lost->getStatus());
+		$this->assertNull($lost->getSlotId());
+		$this->assertNull($lost->getEventRecipient());
+		$this->assertSame('zerbrochen', $lost->getEventNote());
+	}
+
+	public function testGiftRejectsNonStorageBottle(): void {
+		[$userId, $purchaseId] = $this->seedPurchase(1);
+		[$bottle] = $this->service->createBottlesForPurchase($purchaseId, $userId);
+		$this->service->loseBottle($bottle->getId(), $userId, '2026-05-20', 'weg');
+
+		$this->expectException(ValidationException::class);
+		$this->service->giftBottle($bottle->getId(), $userId, 'Anna', '2026-05-20', null);
+	}
+
+	public function testGiftRecipientsReturnsDistinct(): void {
+		[$userId, $purchaseId] = $this->seedPurchase(3);
+		$bottles = $this->service->createBottlesForPurchase($purchaseId, $userId);
+		$this->service->giftBottle($bottles[0]->getId(), $userId, 'Anna', '2026-05-20', null);
+		$this->service->giftBottle($bottles[1]->getId(), $userId, 'Anna', '2026-05-20', null);
+		$this->service->giftBottle($bottles[2]->getId(), $userId, 'Bob', '2026-05-20', null);
+
+		$recipients = $this->service->getGiftRecipients($userId);
+
+		$this->assertSame(['Anna', 'Bob'], $recipients);
+	}
+
 	public function testFilteredByColor(): void {
 		[$userId, $purchaseRedId] = $this->seedPurchase(2, Wine::COLOR_RED);
 		$this->service->createBottlesForPurchase($purchaseRedId, $userId);
@@ -156,7 +208,7 @@ class BottleServiceTest extends IntegrationTestCase {
 	private function seedSlotForUser(string $userId): int {
 		$cellar = $this->cellarService->createDefaultCellar($userId);
 		$active = $this->cellarService->getActiveCellar($userId);
-		$comp = $active['shelves'][0]['compartments'][0];
+		$comp = $active['shelves'][0]['compartments'][0]['compartment'];
 		$slots = $this->slotMapper->findByCompartment($comp->getId());
 		return $slots[0]->getId();
 	}

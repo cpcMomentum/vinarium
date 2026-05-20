@@ -139,7 +139,7 @@ import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { BOTTLE_SIZES, BOTTLE_SIZE_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleSizeMl, type WineColor } from '@/types/api'
 import { useWineStore } from '@/stores/wineStore'
-import { createPurchaseWithBottles } from '@/api/purchases'
+import { createPurchaseViaWizard } from '@/api/purchases'
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{
@@ -202,7 +202,7 @@ const canAdvance = computed(() => {
 	return true
 })
 const isValidPurchase = computed(() =>
-	vintageId.value !== null
+	(vintageId.value !== null || isValidYear.value)
 	&& form4.value.quantity >= 1
 	&& BOTTLE_SIZES.includes(form4.value.bottleSizeMl)
 	&& form4.value.purchasedAt !== '',
@@ -274,34 +274,44 @@ function resetForm3() {
 
 // --- actions ---
 
-async function advance() {
+function advance() {
+	// Nothing is persisted until the wizard is completed; just move forward.
+	errorMsg.value = ''
+	step.value++
+}
+
+function cancel() { emit('close') }
+
+async function complete() {
+	if (!isValidPurchase.value) return
 	saving.value = true
 	errorMsg.value = ''
 	try {
-		if (step.value === 1 && producerId.value === null) {
-			const p = await store.createProducer({
-				name: form1.value.name,
-				country: form1.value.country || null,
-				region: form1.value.region || null,
-				website: form1.value.website || null,
-				notes: form1.value.notes || null,
-			})
-			producerId.value = p.id
-		}
-		if (step.value === 2 && wineId.value === null && producerId.value !== null) {
-			const w = await store.createWine({
-				producerId: producerId.value,
-				name: form2.value.name,
-				color: form2.value.color,
-				data: { appellation: form2.value.appellation || null, barcode: form2.value.barcode || null, notes: form2.value.notes || null },
-			})
-			wineId.value = w.id
-		}
-		if (step.value === 3 && vintageId.value === null && wineId.value !== null && form3.value.year) {
-			const v = await store.createVintage({
-				wineId: wineId.value,
-				year: form3.value.year,
+		const result = await createPurchaseViaWizard({
+			producer: {
+				id: producerId.value,
 				data: {
+					name: form1.value.name,
+					country: form1.value.country || null,
+					region: form1.value.region || null,
+					website: form1.value.website || null,
+					notes: form1.value.notes || null,
+				},
+			},
+			wine: {
+				id: wineId.value,
+				data: {
+					name: form2.value.name,
+					color: form2.value.color,
+					appellation: form2.value.appellation || null,
+					barcode: form2.value.barcode || null,
+					notes: form2.value.notes || null,
+				},
+			},
+			vintage: {
+				id: vintageId.value,
+				data: {
+					year: form3.value.year,
 					alcoholPercent: form3.value.alcoholPercent,
 					grapeVarieties: form3.value.grapeVarieties || null,
 					drinkFromYear: form3.value.drinkFromYear,
@@ -311,33 +321,16 @@ async function advance() {
 					referenceUrl: form3.value.referenceUrl || null,
 					description: form3.value.description || null,
 				},
-			})
-			vintageId.value = v.id
-		}
-		step.value++
-	} catch (e: any) {
-		errorMsg.value = e?.message ?? t('vinarium', 'Speichern fehlgeschlagen')
-	} finally {
-		saving.value = false
-	}
-}
-
-function cancel() { emit('close') }
-
-async function complete() {
-	if (!vintageId.value || !isValidPurchase.value) return
-	saving.value = true
-	errorMsg.value = ''
-	try {
-		const result = await createPurchaseWithBottles({
-			vintageId: vintageId.value,
-			purchasedAt: form4.value.purchasedAt,
-			vendor: form4.value.vendor || null,
-			unitPrice: form4.value.unitPrice,
-			currency: form4.value.currency,
-			quantity: form4.value.quantity,
-			bottleSizeMl: form4.value.bottleSizeMl,
-			notes: form4.value.notes || null,
+			},
+			purchase: {
+				purchasedAt: form4.value.purchasedAt,
+				vendor: form4.value.vendor || null,
+				unitPrice: form4.value.unitPrice,
+				currency: form4.value.currency,
+				quantity: form4.value.quantity,
+				bottleSizeMl: form4.value.bottleSizeMl,
+				notes: form4.value.notes || null,
+			},
 		})
 		emit('complete', { purchaseId: result.purchase.id, bottleCount: result.bottles.length })
 		emit('close')

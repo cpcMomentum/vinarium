@@ -43,6 +43,9 @@ export interface BottleDetail {
 	slot_row: string | null
 	slot_column: number | null
 	compartment_label: string | null
+	event_date: string | null
+	event_recipient: string | null
+	event_note: string | null
 }
 
 export const getBottleDetails = (id: number): Promise<BottleDetail> =>
@@ -83,6 +86,15 @@ export const swapBottles = (id: number, targetBottleId: number): Promise<Bottle[
 
 export const restoreBottle = (id: number): Promise<Bottle> =>
 	apiPatch<Bottle, Record<string, never>>(`/bottles/${id}/restore`, {})
+
+export const giftBottle = (id: number, payload: { recipient: string, date?: string, occasion?: string }): Promise<Bottle> =>
+	apiPatch<Bottle, typeof payload>(`/bottles/${id}/gift`, payload)
+
+export const loseBottle = (id: number, payload: { date?: string, reason?: string }): Promise<Bottle> =>
+	apiPatch<Bottle, typeof payload>(`/bottles/${id}/lose`, payload)
+
+export const fetchGiftRecipients = (): Promise<string[]> =>
+	apiGet<string[]>('/bottles/gift-recipients')
 
 export const deleteBottle = (id: number): Promise<void> =>
 	apiDelete(`/bottles/${id}`)

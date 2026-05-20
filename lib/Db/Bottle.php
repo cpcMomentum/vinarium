@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace OCA\Vinarium\Db;
 
+use DateTime;
 use JsonSerializable;
 use OCP\AppFramework\Db\Entity;
 use OCP\DB\Types;
@@ -24,6 +25,12 @@ use OCP\DB\Types;
  * @method void setPhotoFileId(?int $photoFileId)
  * @method ?string getNotes()
  * @method void setNotes(?string $notes)
+ * @method ?DateTime getEventDate()
+ * @method void setEventDate(?DateTime $eventDate)
+ * @method ?string getEventRecipient()
+ * @method void setEventRecipient(?string $eventRecipient)
+ * @method ?string getEventNote()
+ * @method void setEventNote(?string $eventNote)
  */
 class Bottle extends Entity implements JsonSerializable {
 	public const STATUS_IN_STORAGE = 'in_storage';
@@ -41,6 +48,9 @@ class Bottle extends Entity implements JsonSerializable {
 	protected ?string $status = null;
 	protected ?int $photoFileId = null;
 	protected ?string $notes = null;
+	protected ?DateTime $eventDate = null;
+	protected ?string $eventRecipient = null;
+	protected ?string $eventNote = null;
 
 	public function __construct() {
 		$this->addType('purchaseId', Types::INTEGER);
@@ -48,6 +58,9 @@ class Bottle extends Entity implements JsonSerializable {
 		$this->addType('status', Types::STRING);
 		$this->addType('photoFileId', Types::INTEGER);
 		$this->addType('notes', Types::TEXT);
+		$this->addType('eventDate', Types::DATE);
+		$this->addType('eventRecipient', Types::STRING);
+		$this->addType('eventNote', Types::TEXT);
 	}
 
 	public function jsonSerialize(): array {
@@ -58,6 +71,9 @@ class Bottle extends Entity implements JsonSerializable {
 			'status' => $this->getStatus(),
 			'photoFileId' => $this->getPhotoFileId(),
 			'notes' => $this->getNotes(),
+			'eventDate' => $this->getEventDate()?->format('Y-m-d'),
+			'eventRecipient' => $this->getEventRecipient(),
+			'eventNote' => $this->getEventNote(),
 		];
 	}
 }

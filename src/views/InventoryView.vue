@@ -1,5 +1,6 @@
 <template>
 	<div class="inventory-view">
+		<div ref="headEl" class="inventory-head">
 		<header class="inventory-view__header">
 			<h2>{{ t('vinarium', 'Bestand') }}</h2>
 			<span class="count">{{ n('vinarium', '{count} Flasche', '{count} Flaschen', store.totalCount, { count: store.totalCount }) }}</span>
@@ -26,6 +27,7 @@
 			</label>
 			<button class="reset" @click="resetFilter">{{ t('vinarium', 'Filter zurücksetzen') }}</button>
 		</section>
+		</div>
 
 		<table v-if="store.bottles.length > 0" class="bottles">
 			<thead>
@@ -57,10 +59,26 @@
 						<span class="dot" :style="{ background: cssColorFor(b.wine_color) }"></span>
 						{{ t('vinarium', WINE_COLOR_LABELS[b.wine_color]) }}
 					</td>
-					<td>{{ t('vinarium', BOTTLE_STATUS_LABELS[b.status]) }}</td>
+					<td>
+						{{ t('vinarium', BOTTLE_STATUS_LABELS[b.status]) }}
+						<span v-if="b.status === 'gifted' && b.event_recipient" class="event-info" :title="giftTooltip(b)">→ {{ b.event_recipient }}</span>
+						<span v-else-if="b.status === 'lost' && b.event_note" class="event-info">({{ b.event_note }})</span>
+					</td>
 					<td>{{ formatSlotLabel(b) }}</td>
 					<td>
-						<NcButton v-if="b.status === 'in_storage'" variant="tertiary" @click="openTasting(b.id)">{{ t('vinarium', 'Entkorken') }}</NcButton>
+						<div v-if="b.status === 'in_storage'" class="actions-cell">
+							<NcButton variant="secondary" @click="openTasting(b.id)">{{ t('vinarium', 'Entkorken') }}</NcButton>
+							<NcActions :aria-label="t('vinarium', 'Weitere Aktionen')">
+								<NcActionButton @click="openEvent(b.id, 'gift')">
+									<template #icon><Gift :size="20" /></template>
+									{{ t('vinarium', 'Verschenken') }}
+								</NcActionButton>
+								<NcActionButton @click="openEvent(b.id, 'lost')">
+									<template #icon><CloseCircleOutline :size="20" /></template>
+									{{ t('vinarium', 'Verloren') }}
+								</NcActionButton>
+							</NcActions>
+						</div>
 						<NcButton v-else variant="tertiary" @click="doRestore(b.id)">{{ t('vinarium', 'Zurück in Bestand') }}</NcButton>
 					</td>
 				</tr>
@@ -68,16 +86,24 @@
 		</table>
 		<p v-else class="empty">{{ t('vinarium', 'Keine Flaschen gefunden.') }}</p>
 
+		<p v-if="restoreError" class="restore-error">{{ restoreError }}</p>
+
 		<TastingDialog :open="tastingOpen" :bottle-id="tastingBottleId" @close="tastingOpen = false" @consumed="onConsumed" />
+		<BottleEventDialog :open="eventOpen" :bottle-id="eventBottleId" :mode="eventMode" @close="eventOpen = false" @done="onEventDone" />
 	</div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcActions from '@nextcloud/vue/components/NcActions'
+import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+import Gift from 'vue-material-design-icons/Gift.vue'
+import CloseCircleOutline from 'vue-material-design-icons/CloseCircleOutline.vue'
 import TastingDialog from '@/components/TastingDialog.vue'
-import { BOTTLE_STATUS_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleStatus, type WineColor } from '@/types/api'
+import BottleEventDialog from '@/components/BottleEventDialog.vue'
+import { BOTTLE_STATUS_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleListItem, type BottleStatus, type WineColor } from '@/types/api'
 import { useBottleStore } from '@/stores/bottleStore'
 import { getBottlePhotoUrl } from '@/api/bottles'
 import { cssColorFor } from '@/utils/wineColors'
@@ -85,12 +111,32 @@ import { cssColorFor } from '@/utils/wineColors'
 const store = useBottleStore()
 const tastingOpen = ref(false)
 const tastingBottleId = ref<number | null>(null)
+const eventOpen = ref(false)
+const eventBottleId = ref<number | null>(null)
+const eventMode = ref<'gift' | 'lost'>('gift')
+const restoreError = ref<string | null>(null)
 const filterColor = ref<WineColor | ''>('')
 const filterStatus = ref<BottleStatus | ''>('in_storage')
 const filterYear = ref<number | null>(null)
 
+const headEl = ref<HTMLElement | null>(null)
+let headObserver: ResizeObserver | null = null
+
 onMounted(async () => {
 	await store.fetchBottles({ status: 'in_storage' })
+	if (headEl.value) {
+		const apply = () => {
+			const h = headEl.value?.offsetHeight ?? 0
+			headEl.value?.parentElement?.style.setProperty('--inventory-head-h', `${h}px`)
+		}
+		apply()
+		headObserver = new ResizeObserver(apply)
+		headObserver.observe(headEl.value)
+	}
+})
+
+onBeforeUnmount(() => {
+	headObserver?.disconnect()
 })
 
 async function applyFilter() {
@@ -117,8 +163,31 @@ async function onConsumed() {
 	await store.fetchBottles(store.filter)
 }
 
+function openEvent(bottleId: number, mode: 'gift' | 'lost') {
+	eventBottleId.value = bottleId
+	eventMode.value = mode
+	eventOpen.value = true
+}
+
+async function onEventDone() {
+	await store.fetchBottles(store.filter)
+}
+
+function giftTooltip(b: BottleListItem): string {
+	const parts: string[] = []
+	if (b.event_recipient) parts.push(b.event_recipient)
+	if (b.event_date) parts.push(b.event_date)
+	if (b.event_note) parts.push(b.event_note)
+	return parts.join(' · ')
+}
+
 async function doRestore(id: number) {
-	await store.restoreBottle(id)
+	restoreError.value = null
+	try {
+		await store.restoreBottle(id)
+	} catch (e: any) {
+		restoreError.value = e?.message ?? t('vinarium', 'Zurücksetzen fehlgeschlagen')
+	}
 }
 
 function bottlePhotoUrl(id: number): string {
@@ -143,50 +212,24 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 	padding: 2rem 2rem 2rem 50px;
 	max-width: 1100px;
 }
+.inventory-head {
+	position: sticky;
+	top: 0;
+	z-index: 20;
+	background: var(--color-main-background);
+	padding-bottom: 1rem;
+}
 .inventory-view__header {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
 	margin-bottom: 1.5rem;
 }
-.counts {
-	display: flex;
-	gap: 1rem;
-}
 .count {
 	padding: 0.25rem 0.75rem;
 	border-radius: var(--border-radius);
 	background: var(--color-background-dark);
 	font-size: 0.9rem;
-}
-.count--park {
-	background: var(--color-warning, #e3a000);
-	color: white;
-	font-weight: 500;
-}
-.parkzone {
-	margin-bottom: 1.5rem;
-	padding: 1rem;
-	background: var(--color-background-hover);
-	border-left: 3px solid var(--color-warning, #e3a000);
-	border-radius: var(--border-radius);
-}
-.parkzone h3 {
-	margin: 0 0 0.75rem 0;
-}
-.park-list {
-	list-style: none;
-	padding: 0;
-	margin: 0;
-}
-.park-item {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-	padding: 0.25rem 0;
-}
-.park-item__label {
-	font-weight: 500;
 }
 .dot {
 	display: inline-block;
@@ -195,15 +238,11 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 	border-radius: 50%;
 	border: 1px solid var(--color-border);
 }
-.muted {
-	color: var(--color-text-maxcontrast);
-	font-size: 0.85rem;
-}
 .filters {
 	display: flex;
 	gap: 1rem;
 	align-items: end;
-	margin-bottom: 1rem;
+	margin-bottom: 0;
 	padding: 1rem;
 	background: var(--color-background-hover);
 	border-radius: var(--border-radius);
@@ -234,13 +273,36 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 	width: 100%;
 	border-collapse: collapse;
 }
+.event-info {
+	color: var(--color-text-maxcontrast);
+	font-size: 0.85rem;
+	margin-left: 0.25rem;
+}
+.restore-error {
+	margin: 1rem 0 0;
+	padding: 0.5rem 0.75rem;
+	background: rgba(198, 40, 40, 0.1);
+	border-left: 3px solid #c62828;
+	border-radius: var(--border-radius);
+	color: #c62828;
+	font-size: 0.9rem;
+}
+.actions-cell {
+	display: flex;
+	flex-wrap: nowrap;
+	align-items: center;
+	gap: 0.25rem;
+}
 .bottles th, .bottles td {
 	text-align: left;
 	padding: 0.5rem 0.75rem;
 	border-bottom: 1px solid var(--color-border);
 }
 .bottles th {
-	background: var(--color-background-hover);
+	position: sticky;
+	top: var(--inventory-head-h, 0px);
+	z-index: 10;
+	background: var(--color-background-dark);
 	font-weight: 500;
 	font-size: 0.9rem;
 }

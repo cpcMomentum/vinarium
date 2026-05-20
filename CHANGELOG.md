@@ -7,6 +7,25 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-05-20
+
+### Added
+- Flaschen **verschenken** und als **verloren** markieren — Verschenken erfasst Empfänger (mit Autosuggest aus früheren Empfängern), Datum und Anlass; Verloren erfasst Datum und Grund. Buttons im Regal-Detail und im Bestand (nur bei Flaschen im Bestand); beide geben den Slot frei. Dashboard um Zähler „Verschenkt" und „Verloren" erweitert (Fixes #66)
+- **Regal-Kopfbereich als sticky Tab-Leiste** — Regale als Tabs (immer sichtbar), Regal per Klick auf den Tab umbenennen, ✕ mit Bestätigungsdialog, „+"-Tab zum Anlegen eines neuen Regals. Der Kopfbereich (inkl. Parkzone) bleibt beim Scrollen langer Regale sichtbar (Fixes #64, #70)
+- **Fächer umbenennen** per Inline-Edit (Klick auf den Fach-Titel) (Fixes #73)
+- **Sticky Header/Filter/Tabellenkopf** in der Bestands-Ansicht — bei langen Listen bleiben Überschrift, Filter und Spaltenköpfe sichtbar (Fixes #65)
+
+### Changed
+- **Kauf-Wizard persistiert erst beim Abschluss** — „Weiter" legt nichts mehr vorzeitig an, Vor/Zurück lässt alle Felder editierbar, „Abbrechen" hinterlässt keine Geister-Daten. Producer/Wein/Jahrgang/Kauf werden am Ende in einer Transaktion erstellt (Fixes #68)
+- Bestands-Aktionen kompakt: gefüllter „Entkorken"-Button + ⋮-Menü für Verschenken/Verloren statt drei gestapelter Buttons
+- `formatDate` in eine gemeinsame Utility ausgelagert (statt in vier Komponenten dupliziert)
+
+### Fixed
+- Datumsanzeige im **deutschen Format dd.mm.yyyy** statt US-Format MM/DD/YYYY (Fixes #67)
+- PHPUnit-Suite an aktuelle Code-Signaturen angepasst — volle Suite wieder grün (Fixes #72)
+- Backend-Status-Validierung für Verschenken/Verloren (nur Flaschen im Bestand, sonst HTTP 400)
+- Diverse Robustheits-Fixes aus Code-Reviews: Race-Condition beim Click-to-Move im Regal, Dateigrößen-Prüfung vor Foto-Upload, Regalname auf DB-Limit (255) begrenzt, Event-Felder in der Bottle-Detail-Response, sichtbares Fehler-Feedback beim Zurücksetzen
+
 ## [0.2.0] - 2026-05-19
 
 ### Added
@@ -102,7 +121,8 @@ Erste offizielle Veröffentlichung — Weinverwaltung End-to-End.
 - 88 PHPUnit-Tests + 24 Vitest-Tests (112 gesamt)
 - Pre-Commit-Hook für OCP-only API-Enforcement
 
-[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/cpcMomentum/vinarium/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/cpcMomentum/vinarium/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/cpcMomentum/vinarium/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/cpcMomentum/vinarium/compare/v0.1.0...v0.1.1

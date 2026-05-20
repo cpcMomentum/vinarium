@@ -13,6 +13,7 @@ use OCA\Vinarium\AppInfo\Application;
 use OCA\Vinarium\Exception\NotFoundException;
 use OCA\Vinarium\Exception\PermissionDeniedException;
 use OCA\Vinarium\Exception\SlotOccupiedException;
+use OCA\Vinarium\Exception\ValidationException;
 use OCA\Vinarium\Service\BottleService;
 use OCA\Vinarium\Service\PhotoService;
 use OCP\AppFramework\Controller;
@@ -90,6 +91,9 @@ class BottleController extends Controller {
 		}
 		if (!is_uploaded_file($file['tmp_name'])) {
 			return new DataResponse(['error' => 'Ungültiger Upload'], Http::STATUS_BAD_REQUEST);
+		}
+		if (($file['size'] ?? 0) > 10 * 1024 * 1024) {
+			return new DataResponse(['error' => 'Datei zu groß. Maximum: 10 MB.'], Http::STATUS_BAD_REQUEST);
 		}
 		try {
 			$bottle = $this->bottleService->get($id, $this->userId);
@@ -182,6 +186,62 @@ class BottleController extends Controller {
 		} catch (NotFoundException $e) {
 			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
 		}
+	}
+
+	#[NoAdminRequired]
+	public function gift(int $id): DataResponse {
+		if ($this->userId === null) {
+			return $this->unauthorized();
+		}
+		$recipient = trim((string)($this->request->getParam('recipient') ?? ''));
+		if ($recipient === '') {
+			return new DataResponse(['error' => 'Recipient is required'], Http::STATUS_BAD_REQUEST);
+		}
+		$date = $this->request->getParam('date');
+		$occasion = $this->request->getParam('occasion');
+		try {
+			return new DataResponse($this->bottleService->giftBottle(
+				$id, $this->userId, $recipient,
+				is_string($date) ? $date : null,
+				is_string($occasion) ? $occasion : null,
+			));
+		} catch (NotFoundException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
+		} catch (PermissionDeniedException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_FORBIDDEN);
+		} catch (ValidationException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
+		}
+	}
+
+	#[NoAdminRequired]
+	public function lose(int $id): DataResponse {
+		if ($this->userId === null) {
+			return $this->unauthorized();
+		}
+		$date = $this->request->getParam('date');
+		$reason = $this->request->getParam('reason');
+		try {
+			return new DataResponse($this->bottleService->loseBottle(
+				$id, $this->userId,
+				is_string($date) ? $date : null,
+				is_string($reason) ? $reason : null,
+			));
+		} catch (NotFoundException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
+		} catch (PermissionDeniedException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_FORBIDDEN);
+		} catch (ValidationException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
+		}
+	}
+
+	#[NoAdminRequired]
+	public function giftRecipients(): DataResponse {
+		if ($this->userId === null) {
+			return $this->unauthorized();
+		}
+		return new DataResponse($this->bottleService->getGiftRecipients($this->userId));
 	}
 
 	#[NoAdminRequired]

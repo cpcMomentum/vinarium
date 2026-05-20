@@ -15,10 +15,12 @@ return [
 		['name' => 'cellar#show',          'url' => '/api/v1/cellar',                                        'verb' => 'GET'],
 		['name' => 'cellar#create',        'url' => '/api/v1/cellar',                                        'verb' => 'POST'],
 		['name' => 'cellar#createShelf',   'url' => '/api/v1/cellar/shelves',                                'verb' => 'POST'],
+		['name' => 'cellar#updateShelf',   'url' => '/api/v1/cellar/shelves/{shelfId}',                     'verb' => 'PATCH'],
 		['name' => 'cellar#destroyShelf',  'url' => '/api/v1/cellar/shelves/{shelfId}',                     'verb' => 'DELETE'],
 		['name' => 'cellar#slots',              'url' => '/api/v1/compartments/{compartmentId}/slots',       'verb' => 'GET'],
 		['name' => 'cellar#reconfigure',        'url' => '/api/v1/compartments/{compartmentId}/reconfigure', 'verb' => 'PATCH'],
 		['name' => 'cellar#addCompartment',     'url' => '/api/v1/cellar/shelves/{shelfId}/compartments',    'verb' => 'POST'],
+		['name' => 'cellar#updateCompartment',  'url' => '/api/v1/compartments/{compartmentId}',             'verb' => 'PATCH'],
 		['name' => 'cellar#destroyCompartment', 'url' => '/api/v1/compartments/{compartmentId}',             'verb' => 'DELETE'],
 
 		// Producers
@@ -47,6 +49,7 @@ return [
 		['name' => 'purchase#index',   'url' => '/api/v1/purchases',      'verb' => 'GET'],
 		['name' => 'purchase#show',    'url' => '/api/v1/purchases/{id}', 'verb' => 'GET'],
 		['name' => 'purchase#create',  'url' => '/api/v1/purchases',      'verb' => 'POST'],
+		['name' => 'purchase#createFromWizard', 'url' => '/api/v1/purchases/wizard', 'verb' => 'POST'],
 		['name' => 'purchase#update',  'url' => '/api/v1/purchases/{id}', 'verb' => 'PATCH'],
 		['name' => 'purchase#destroy', 'url' => '/api/v1/purchases/{id}', 'verb' => 'DELETE'],
 
@@ -57,10 +60,13 @@ return [
 		['name' => 'bottle#getPhoto',     'url' => '/api/v1/bottles/{id}/photo',     'verb' => 'GET'],
 		['name' => 'bottle#index',   'url' => '/api/v1/bottles',           'verb' => 'GET'],
 		['name' => 'bottle#parked',  'url' => '/api/v1/bottles/parked',    'verb' => 'GET'],
+		['name' => 'bottle#giftRecipients', 'url' => '/api/v1/bottles/gift-recipients', 'verb' => 'GET'],
 		['name' => 'bottle#show',    'url' => '/api/v1/bottles/{id}',      'verb' => 'GET'],
 		['name' => 'bottle#move',    'url' => '/api/v1/bottles/{id}/move', 'verb' => 'PATCH'],
 		['name' => 'bottle#swap',    'url' => '/api/v1/bottles/{id}/swap',    'verb' => 'PATCH'],
 		['name' => 'bottle#restore', 'url' => '/api/v1/bottles/{id}/restore', 'verb' => 'PATCH'],
+		['name' => 'bottle#gift',    'url' => '/api/v1/bottles/{id}/gift', 'verb' => 'PATCH'],
+		['name' => 'bottle#lose',    'url' => '/api/v1/bottles/{id}/lose', 'verb' => 'PATCH'],
 		['name' => 'bottle#destroy', 'url' => '/api/v1/bottles/{id}',      'verb' => 'DELETE'],
 
 		// Tastings

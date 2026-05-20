@@ -128,11 +128,31 @@ class CellarService {
 		}
 	}
 
+	/** Renames a shelf after verifying ownership. */
+	public function updateShelf(int $shelfId, string $userId, string $name): Shelf {
+		try {
+			$shelf = $this->shelfMapper->find($shelfId);
+		} catch (DoesNotExistException $e) {
+			throw new NotFoundException('Shelf not found');
+		}
+		$cellar = $this->cellarMapper->find($shelf->getCellarId());
+		if ($cellar->getOwnerUserId() !== $userId) {
+			throw new PermissionDeniedException('Shelf not owned by user');
+		}
+		$shelf->setName($name);
+		return $this->shelfMapper->update($shelf);
+	}
+
 	/** Destroys a shelf and all its compartments, levels and slots. Bottles go to Parkzone. */
 	public function destroyShelf(int $shelfId, string $userId): int {
 		$this->db->beginTransaction();
 		try {
-			$shelf = $this->shelfMapper->find($shelfId);
+			try {
+				$shelf = $this->shelfMapper->find($shelfId);
+			} catch (DoesNotExistException $e) {
+				$this->db->rollBack();
+				throw new NotFoundException('Shelf not found');
+			}
 			$cellar = $this->cellarMapper->find($shelf->getCellarId());
 			if ($cellar->getOwnerUserId() !== $userId) {
 				throw new PermissionDeniedException('Shelf not owned by user');
@@ -229,6 +249,18 @@ class CellarService {
 			$this->db->rollBack();
 			throw $e;
 		}
+	}
+
+	/** Renames a compartment after verifying ownership. */
+	public function updateCompartmentLabel(int $compartmentId, string $userId, string $label): Compartment {
+		try {
+			$comp = $this->compartmentMapper->find($compartmentId);
+		} catch (DoesNotExistException $e) {
+			throw new NotFoundException("Compartment {$compartmentId} not found", 0, $e);
+		}
+		$this->assertCompartmentOwnership($comp, $userId);
+		$comp->setLabel($label);
+		return $this->compartmentMapper->update($comp);
 	}
 
 	/**

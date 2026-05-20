@@ -125,7 +125,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
-import moment from '@nextcloud/moment'
+import { formatDate } from '@/utils/date'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { getTastingDetails, tastingPhotoThumbnailUrl, tastingPhotoFullUrl, type TastingDetail } from '@/api/tastings'
@@ -185,10 +185,6 @@ function openLightbox(fileId: number) {
 	lightboxFileId.value = fileId
 }
 
-function formatDate(iso: string): string {
-	try { return moment(iso).format('L') }
-	catch { return iso }
-}
 
 function truncate(text: string, max = 60): string {
 	return text.length > max ? text.slice(0, max) + '…' : text

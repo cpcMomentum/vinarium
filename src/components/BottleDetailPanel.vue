@@ -108,9 +108,15 @@
 				</p>
 			</section>
 
-			<div class="bottle-detail__actions">
+			<div v-if="detail.status === 'in_storage'" class="bottle-detail__actions">
 				<NcButton variant="primary" @click="$emit('uncork', detail.id)">
 					{{ t('vinarium', 'Entkorken') }}
+				</NcButton>
+				<NcButton @click="$emit('gift', detail.id)">
+					{{ t('vinarium', 'Verschenken') }}
+				</NcButton>
+				<NcButton @click="$emit('lose', detail.id)">
+					{{ t('vinarium', 'Verloren') }}
 				</NcButton>
 			</div>
 		</template>
@@ -128,16 +134,18 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
-import moment from '@nextcloud/moment'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { getBottleDetails, getBottlePhotoUrl, uploadBottlePhoto, deleteBottlePhoto, type BottleDetail } from '@/api/bottles'
 import { BOTTLE_SIZE_LABELS, type BottleSizeMl, type WineColor } from '@/types/api'
 import { cssColorFor } from '@/utils/wineColors'
+import { formatDate } from '@/utils/date'
 
 const props = defineProps<{ bottleId: number | null }>()
 const emit = defineEmits<{
 	(e: 'close'): void
 	(e: 'uncork', bottleId: number): void
+	(e: 'gift', bottleId: number): void
+	(e: 'lose', bottleId: number): void
 }>()
 
 const detail = ref<BottleDetail | null>(null)
@@ -194,10 +202,6 @@ async function onRemovePhoto() {
 	}
 }
 
-function formatDate(iso: string): string {
-	try { return moment(iso).format('L') }
-	catch { return iso }
-}
 
 </script>
 
