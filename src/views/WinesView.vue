@@ -121,7 +121,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
-import moment from '@nextcloud/moment'
+import { formatDate } from '@/utils/date'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import PurchaseWizardModal from '@/components/PurchaseWizardModal.vue'
 import EntityEditModal from '@/components/EntityEditModal.vue'
@@ -164,14 +164,6 @@ async function onComplete(_payload: { purchaseId: number; bottleCount: number })
 	}
 	for (const w of store.wines) {
 		await store.fetchVintagesByWine(w.id)
-	}
-}
-
-function formatDate(iso: string): string {
-	try {
-		return moment(iso).format('DD.MM.YYYY')
-	} catch {
-		return iso
 	}
 }
 

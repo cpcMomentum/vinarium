@@ -96,6 +96,7 @@ OC.L10N.register(
     "Regal \"{name}\" wirklich löschen? Alle Flaschen kommen in die Parkzone.": "Regal \"{name}\" wirklich löschen? Alle Flaschen kommen in die Parkzone.",
     "Verschieben fehlgeschlagen": "Verschieben fehlgeschlagen",
     "Löschen fehlgeschlagen": "Löschen fehlgeschlagen",
+    "Zurücksetzen fehlgeschlagen": "Zurücksetzen fehlgeschlagen",
     "Umbenennen fehlgeschlagen": "Umbenennen fehlgeschlagen",
     "Fehler beim Laden": "Fehler beim Laden",
     "Anlegen fehlgeschlagen": "Anlegen fehlgeschlagen",
