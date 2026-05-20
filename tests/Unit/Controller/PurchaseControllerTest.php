@@ -78,4 +78,43 @@ class PurchaseControllerTest extends TestCase {
 		$response = $this->controller()->destroy(5);
 		$this->assertSame(Http::STATUS_NO_CONTENT, $response->getStatus());
 	}
+
+	public function testCreateFromWizardSuccess(): void {
+		$purchase = new Purchase();
+		$purchase->setId(10);
+		$purchase->setQuantity(3);
+		$bottle = new Bottle();
+		$this->request->method('getParam')->willReturn([]);
+		$this->purchaseWizardService->expects($this->once())
+			->method('create')
+			->with('alice', $this->isType('array'))
+			->willReturn(['purchase' => $purchase, 'bottles' => [$bottle, $bottle, $bottle]]);
+
+		$response = $this->controller()->createFromWizard();
+		$this->assertSame(Http::STATUS_CREATED, $response->getStatus());
+		$this->assertCount(3, $response->getData()['bottles']);
+	}
+
+	public function testCreateFromWizardValidationError(): void {
+		$this->request->method('getParam')->willReturn([]);
+		$this->purchaseWizardService->method('create')
+			->willThrowException(new ValidationException('Vintage year is required'));
+
+		$response = $this->controller()->createFromWizard();
+		$this->assertSame(Http::STATUS_BAD_REQUEST, $response->getStatus());
+	}
+
+	public function testCreateFromWizardNotFound(): void {
+		$this->request->method('getParam')->willReturn([]);
+		$this->purchaseWizardService->method('create')
+			->willThrowException(new NotFoundException('not found'));
+
+		$response = $this->controller()->createFromWizard();
+		$this->assertSame(Http::STATUS_NOT_FOUND, $response->getStatus());
+	}
+
+	public function testCreateFromWizardUnauthenticated(): void {
+		$response = $this->controller(null)->createFromWizard();
+		$this->assertSame(Http::STATUS_UNAUTHORIZED, $response->getStatus());
+	}
 }
