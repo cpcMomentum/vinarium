@@ -129,6 +129,47 @@ class BottleServiceTest extends IntegrationTestCase {
 		$this->assertNull($consumed->getSlotId());
 	}
 
+	public function testGiftReleasesSlotAndStoresRecipient(): void {
+		[$userId, $purchaseId] = $this->seedPurchase(1);
+		[$bottle] = $this->service->createBottlesForPurchase($purchaseId, $userId);
+		$slotId = $this->seedSlotForUser($userId);
+		$this->service->moveBottle($bottle->getId(), $slotId, $userId);
+
+		$gifted = $this->service->giftBottle($bottle->getId(), $userId, 'Anna', '2026-05-20', 'Geburtstag');
+
+		$this->assertSame(Bottle::STATUS_GIFTED, $gifted->getStatus());
+		$this->assertNull($gifted->getSlotId());
+		$this->assertSame('Anna', $gifted->getEventRecipient());
+		$this->assertSame('Geburtstag', $gifted->getEventNote());
+		$this->assertSame('2026-05-20', $gifted->getEventDate()?->format('Y-m-d'));
+	}
+
+	public function testLoseReleasesSlotAndStoresReason(): void {
+		[$userId, $purchaseId] = $this->seedPurchase(1);
+		[$bottle] = $this->service->createBottlesForPurchase($purchaseId, $userId);
+		$slotId = $this->seedSlotForUser($userId);
+		$this->service->moveBottle($bottle->getId(), $slotId, $userId);
+
+		$lost = $this->service->loseBottle($bottle->getId(), $userId, '2026-05-20', 'zerbrochen');
+
+		$this->assertSame(Bottle::STATUS_LOST, $lost->getStatus());
+		$this->assertNull($lost->getSlotId());
+		$this->assertNull($lost->getEventRecipient());
+		$this->assertSame('zerbrochen', $lost->getEventNote());
+	}
+
+	public function testGiftRecipientsReturnsDistinct(): void {
+		[$userId, $purchaseId] = $this->seedPurchase(3);
+		$bottles = $this->service->createBottlesForPurchase($purchaseId, $userId);
+		$this->service->giftBottle($bottles[0]->getId(), $userId, 'Anna', '2026-05-20', null);
+		$this->service->giftBottle($bottles[1]->getId(), $userId, 'Anna', '2026-05-20', null);
+		$this->service->giftBottle($bottles[2]->getId(), $userId, 'Bob', '2026-05-20', null);
+
+		$recipients = $this->service->getGiftRecipients($userId);
+
+		$this->assertSame(['Anna', 'Bob'], $recipients);
+	}
+
 	public function testFilteredByColor(): void {
 		[$userId, $purchaseRedId] = $this->seedPurchase(2, Wine::COLOR_RED);
 		$this->service->createBottlesForPurchase($purchaseRedId, $userId);

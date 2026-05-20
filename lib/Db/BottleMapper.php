@@ -67,11 +67,34 @@ class BottleMapper extends QBMapper {
 		return $this->findEntities($qb);
 	}
 
+	/** @return list<string> distinct gift recipients for the user */
+	public function findGiftRecipients(string $userId): array {
+		$qb = $this->db->getQueryBuilder();
+		$qb->selectDistinct('b.event_recipient')
+			->from($this->tableName, 'b')
+			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
+			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->eq('b.status', $qb->createNamedParameter('gifted')))
+			->andWhere($qb->expr()->isNotNull('b.event_recipient'))
+			->orderBy('b.event_recipient', 'ASC');
+		$result = $qb->executeQuery();
+		$recipients = [];
+		while ($row = $result->fetch()) {
+			$recipients[] = (string)$row['event_recipient'];
+		}
+		$result->closeCursor();
+		return $recipients;
+	}
+
 	/** @return array<int, array<string, mixed>> raw denormalized rows */
 	public function findFilteredByOwner(string $userId, array $filter = []): array {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select(
 			'b.id', 'b.purchase_id', 'b.slot_id', 'b.status', 'b.photo_file_id', 'b.notes',
+			'b.event_date', 'b.event_recipient', 'b.event_note',
 			'v.year',
 			'w.name AS wine_name', 'w.color AS wine_color',
 			'p.name AS producer_name',
@@ -114,6 +137,7 @@ class BottleMapper extends QBMapper {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select(
 			'b.id', 'b.purchase_id', 'b.slot_id', 'b.status', 'b.photo_file_id', 'b.notes',
+			'b.event_date', 'b.event_recipient', 'b.event_note',
 			'v.year', 'v.grape_varieties', 'v.drink_from_year', 'v.drink_until_year',
 			'v.alcohol_percent', 'v.external_rating', 'v.external_rating_source',
 			'w.name AS wine_name', 'w.color AS wine_color', 'w.appellation',

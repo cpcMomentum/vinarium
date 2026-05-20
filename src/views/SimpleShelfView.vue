@@ -181,6 +181,8 @@
 				:bottleId="detailBottleId"
 				@close="closeDetail"
 				@uncork="onUncork"
+				@gift="onGift"
+				@lose="onLose"
 			/>
 		</div>
 
@@ -197,6 +199,13 @@
 			:bottleId="uncorkBottleId"
 			@close="uncorkOpen = false"
 			@consumed="onConsumed"
+		/>
+		<BottleEventDialog
+			:open="eventDialogOpen"
+			:bottleId="eventBottleId"
+			:mode="eventDialogMode"
+			@close="eventDialogOpen = false"
+			@done="onEventDone"
 		/>
 		<ConfirmDialog
 			:open="deleteConfirmOpen"
@@ -227,6 +236,7 @@ import NewShelfDialog from '@/components/NewShelfDialog.vue'
 import ShelfConfigDialog from '@/components/ShelfConfigDialog.vue'
 import BottleDetailPanel from '@/components/BottleDetailPanel.vue'
 import TastingDialog from '@/components/TastingDialog.vue'
+import BottleEventDialog from '@/components/BottleEventDialog.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import type { BottleListItem, CompartmentWithLevels, Level, Slot, WineColor } from '@/types/api'
 import type { CellarResponse } from '@/api/cellar'
@@ -258,6 +268,10 @@ const configTarget = ref<CompartmentWithLevels | null>(null)
 
 const uncorkOpen = ref(false)
 const uncorkBottleId = ref<number | null>(null)
+
+const eventDialogOpen = ref(false)
+const eventDialogMode = ref<'gift' | 'lost'>('gift')
+const eventBottleId = ref<number | null>(null)
 
 const parkedBottles = computed(() => store.bottles.filter(b => b.slot_id === null && b.status === 'in_storage'))
 
@@ -415,6 +429,27 @@ async function onConsumed() {
 	uncorkBottleId.value = null
 	detailBottleId.value = null
 	selectedBottleId.value = null
+	await store.fetchBottles({ status: 'in_storage' })
+}
+
+function onGift(bottleId: number) {
+	eventBottleId.value = bottleId
+	eventDialogMode.value = 'gift'
+	eventDialogOpen.value = true
+}
+
+function onLose(bottleId: number) {
+	eventBottleId.value = bottleId
+	eventDialogMode.value = 'lost'
+	eventDialogOpen.value = true
+}
+
+async function onEventDone() {
+	eventDialogOpen.value = false
+	eventBottleId.value = null
+	detailBottleId.value = null
+	selectedBottleId.value = null
+	await reload()
 	await store.fetchBottles({ status: 'in_storage' })
 }
 
