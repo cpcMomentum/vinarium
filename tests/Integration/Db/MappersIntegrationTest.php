@@ -78,15 +78,12 @@ class MappersIntegrationTest extends IntegrationTestCase {
 		$comp->setShelfId($shelfId);
 		$comp->setLabel('Fach 1');
 		$comp->setSortOrder(0);
-		$comp->setLevels(3);
-		$comp->setColumnsFront(6);
-		$comp->setColumnsBack(7);
 		$mapper->insert($comp);
 
 		$found = $mapper->findByShelf($shelfId);
 		$this->assertCount(1, $found);
-		$this->assertSame(3, $found[0]->getLevels());
-		$this->assertSame(7, $found[0]->getColumnsBack());
+		$this->assertSame('Fach 1', $found[0]->getLabel());
+		$this->assertSame(0, $found[0]->getSortOrder());
 	}
 
 	public function testSlotInsertAndDeleteByCompartment(): void {
@@ -242,9 +239,6 @@ class MappersIntegrationTest extends IntegrationTestCase {
 		$comp->setShelfId($shelfId);
 		$comp->setLabel('F');
 		$comp->setSortOrder(0);
-		$comp->setLevels(1);
-		$comp->setColumnsFront(1);
-		$comp->setColumnsBack(1);
 		return $mapper->insert($comp)->getId();
 	}
 

@@ -13,6 +13,7 @@ use OCA\Vinarium\Db\Bottle;
 use OCA\Vinarium\Db\BottleMapper;
 use OCA\Vinarium\Db\CellarMapper;
 use OCA\Vinarium\Db\CompartmentMapper;
+use OCA\Vinarium\Db\LevelMapper;
 use OCA\Vinarium\Db\ProducerMapper;
 use OCA\Vinarium\Db\PurchaseMapper;
 use OCA\Vinarium\Db\ShelfMapper;
@@ -54,7 +55,7 @@ class BottleServiceTest extends IntegrationTestCase {
 
 		$this->cellarService = new CellarService(
 			$cellarMapper, $shelfMapper, $compartmentMapper,
-			$this->slotMapper, $bottleMapper, $this->db,
+			new LevelMapper($this->db), $this->slotMapper, $bottleMapper, $this->db,
 		);
 		$this->service = new BottleService(
 			$bottleMapper, $this->slotMapper, $compartmentMapper,
@@ -156,7 +157,7 @@ class BottleServiceTest extends IntegrationTestCase {
 	private function seedSlotForUser(string $userId): int {
 		$cellar = $this->cellarService->createDefaultCellar($userId);
 		$active = $this->cellarService->getActiveCellar($userId);
-		$comp = $active['shelves'][0]['compartments'][0];
+		$comp = $active['shelves'][0]['compartments'][0]['compartment'];
 		$slots = $this->slotMapper->findByCompartment($comp->getId());
 		return $slots[0]->getId();
 	}
