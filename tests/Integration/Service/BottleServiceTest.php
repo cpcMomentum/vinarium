@@ -168,6 +168,15 @@ class BottleServiceTest extends IntegrationTestCase {
 		$this->service->giftBottle($bottle->getId(), $userId, 'Anna', '2026-05-20', null);
 	}
 
+	public function testLoseRejectsNonStorageBottle(): void {
+		[$userId, $purchaseId] = $this->seedPurchase(1);
+		[$bottle] = $this->service->createBottlesForPurchase($purchaseId, $userId);
+		$this->service->giftBottle($bottle->getId(), $userId, 'Anna', '2026-05-20', null);
+
+		$this->expectException(ValidationException::class);
+		$this->service->loseBottle($bottle->getId(), $userId, '2026-05-20', 'verloren');
+	}
+
 	public function testGiftRecipientsReturnsDistinct(): void {
 		[$userId, $purchaseId] = $this->seedPurchase(3);
 		$bottles = $this->service->createBottlesForPurchase($purchaseId, $userId);
