@@ -78,6 +78,26 @@ class CellarController extends Controller {
 		}
 	}
 
+	/** Renames a shelf. */
+	#[NoAdminRequired]
+	public function updateShelf(int $shelfId): DataResponse {
+		if ($this->userId === null) {
+			return $this->unauthorized();
+		}
+		$name = trim((string)($this->request->getParam('name') ?? ''));
+		if ($name === '') {
+			return new DataResponse(['error' => 'Name is required'], Http::STATUS_BAD_REQUEST);
+		}
+		try {
+			$shelf = $this->cellarService->updateShelf($shelfId, $this->userId, $name);
+			return new DataResponse($shelf);
+		} catch (NotFoundException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
+		} catch (PermissionDeniedException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_FORBIDDEN);
+		}
+	}
+
 	/** Destroys a shelf and all its data. Bottles go to Parkzone. */
 	#[NoAdminRequired]
 	public function destroyShelf(int $shelfId): DataResponse {
