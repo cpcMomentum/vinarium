@@ -203,6 +203,9 @@ class BottleService {
 			'slot_row' => $row['slot_row'],
 			'slot_column' => $row['slot_column'] !== null ? (int)$row['slot_column'] : null,
 			'compartment_label' => $row['compartment_label'],
+			'event_date' => $row['event_date'],
+			'event_recipient' => $row['event_recipient'],
+			'event_note' => $row['event_note'],
 		];
 	}
 
