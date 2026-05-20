@@ -179,7 +179,11 @@ function giftTooltip(b: BottleListItem): string {
 }
 
 async function doRestore(id: number) {
-	await store.restoreBottle(id)
+	try {
+		await store.restoreBottle(id)
+	} catch (e) {
+		console.error('restore bottle failed', e)
+	}
 }
 
 function bottlePhotoUrl(id: number): string {
@@ -217,44 +221,11 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 	align-items: center;
 	margin-bottom: 1.5rem;
 }
-.counts {
-	display: flex;
-	gap: 1rem;
-}
 .count {
 	padding: 0.25rem 0.75rem;
 	border-radius: var(--border-radius);
 	background: var(--color-background-dark);
 	font-size: 0.9rem;
-}
-.count--park {
-	background: var(--color-warning, #e3a000);
-	color: white;
-	font-weight: 500;
-}
-.parkzone {
-	margin-bottom: 1.5rem;
-	padding: 1rem;
-	background: var(--color-background-hover);
-	border-left: 3px solid var(--color-warning, #e3a000);
-	border-radius: var(--border-radius);
-}
-.parkzone h3 {
-	margin: 0 0 0.75rem 0;
-}
-.park-list {
-	list-style: none;
-	padding: 0;
-	margin: 0;
-}
-.park-item {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-	padding: 0.25rem 0;
-}
-.park-item__label {
-	font-weight: 500;
 }
 .dot {
 	display: inline-block;
@@ -262,10 +233,6 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 	height: 14px;
 	border-radius: 50%;
 	border: 1px solid var(--color-border);
-}
-.muted {
-	color: var(--color-text-maxcontrast);
-	font-size: 0.85rem;
 }
 .filters {
 	display: flex;

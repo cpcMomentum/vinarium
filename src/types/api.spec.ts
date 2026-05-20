@@ -75,6 +75,9 @@ describe('api types', () => {
 			status: 'in_storage',
 			photoFileId: null,
 			notes: null,
+			eventDate: null,
+			eventRecipient: null,
+			eventNote: null,
 		}
 		expect(bottle.slotId).toBeNull()
 	})

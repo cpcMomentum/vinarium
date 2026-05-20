@@ -20,6 +20,7 @@ const fakeListItem = (id: number, slotId: number | null = null): BottleListItem 
 })
 const fakeBottle = (id: number, slotId: number | null = null): Bottle => ({
 	id, purchaseId: 1, slotId, status: 'in_storage', photoFileId: null, notes: null,
+	eventDate: null, eventRecipient: null, eventNote: null,
 })
 
 describe('bottleStore', () => {

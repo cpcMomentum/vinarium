@@ -77,6 +77,9 @@ export interface Bottle {
 	status: BottleStatus
 	photoFileId: number | null
 	notes: string | null
+	eventDate: string | null
+	eventRecipient: string | null
+	eventNote: string | null
 }
 
 export interface Tasting {

@@ -20,6 +20,7 @@ use OCA\Vinarium\Db\SlotMapper;
 use OCA\Vinarium\Exception\NotFoundException;
 use OCA\Vinarium\Exception\PermissionDeniedException;
 use OCA\Vinarium\Exception\SlotOccupiedException;
+use OCA\Vinarium\Exception\ValidationException;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IDBConnection;
 use Throwable;
@@ -102,6 +103,7 @@ class BottleService {
 
 	public function giftBottle(int $id, string $userId, string $recipient, ?string $date, ?string $occasion): Bottle {
 		$bottle = $this->get($id, $userId);
+		$this->assertInStorage($bottle);
 		$bottle->setStatus(Bottle::STATUS_GIFTED);
 		$bottle->setSlotId(null);
 		$bottle->setEventRecipient($recipient);
@@ -112,6 +114,7 @@ class BottleService {
 
 	public function loseBottle(int $id, string $userId, ?string $date, ?string $reason): Bottle {
 		$bottle = $this->get($id, $userId);
+		$this->assertInStorage($bottle);
 		$bottle->setStatus(Bottle::STATUS_LOST);
 		$bottle->setSlotId(null);
 		$bottle->setEventRecipient(null);
@@ -123,6 +126,12 @@ class BottleService {
 	/** @return list<string> distinct gift recipients for autosuggest */
 	public function getGiftRecipients(string $userId): array {
 		return $this->bottleMapper->findGiftRecipients($userId);
+	}
+
+	private function assertInStorage(Bottle $bottle): void {
+		if ($bottle->getStatus() !== Bottle::STATUS_IN_STORAGE) {
+			throw new ValidationException('Bottle is not in storage');
+		}
 	}
 
 	private function parseDate(?string $date): DateTime {
@@ -203,6 +212,9 @@ class BottleService {
 			'slot_row' => $row['slot_row'],
 			'slot_column' => $row['slot_column'] !== null ? (int)$row['slot_column'] : null,
 			'compartment_label' => $row['compartment_label'],
+			'event_date' => $row['event_date'],
+			'event_recipient' => $row['event_recipient'],
+			'event_note' => $row['event_note'],
 		];
 	}
 

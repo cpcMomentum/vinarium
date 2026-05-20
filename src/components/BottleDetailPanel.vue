@@ -108,7 +108,7 @@
 				</p>
 			</section>
 
-			<div class="bottle-detail__actions">
+			<div v-if="detail.status === 'in_storage'" class="bottle-detail__actions">
 				<NcButton variant="primary" @click="$emit('uncork', detail.id)">
 					{{ t('vinarium', 'Entkorken') }}
 				</NcButton>
