@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vinarium · Dashboard-Varianten v2</title>
+<style>
+:root{
+  --color-primary:#0082c9;--color-primary-hover:#0b6ca3;--color-primary-light:#e5f1fa;
+  --color-main-text:#222;--color-text-maxcontrast:#6b6b6b;
+  --color-main-background:#fff;--color-background-hover:#f3f4f6;--color-background-dark:#e9eaec;
+  --color-border:#d2d4d7;--color-border-light:#e2e3e5;
+  --w-red:#7a2a28;--w-white:#c9b85a;--w-rose:#cf8c8d;
+  --w-sparkling:#b8a64e;--w-dessert:#b07d3a;--w-fortified:#6e3a2a;
+  --radius-el:8px;--radius:8px;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Cantarell,Ubuntu,"Helvetica Neue","Noto Sans",Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);font-size:15px;line-height:1.5;color:var(--color-main-text);background:#c9ced4;-webkit-font-smoothing:antialiased}
+.icon{width:20px;height:20px;fill:currentColor;flex-shrink:0;display:inline-block;vertical-align:middle}
+
+/* Konzept-Bar */
+.mockup-bar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;padding:10px 22px;background:#fff;border-bottom:1px solid var(--color-border);flex-wrap:wrap}
+.mockup-bar .brand{font-weight:700;font-size:14px;color:#444}
+.mockup-bar .brand span{color:var(--color-text-maxcontrast);font-weight:600}
+.mockup-bar .note{font-size:12.5px;color:var(--color-text-maxcontrast);margin-left:auto}
+.varseg{display:flex;background:var(--color-background-dark);border-radius:var(--radius-el);padding:3px}
+.varseg button{font-family:var(--font);font-size:13px;font-weight:600;color:#555;background:none;border:none;padding:6px 14px;border-radius:var(--radius-el);cursor:pointer}
+.varseg button.active{background:#fff;color:var(--color-primary);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+
+.stage{padding:22px;display:flex;justify-content:center}
+.nc{width:100%;max-width:1240px;height:860px;border-radius:10px;overflow:hidden;box-shadow:0 10px 34px rgba(0,0,0,.22);display:flex;flex-direction:column;background:var(--color-main-background)}
+.nc-header{height:50px;background:var(--color-primary);display:flex;align-items:center;padding:0 12px;gap:8px;flex-shrink:0}
+.nc-logo{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px}
+.nc-appname{color:#fff;font-weight:600;font-size:16px;margin-left:4px}
+.nc-header .sp{flex:1}
+.nc-hicon{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer}
+.nc-hicon:hover{background:rgba(255,255,255,.12)}
+.nc-ava{width:32px;height:32px;border-radius:50%;background:#fff;color:var(--color-primary);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;margin-left:4px}
+.nc-body{flex:1;display:flex;min-height:0}
+
+.nav{width:248px;background:var(--color-main-background);border-right:1px solid var(--color-border-light);display:flex;flex-direction:column;flex-shrink:0;padding:6px;overflow:auto}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius);cursor:pointer;color:var(--color-main-text);font-size:14.5px;margin-bottom:2px}
+.nav-item .icon{color:var(--color-text-maxcontrast)}
+.nav-item:hover{background:var(--color-background-hover)}
+.nav-item.active{background:var(--color-primary-light);font-weight:600}
+.nav-item.active .icon{color:var(--color-primary)}
+.nav-item .count{margin-left:auto;background:var(--color-background-dark);color:var(--color-text-maxcontrast);font-size:11.5px;font-weight:600;border-radius:10px;padding:1px 8px}
+.nav-sp{flex:1}
+.nav-foot{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius);cursor:pointer;color:var(--color-text-maxcontrast);font-size:14px}
+
+.main{flex:1;overflow:auto;padding:22px 26px;background:var(--color-main-background)}
+.var{display:none}.var.show{display:block}
+
+/* gemeinsame Bausteine */
+.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;display:inline-block}
+.dot.red{background:var(--w-red)}.dot.white{background:var(--w-white)}
+.dot.rose{background:var(--w-rose)}.dot.sparkling{background:var(--w-sparkling);box-shadow:inset 1px 1px 0 rgba(255,255,255,.55)}
+.dot.dessert{background:var(--w-dessert)}.dot.fortified{background:var(--w-fortified)}
+.chip{font-size:11.5px;font-weight:600;border-radius:var(--radius-el);padding:3px 10px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.chip.stk{background:#eaf5ee;color:#2f7d49}
+.chip.csm{background:#eeeeee;color:#5a5a5a}
+.chip.gft{background:#fbf3e6;color:#9a6c25}
+.rat{display:inline-flex;align-items:center;gap:7px;font-variant-numeric:tabular-nums}
+.rat .rval{font-weight:700;color:var(--color-primary);font-size:14px;min-width:30px;text-align:right}
+.rat .rbar{width:70px;height:7px;background:var(--color-background-dark);border-radius:var(--radius-el);overflow:hidden}
+.rat .rbar>i{display:block;height:100%;background:var(--color-primary);border-radius:var(--radius-el)}
+
+.btn{font-family:var(--font);font-size:14px;font-weight:600;border:none;border-radius:var(--radius-el);padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;height:40px}
+.btn-primary{background:var(--color-primary);color:#fff}.btn-primary:hover{background:var(--color-primary-hover)}
+.btn-sec{background:var(--color-background-dark);color:var(--color-main-text)}.btn-sec:hover{background:#dcdee1}
+
+/* ===== Top-Toolbar (für alle Varianten gleich) ===== */
+.toolbar{display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap:wrap}
+.toolbar h1{font-size:24px;font-weight:600;letter-spacing:-.01em}
+.toolbar .sub{font-size:13.5px;color:var(--color-text-maxcontrast);font-variant-numeric:tabular-nums}
+.toolbar .sub b{color:var(--color-main-text);font-weight:600}
+.toolbar .sp{flex:1}
+
+/* Suchfeld */
+.searchbox{display:flex;align-items:center;gap:8px;background:var(--color-background-hover);border:1px solid var(--color-border-light);border-radius:var(--radius-el);padding:0 12px;height:40px;min-width:260px;transition:border-color .15s}
+.searchbox:focus-within{border-color:var(--color-primary);background:#fff}
+.searchbox svg{color:var(--color-text-maxcontrast)}
+.searchbox input{flex:1;border:none;background:transparent;font-family:var(--font);font-size:14px;outline:none}
+.searchbox kbd{font-family:var(--font);font-size:11px;color:var(--color-text-maxcontrast);background:#fff;border:1px solid var(--color-border-light);border-radius:4px;padding:1px 5px}
+
+/* ===== Variante D: Bestand-Hero ===== */
+.stock{background:#fff;border:1px solid var(--color-border);border-radius:12px;padding:18px 22px;margin-bottom:14px}
+.stock-h{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.stock-h .lbl{font-size:12px;font-weight:600;color:var(--color-text-maxcontrast);text-transform:uppercase;letter-spacing:.04em}
+.stock-h .sp{flex:1}
+.stock-h .sum{color:var(--color-primary);font-weight:700;font-size:14px;font-variant-numeric:tabular-nums}
+.stock-h .sum::before{content:"Σ ";opacity:.7;font-weight:600}
+.stock-row{display:flex;align-items:flex-end;gap:18px;margin-bottom:10px}
+.stock-row .big{font-size:32px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.stock-row .big small{font-size:16px;font-weight:600;color:var(--color-text-maxcontrast);margin-left:6px}
+.stock-bar{height:12px;border-radius:6px;background:var(--color-background-dark);overflow:hidden;display:flex;margin-bottom:10px}
+.stock-bar>i{display:block;height:100%}
+.stock-bar>i:first-child{border-radius:6px 0 0 6px}
+.stock-bar>i:last-child{border-radius:0 6px 6px 0}
+.stock-cats{display:flex;align-items:center;justify-content:space-between;gap:18px;font-size:13px;color:var(--color-text-maxcontrast);flex-wrap:wrap}
+.stock-cats .cats{display:flex;flex-wrap:wrap;gap:14px}
+.stock-cats .cats span{display:inline-flex;align-items:center;gap:6px}
+.stock-cats .cats span b{color:var(--color-main-text);font-weight:600;font-variant-numeric:tabular-nums}
+.stock-cats .where{white-space:nowrap}
+.stock-cats .where b{color:var(--color-main-text);font-weight:600}
+
+/* ===== Variante A: Hero "Bald trinken" + Listen ===== */
+.hero{background:linear-gradient(180deg,#fafbfc 0%,#fff 100%);border:1px solid var(--color-border);border-radius:12px;padding:22px 24px;margin-bottom:18px}
+.hero-h{display:flex;align-items:baseline;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.hero-h h2{font-size:18px;font-weight:600}
+.hero-h .hsub{color:var(--color-text-maxcontrast);font-size:13.5px}
+.hero-h .sp{flex:1}
+.hero-h a{color:var(--color-primary);font-size:13px;font-weight:600;text-decoration:none}
+.hero-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.hcard{background:#fff;border:1px solid var(--color-border-light);border-radius:10px;overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.hcard:hover{transform:translateY(-2px);box-shadow:0 4px 14px rgba(0,0,0,.08)}
+.hcard .label{height:78px;display:flex;align-items:flex-end;justify-content:center;padding:10px;color:#fff;font-weight:600;font-size:12.5px;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,.25);position:relative}
+.hcard .label.red{background:linear-gradient(160deg,#9a3b39,#6e2624)}
+.hcard .label.rose{background:linear-gradient(160deg,#e0a3a4,#b56e6f)}
+.hcard .label.white{background:linear-gradient(160deg,#d6c468,#a4943a)}
+.hcard .label .qty{position:absolute;top:8px;right:10px;background:rgba(255,255,255,.92);color:var(--color-main-text);font-size:11px;font-weight:700;border-radius:10px;padding:2px 8px;text-shadow:none}
+.hcard .body{padding:11px 13px}
+.hcard .body .name{font-weight:600;font-size:14px;line-height:1.3;margin-bottom:3px}
+.hcard .body .meta{font-size:12px;color:var(--color-text-maxcontrast)}
+.hcard .body .meta strong{color:#b03b33;font-weight:600}
+
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.card{background:#fff;border:1px solid var(--color-border);border-radius:var(--radius);padding:16px 18px}
+.card h3{font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.card h3 a{color:var(--color-primary);font-size:12.5px;font-weight:600;text-decoration:none}
+.lst{list-style:none;padding:0;margin:0}
+.lst li{padding:10px 0;border-top:1px solid var(--color-border-light);display:flex;align-items:center;gap:10px;font-size:14px}
+.lst li:first-child{border-top:none}
+.lst li strong{font-weight:600}
+.lst li .meta{color:var(--color-text-maxcontrast);font-size:12.5px;margin-left:auto;white-space:nowrap}
+
+/* ===== Variante B: Magazin ohne Boxen ===== */
+.mag{max-width:900px}
+.mag-section{padding:18px 0;border-top:1px solid var(--color-border-light)}
+.mag-section:first-child{border-top:none;padding-top:6px}
+.mag-h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px}
+.mag-h h2{font-size:18px;font-weight:600;letter-spacing:-.01em}
+.mag-h .mag-sub{color:var(--color-text-maxcontrast);font-size:13px;margin-left:14px}
+.mag-h a{color:var(--color-primary);font-size:13px;font-weight:600;text-decoration:none}
+.mag-list{list-style:none;padding:0;margin:0}
+.mag-list li{display:flex;align-items:center;gap:14px;padding:8px 0;font-size:14.5px}
+.mag-list li .mag-dot{display:flex;align-items:center;justify-content:center;width:22px;flex-shrink:0}
+.mag-list li .mag-main{flex:1;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.mag-list li .mag-main strong{font-weight:600}
+.mag-list li .mag-main .mid{color:var(--color-text-maxcontrast)}
+.mag-list li .mag-right{color:var(--color-text-maxcontrast);font-size:13px;font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.mag-list li .mag-right .urgent{color:#b03b33;font-weight:600}
+
+/* ===== Variante C: 2/3 Hauptspalte + 1/3 Sidebar ===== */
+.asym{display:grid;grid-template-columns:1fr 320px;gap:18px;align-items:start}
+.asym-main{display:flex;flex-direction:column;gap:18px}
+.asym-side{background:#fff;border:1px solid var(--color-border);border-radius:var(--radius);overflow:hidden;position:sticky;top:0}
+.asym-side .ash{padding:14px 16px;border-bottom:1px solid var(--color-border-light);font-weight:600;font-size:15px;display:flex;align-items:center;justify-content:space-between;background:var(--color-background-hover)}
+.asym-side .ash .badge{font-size:11px;font-weight:600;background:var(--color-primary-light);color:var(--color-primary);border-radius:10px;padding:2px 8px}
+.feed{padding:6px 0}
+.feed-item{padding:11px 16px;border-bottom:1px solid var(--color-border-light);display:flex;gap:10px;font-size:13.5px;position:relative}
+.feed-item:last-child{border-bottom:none}
+.feed-item::before{content:"";position:absolute;left:24px;top:38px;bottom:-6px;width:2px;background:var(--color-border-light)}
+.feed-item:last-child::before{display:none}
+.feed-item .feed-icon{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;z-index:1}
+.feed-item .feed-icon.kauf{background:#eaf5ee;color:#2f7d49}
+.feed-item .feed-icon.getr{background:#eeeeee;color:#5a5a5a}
+.feed-item .feed-icon.gft{background:#fbf3e6;color:#9a6c25}
+.feed-item .feed-body{flex:1}
+.feed-item .feed-action{font-weight:600;font-size:12.5px;color:var(--color-text-maxcontrast);text-transform:uppercase;letter-spacing:.04em;margin-bottom:1px}
+.feed-item .feed-text{color:var(--color-main-text);line-height:1.4}
+.feed-item .feed-date{font-size:11.5px;color:var(--color-text-maxcontrast);margin-top:3px;font-variant-numeric:tabular-nums}
+
+.foot-note{padding:10px 14px;font-size:12px;color:var(--color-text-maxcontrast);text-align:center}
+</style>
+</head>
+<body>
+
+<div class="mockup-bar">
+  <div class="brand">Vinarium <span>· Dashboard-Varianten v2</span></div>
+  <div class="varseg" style="margin-left:8px">
+    <button onclick="setVar('a')">A · Hero „Bald trinken"</button>
+    <button onclick="setVar('b')">B · Magazin (keine Boxen)</button>
+    <button onclick="setVar('c')">C · Asymmetrisch + Sidebar</button>
+    <button class="active" onclick="setVar('d')">D · Bestand-Hero + Hero „Bald trinken"</button>
+  </div>
+  <div class="note">v2 ergänzt Variante D: prominente Bestand-Hero-Card statt 4 kleiner KPI-Kisten</div>
+</div>
+
+<div class="stage">
+<div class="nc">
+  <div class="nc-header">
+    <div class="nc-logo">V</div><div class="nc-appname">Vinarium</div><div class="sp"></div>
+    <div class="nc-hicon"><svg class="icon" viewBox="0 0 24 24"><path d="M16,17H7V10.5C7,8 9,6 11.5,6C14,6 16,8 16,10.5M18,16V10.5C18,7.43 15.86,4.86 13,4.18V3.5A1.5,1.5 0 0,0 11.5,2A1.5,1.5 0 0,0 10,3.5V4.18C7.13,4.86 5,7.43 5,10.5V16L3,18V19H20V18M11.5,22A2,2 0 0,0 13.5,20H9.5A2,2 0 0,0 11.5,22Z"/></svg></div>
+    <div class="nc-ava">AB</div>
+  </div>
+  <div class="nc-body">
+    <div class="nav">
+      <div class="nav-item active"><svg class="icon" viewBox="0 0 24 24"><path d="M13,3V9H21V3M13,21H21V11H13M3,21H11V15H3M3,13H11V3H3V13Z"/></svg>Dashboard</div>
+      <div class="nav-item"><svg class="icon" viewBox="0 0 24 24"><path d="M5,3H7V5H5V10A2,2 0 0,1 3,12A2,2 0 0,1 5,14V19H7V21H5C3.93,20.73 3,20.1 3,19V15A2,2 0 0,0 1,13H0V11H1A2,2 0 0,0 3,9V5A2,2 0 0,1 5,3M19,3A2,2 0 0,1 21,5V9A2,2 0 0,0 23,11H24V13H23A2,2 0 0,0 21,15V19A2,2 0 0,1 19,21H17V19H19V14A2,2 0 0,1 21,12A2,2 0 0,1 19,10V5H17V3H19Z"/></svg>Bestand<span class="count">87</span></div>
+      <div class="nav-item"><svg class="icon" viewBox="0 0 24 24"><path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,5V8H5V5H19M5,10H8V19H5V10M10,10H14V19H10V10M16,10H19V19H16V10Z"/></svg>Regal</div>
+      <div class="nav-item"><svg class="icon" viewBox="0 0 24 24"><path d="M5,3V5H7V21H17V5H19V3H5M9,5H15V8H9V5M9,10H15V12H9V10Z"/></svg>Verkostungen<span class="count">42</span></div>
+      <div class="nav-sp"></div>
+      <div class="nav-foot"><svg class="icon" viewBox="0 0 24 24"><path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.22,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.22,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.04 4.95,18.95L7.44,17.95C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.95L19.05,18.95C19.27,19.04 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/></svg>Einstellungen</div>
+    </div>
+
+    <div class="main">
+
+      <!-- ============== VARIANTE A: Hero ============== -->
+      <div class="var" id="va">
+        <div class="toolbar">
+          <h1>Dashboard</h1>
+          <span class="sub"><b>87</b> Flaschen · <b>42</b> verkostet · <b>5</b> in Parkzone</span>
+          <div class="sp"></div>
+          <div class="searchbox">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/></svg>
+            <input placeholder="Weine, Weingüter, Jahrgänge suchen…">
+            <kbd>⌘ K</kbd>
+          </div>
+          <button class="btn btn-primary">+ Kauf erfassen</button>
+        </div>
+
+        <div class="hero">
+          <div class="hero-h">
+            <h2>Bald trinken</h2>
+            <span class="hsub">— Trinkfenster läuft 2026/27 ab</span>
+            <div class="sp"></div>
+            <a href="#">Alle ansehen ›</a>
+          </div>
+          <div class="hero-cards">
+            <div class="hcard">
+              <div class="label red"><span class="qty">3×</span>Château Clos Louie</div>
+              <div class="body"><div class="name">Castillon CdB 2018</div><div class="meta"><strong>bis 2026</strong> · Hauptregal A1–A3</div></div>
+            </div>
+            <div class="hcard">
+              <div class="label rose"><span class="qty">2×</span>Domaine Tempier</div>
+              <div class="body"><div class="name">Bandol Rosé 2021</div><div class="meta"><strong>bis 2026</strong> · Keller C1</div></div>
+            </div>
+            <div class="hcard">
+              <div class="label white"><span class="qty">4×</span>Weingut Knipser</div>
+              <div class="body"><div class="name">Riesling Trocken 2020</div><div class="meta">bis 2027 · Keller B2–B3</div></div>
+            </div>
+            <div class="hcard">
+              <div class="label red"><span class="qty">1×</span>Domaine Marcel Lapierre</div>
+              <div class="body"><div class="name">Morgon Cuvée Marcel 2019</div><div class="meta"><strong>bis 2026</strong> · Hauptregal A4</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div class="card">
+            <h3>Letzte Verkostungen <a href="#">alle ›</a></h3>
+            <ul class="lst">
+              <li><span class="dot red"></span><strong>Sassicaia 2017</strong><div class="meta"><span class="rat"><span class="rval">9.2</span><span class="rbar"><i style="width:92%"></i></span></span></div></li>
+              <li><span class="dot red"></span><strong>Morgon Marcel 2019</strong><div class="meta"><span class="rat"><span class="rval">8.5</span><span class="rbar"><i style="width:85%"></i></span></span></div></li>
+              <li><span class="dot white"></span><strong>Riesling Knipser 2020</strong><div class="meta"><span class="rat"><span class="rval">8.0</span><span class="rbar"><i style="width:80%"></i></span></span></div></li>
+              <li><span class="dot rose"></span><strong>Bandol Tempier 2021</strong><div class="meta"><span class="rat"><span class="rval">7.5</span><span class="rbar"><i style="width:75%"></i></span></span></div></li>
+              <li><span class="dot sparkling"></span><strong>Krug Grande Cuvée NV</strong><div class="meta"><span class="rat"><span class="rval">9.3</span><span class="rbar"><i style="width:93%"></i></span></span></div></li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Aktivität · Mai 2026 <a href="#">alle ›</a></h3>
+            <ul class="lst">
+              <li><span class="chip stk">+ Kauf</span><span style="margin-left:4px">12× Castillon 2020</span><span class="meta">22.05.</span></li>
+              <li><span class="chip csm">Getrunken</span><span style="margin-left:4px">Sassicaia 2017</span><span class="meta">18.05.</span></li>
+              <li><span class="chip gft">Verschenkt</span><span style="margin-left:4px">2× Bandol Tempier 2021</span><span class="meta">12.04.</span></li>
+              <li><span class="chip stk">+ Kauf</span><span style="margin-left:4px">6× Riesling Knipser 2020</span><span class="meta">03.04.</span></li>
+              <li><span class="chip csm">Getrunken</span><span style="margin-left:4px">Krug Grande Cuvée NV</span><span class="meta">12.05.</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============== VARIANTE B: Magazin ============== -->
+      <div class="var" id="vb">
+        <div class="toolbar">
+          <h1>Dashboard</h1>
+          <span class="sub"><b>87</b> Flaschen · <b>42</b> verkostet · <b>5</b> in Parkzone</span>
+          <div class="sp"></div>
+          <div class="searchbox">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/></svg>
+            <input placeholder="Weine, Weingüter, Jahrgänge suchen…">
+            <kbd>⌘ K</kbd>
+          </div>
+          <button class="btn btn-primary">+ Kauf erfassen</button>
+        </div>
+
+        <div class="mag">
+          <div class="mag-section">
+            <div class="mag-h">
+              <div><h2 style="display:inline">Bald trinken</h2><span class="mag-sub">Trinkfenster läuft 2026/27 ab</span></div>
+              <a href="#">alle ansehen ›</a>
+            </div>
+            <ul class="mag-list">
+              <li><div class="mag-dot"><span class="dot red"></span></div>
+                  <div class="mag-main"><strong>Château Clos Louie</strong><span class="mid">· Castillon CdB 2018</span></div>
+                  <div class="mag-right"><span class="urgent">bis 2026</span> · 3×</div></li>
+              <li><div class="mag-dot"><span class="dot rose"></span></div>
+                  <div class="mag-main"><strong>Domaine Tempier</strong><span class="mid">· Bandol Rosé 2021</span></div>
+                  <div class="mag-right"><span class="urgent">bis 2026</span> · 2×</div></li>
+              <li><div class="mag-dot"><span class="dot white"></span></div>
+                  <div class="mag-main"><strong>Weingut Knipser</strong><span class="mid">· Riesling Trocken 2020</span></div>
+                  <div class="mag-right">bis 2027 · 4×</div></li>
+              <li><div class="mag-dot"><span class="dot red"></span></div>
+                  <div class="mag-main"><strong>Domaine Marcel Lapierre</strong><span class="mid">· Morgon Cuvée Marcel 2019</span></div>
+                  <div class="mag-right"><span class="urgent">bis 2026</span> · 1×</div></li>
+            </ul>
+          </div>
+
+          <div class="mag-section">
+            <div class="mag-h">
+              <div><h2 style="display:inline">Letzte Verkostungen</h2></div>
+              <a href="#">alle ansehen ›</a>
+            </div>
+            <ul class="mag-list">
+              <li><div class="mag-dot"><span class="dot red"></span></div>
+                  <div class="mag-main"><strong>Sassicaia</strong><span class="mid">· 2017</span></div>
+                  <div class="mag-right"><span class="rat"><span class="rval">9.2</span><span class="rbar"><i style="width:92%"></i></span></span></div></li>
+              <li><div class="mag-dot"><span class="dot red"></span></div>
+                  <div class="mag-main"><strong>Morgon Cuvée Marcel</strong><span class="mid">· 2019</span></div>
+                  <div class="mag-right"><span class="rat"><span class="rval">8.5</span><span class="rbar"><i style="width:85%"></i></span></span></div></li>
+              <li><div class="mag-dot"><span class="dot white"></span></div>
+                  <div class="mag-main"><strong>Riesling Trocken</strong><span class="mid">· Knipser 2020</span></div>
+                  <div class="mag-right"><span class="rat"><span class="rval">8.0</span><span class="rbar"><i style="width:80%"></i></span></span></div></li>
+              <li><div class="mag-dot"><span class="dot rose"></span></div>
+                  <div class="mag-main"><strong>Bandol Rosé</strong><span class="mid">· Tempier 2021</span></div>
+                  <div class="mag-right"><span class="rat"><span class="rval">7.5</span><span class="rbar"><i style="width:75%"></i></span></span></div></li>
+              <li><div class="mag-dot"><span class="dot sparkling"></span></div>
+                  <div class="mag-main"><strong>Krug Grande Cuvée Édition 170</strong></div>
+                  <div class="mag-right"><span class="rat"><span class="rval">9.3</span><span class="rbar"><i style="width:93%"></i></span></span></div></li>
+            </ul>
+          </div>
+
+          <div class="mag-section">
+            <div class="mag-h">
+              <div><h2 style="display:inline">Aktivität</h2><span class="mag-sub">Mai 2026</span></div>
+              <a href="#">alle ansehen ›</a>
+            </div>
+            <ul class="mag-list">
+              <li><div class="mag-dot"><span class="chip stk" style="padding:2px 8px">+ Kauf</span></div>
+                  <div class="mag-main"><strong>12× Château Clos Louie</strong><span class="mid">· Castillon 2020</span></div>
+                  <div class="mag-right">22.05.</div></li>
+              <li><div class="mag-dot"><span class="chip csm" style="padding:2px 8px">Getrunken</span></div>
+                  <div class="mag-main"><strong>Sassicaia</strong><span class="mid">· 2017</span></div>
+                  <div class="mag-right">18.05.</div></li>
+              <li><div class="mag-dot"><span class="chip gft" style="padding:2px 8px">Verschenkt</span></div>
+                  <div class="mag-main"><strong>2× Bandol Tempier</strong><span class="mid">· 2021</span></div>
+                  <div class="mag-right">12.04.</div></li>
+              <li><div class="mag-dot"><span class="chip stk" style="padding:2px 8px">+ Kauf</span></div>
+                  <div class="mag-main"><strong>6× Weingut Knipser</strong><span class="mid">· Riesling 2020</span></div>
+                  <div class="mag-right">03.04.</div></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============== VARIANTE D: Bestand-Hero + Hero "Bald trinken" ============== -->
+      <div class="var show" id="vd">
+        <div class="toolbar">
+          <h1>Dashboard</h1>
+          <span class="sub"><b>42</b> verkostet · <b>8</b> verschenkt · <b>5</b> in Parkzone</span>
+          <div class="sp"></div>
+          <div class="searchbox">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/></svg>
+            <input placeholder="Weine, Weingüter, Jahrgänge suchen…">
+            <kbd>⌘ K</kbd>
+          </div>
+          <button class="btn btn-primary">+ Kauf erfassen</button>
+        </div>
+
+        <!-- Bestand-Hero -->
+        <div class="stock">
+          <div class="stock-h">
+            <div class="lbl">Im Bestand</div>
+            <div class="sp"></div>
+            <div class="sum">142</div>
+          </div>
+          <div class="stock-row">
+            <div class="big">87 <small>Flaschen</small></div>
+          </div>
+          <div class="stock-bar">
+            <i style="width:46%;background:var(--w-red)"></i>
+            <i style="width:21%;background:var(--w-white)"></i>
+            <i style="width:11%;background:var(--w-rose)"></i>
+            <i style="width:11%;background:var(--w-sparkling)"></i>
+            <i style="width:7%;background:var(--w-dessert)"></i>
+            <i style="width:4%;background:var(--w-fortified)"></i>
+          </div>
+          <div class="stock-cats">
+            <div class="cats">
+              <span><span class="dot red"></span>Rot <b>40</b></span>
+              <span><span class="dot white"></span>Weiß <b>18</b></span>
+              <span><span class="dot rose"></span>Rosé <b>10</b></span>
+              <span><span class="dot sparkling"></span>Schaumwein <b>10</b></span>
+              <span><span class="dot dessert"></span>Dessert <b>6</b></span>
+              <span><span class="dot fortified"></span>Likör <b>3</b></span>
+            </div>
+            <div class="where">verteilt auf <b>4</b> Regale</div>
+          </div>
+        </div>
+
+        <!-- Hero Bald trinken -->
+        <div class="hero">
+          <div class="hero-h">
+            <h2>Bald trinken</h2>
+            <span class="hsub">— Trinkfenster läuft 2026/27 ab</span>
+            <div class="sp"></div>
+            <a href="#">Alle ansehen ›</a>
+          </div>
+          <div class="hero-cards">
+            <div class="hcard">
+              <div class="label red"><span class="qty">3×</span>Château Clos Louie</div>
+              <div class="body"><div class="name">Castillon CdB 2018</div><div class="meta"><strong>bis 2026</strong> · Hauptregal A1–A3</div></div>
+            </div>
+            <div class="hcard">
+              <div class="label rose"><span class="qty">2×</span>Domaine Tempier</div>
+              <div class="body"><div class="name">Bandol Rosé 2021</div><div class="meta"><strong>bis 2026</strong> · Keller C1</div></div>
+            </div>
+            <div class="hcard">
+              <div class="label white"><span class="qty">4×</span>Weingut Knipser</div>
+              <div class="body"><div class="name">Riesling Trocken 2020</div><div class="meta">bis 2027 · Keller B2–B3</div></div>
+            </div>
+            <div class="hcard">
+              <div class="label red"><span class="qty">1×</span>Domaine Marcel Lapierre</div>
+              <div class="body"><div class="name">Morgon Cuvée Marcel 2019</div><div class="meta"><strong>bis 2026</strong> · Hauptregal A4</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div class="card">
+            <h3>Letzte Verkostungen <a href="#">alle ›</a></h3>
+            <ul class="lst">
+              <li><span class="dot red"></span><strong>Sassicaia 2017</strong><div class="meta"><span class="rat"><span class="rval">9.2</span><span class="rbar"><i style="width:92%"></i></span></span></div></li>
+              <li><span class="dot red"></span><strong>Morgon Marcel 2019</strong><div class="meta"><span class="rat"><span class="rval">8.5</span><span class="rbar"><i style="width:85%"></i></span></span></div></li>
+              <li><span class="dot white"></span><strong>Riesling Knipser 2020</strong><div class="meta"><span class="rat"><span class="rval">8.0</span><span class="rbar"><i style="width:80%"></i></span></span></div></li>
+              <li><span class="dot rose"></span><strong>Bandol Tempier 2021</strong><div class="meta"><span class="rat"><span class="rval">7.5</span><span class="rbar"><i style="width:75%"></i></span></span></div></li>
+              <li><span class="dot sparkling"></span><strong>Krug Grande Cuvée NV</strong><div class="meta"><span class="rat"><span class="rval">9.3</span><span class="rbar"><i style="width:93%"></i></span></span></div></li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>Aktivität · Mai 2026 <a href="#">alle ›</a></h3>
+            <ul class="lst">
+              <li><span class="chip stk">+ Kauf</span><span style="margin-left:4px">12× Castillon 2020</span><span class="meta">22.05.</span></li>
+              <li><span class="chip csm">Getrunken</span><span style="margin-left:4px">Sassicaia 2017</span><span class="meta">18.05.</span></li>
+              <li><span class="chip gft">Verschenkt</span><span style="margin-left:4px">2× Bandol Tempier 2021</span><span class="meta">12.04.</span></li>
+              <li><span class="chip stk">+ Kauf</span><span style="margin-left:4px">6× Riesling Knipser 2020</span><span class="meta">03.04.</span></li>
+              <li><span class="chip csm">Getrunken</span><span style="margin-left:4px">Krug Grande Cuvée NV</span><span class="meta">12.05.</span></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============== VARIANTE C: Asymmetrisch ============== -->
+      <div class="var" id="vc">
+        <div class="toolbar">
+          <h1>Dashboard</h1>
+          <span class="sub"><b>87</b> Flaschen · <b>42</b> verkostet · <b>5</b> in Parkzone</span>
+          <div class="sp"></div>
+          <div class="searchbox">
+            <svg class="icon" viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/></svg>
+            <input placeholder="Weine, Weingüter, Jahrgänge suchen…">
+            <kbd>⌘ K</kbd>
+          </div>
+          <button class="btn btn-primary">+ Kauf erfassen</button>
+        </div>
+
+        <div class="asym">
+          <div class="asym-main">
+            <div class="card">
+              <h3>Bald trinken <a href="#">alle ›</a></h3>
+              <ul class="lst">
+                <li><span class="dot red"></span><strong>Château Clos Louie</strong> · Castillon CdB 2018<span class="meta"><span style="color:#b03b33;font-weight:600">bis 2026</span> · 3×</span></li>
+                <li><span class="dot rose"></span><strong>Domaine Tempier</strong> · Bandol Rosé 2021<span class="meta"><span style="color:#b03b33;font-weight:600">bis 2026</span> · 2×</span></li>
+                <li><span class="dot white"></span><strong>Weingut Knipser</strong> · Riesling Trocken 2020<span class="meta">bis 2027 · 4×</span></li>
+                <li><span class="dot red"></span><strong>Domaine Marcel Lapierre</strong> · Morgon 2019<span class="meta"><span style="color:#b03b33;font-weight:600">bis 2026</span> · 1×</span></li>
+              </ul>
+            </div>
+            <div class="card">
+              <h3>Letzte Verkostungen <a href="#">alle ›</a></h3>
+              <ul class="lst">
+                <li><span class="dot red"></span><strong>Sassicaia 2017</strong><div class="meta"><span class="rat"><span class="rval">9.2</span><span class="rbar"><i style="width:92%"></i></span></span></div></li>
+                <li><span class="dot red"></span><strong>Morgon Cuvée Marcel 2019</strong><div class="meta"><span class="rat"><span class="rval">8.5</span><span class="rbar"><i style="width:85%"></i></span></span></div></li>
+                <li><span class="dot white"></span><strong>Riesling Knipser 2020</strong><div class="meta"><span class="rat"><span class="rval">8.0</span><span class="rbar"><i style="width:80%"></i></span></span></div></li>
+                <li><span class="dot rose"></span><strong>Bandol Tempier 2021</strong><div class="meta"><span class="rat"><span class="rval">7.5</span><span class="rbar"><i style="width:75%"></i></span></span></div></li>
+                <li><span class="dot sparkling"></span><strong>Krug Grande Cuvée NV</strong><div class="meta"><span class="rat"><span class="rval">9.3</span><span class="rbar"><i style="width:93%"></i></span></span></div></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="asym-side">
+            <div class="ash">Aktivität <span class="badge">Mai</span></div>
+            <div class="feed">
+              <div class="feed-item">
+                <div class="feed-icon kauf">+</div>
+                <div class="feed-body">
+                  <div class="feed-action">Kauf</div>
+                  <div class="feed-text">12 Flaschen · <strong>Castillon Clos Louie 2020</strong></div>
+                  <div class="feed-date">22.05.2026</div>
+                </div>
+              </div>
+              <div class="feed-item">
+                <div class="feed-icon getr">✓</div>
+                <div class="feed-body">
+                  <div class="feed-action">Getrunken</div>
+                  <div class="feed-text"><strong>Sassicaia 2017</strong></div>
+                  <div class="feed-date">18.05.2026</div>
+                </div>
+              </div>
+              <div class="feed-item">
+                <div class="feed-icon getr">✓</div>
+                <div class="feed-body">
+                  <div class="feed-action">Getrunken</div>
+                  <div class="feed-text"><strong>Krug Grande Cuvée NV</strong></div>
+                  <div class="feed-date">12.05.2026</div>
+                </div>
+              </div>
+              <div class="feed-item">
+                <div class="feed-icon gft">♥</div>
+                <div class="feed-body">
+                  <div class="feed-action">Verschenkt</div>
+                  <div class="feed-text">2× <strong>Bandol Tempier 2021</strong></div>
+                  <div class="feed-date">12.04.2026</div>
+                </div>
+              </div>
+              <div class="feed-item">
+                <div class="feed-icon kauf">+</div>
+                <div class="feed-body">
+                  <div class="feed-action">Kauf</div>
+                  <div class="feed-text">6× <strong>Riesling Knipser 2020</strong></div>
+                  <div class="feed-date">03.04.2026</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="foot-note">
+  Dashboard-Varianten · 31.05.2026 · oben umschalten zum Vergleichen
+</div>
+
+<script>
+function setVar(v){
+  document.querySelectorAll('.var').forEach(el=>el.classList.toggle('show',el.id==='v'+v));
+  document.querySelectorAll('.varseg button').forEach((b,i)=>b.classList.toggle('active',['a','b','c','d'][i]===v));
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vinarium · UI-Konzept v1 – alle Ansichten</title>
+<style>
+:root{
+  /* NC-Defaults — pur, kein eigener Markenakzent */
+  --color-primary:#0082c9;--color-primary-hover:#0b6ca3;--color-primary-light:#e5f1fa;
+  --color-main-text:#222;--color-text-maxcontrast:#6b6b6b;
+  --color-main-background:#fff;--color-background-hover:#f3f4f6;--color-background-dark:#e9eaec;
+  --color-border:#d2d4d7;--color-border-light:#e2e3e5;
+  /* Status-Akzente (gedämpft, NC-konform) */
+  --vn-stock:#3a8c4f;--vn-stock-bg:#eaf5ee;
+  --vn-consumed:#8a8a8a;--vn-consumed-bg:#eeeeee;
+  --vn-gifted:#c98b3a;--vn-gifted-bg:#fbf3e6;
+  --vn-lost:#b03b33;--vn-lost-bg:#fbecea;
+  --vn-parked:#5481b8;--vn-parked-bg:#e9f0f9;
+  /* Wein-Farben (gedämpft, nur als Listen-Dots/Bars) */
+  --w-red:#7a2a28;--w-red-bg:#efd9d8;
+  --w-white:#c9b85a;--w-white-bg:#f7f1d4;
+  --w-rose:#cf8c8d;--w-rose-bg:#f6e0e1;
+  --w-orange:#c87a3a;--w-orange-bg:#f6dec7;
+  --w-sparkling:#d4c87a;--w-sparkling-bg:#f7f2d4;
+  /* Form */
+  --radius-el:8px;--radius:8px;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Cantarell,Ubuntu,"Helvetica Neue","Noto Sans",Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);font-size:15px;line-height:1.5;color:var(--color-main-text);background:#c9ced4;-webkit-font-smoothing:antialiased}
+.icon{width:20px;height:20px;fill:currentColor;flex-shrink:0;display:inline-block;vertical-align:middle}
+.icon-s{width:16px;height:16px}
+
+/* Konzept-Bar oben */
+.mockup-bar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;padding:10px 22px;background:#fff;border-bottom:1px solid var(--color-border);flex-wrap:wrap}
+.mockup-bar .brand{font-weight:700;font-size:14px;color:#444}
+.mockup-bar .brand span{color:var(--color-text-maxcontrast);font-weight:600}
+.mockup-bar .note{font-size:12.5px;color:var(--color-text-maxcontrast);margin-left:auto}
+.modeseg{display:flex;background:var(--color-background-dark);border-radius:var(--radius-el);padding:3px}
+.modeseg button{font-family:var(--font);font-size:13px;font-weight:600;color:#555;background:none;border:none;padding:6px 14px;border-radius:var(--radius-el);cursor:pointer}
+.modeseg button.active{background:#fff;color:var(--color-primary);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+
+.stage{padding:22px;display:flex;justify-content:center}
+.nc{width:100%;max-width:1240px;height:860px;border-radius:10px;overflow:hidden;box-shadow:0 10px 34px rgba(0,0,0,.22);display:flex;flex-direction:column;background:var(--color-main-background)}
+.nc-header{height:50px;background:var(--color-primary);display:flex;align-items:center;padding:0 12px;gap:8px;flex-shrink:0}
+.nc-logo{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px}
+.nc-appname{color:#fff;font-weight:600;font-size:16px;margin-left:4px}
+.nc-header .sp{flex:1}
+.nc-hicon{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer}
+.nc-hicon:hover{background:rgba(255,255,255,.12)}
+.nc-ava{width:32px;height:32px;border-radius:50%;background:#fff;color:var(--color-primary);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;margin-left:4px}
+.nc-body{flex:1;display:flex;min-height:0}
+
+/* linke Nav (NC-Default hell) */
+.nav{width:248px;background:var(--color-main-background);border-right:1px solid var(--color-border-light);display:flex;flex-direction:column;flex-shrink:0;padding:6px;overflow:auto}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius);cursor:pointer;color:var(--color-main-text);font-size:14.5px;margin-bottom:2px}
+.nav-item .icon{color:var(--color-text-maxcontrast)}
+.nav-item:hover{background:var(--color-background-hover)}
+.nav-item.active{background:var(--color-primary-light);font-weight:600}
+.nav-item.active .icon{color:var(--color-primary)}
+.nav-item .count{margin-left:auto;background:var(--color-background-dark);color:var(--color-text-maxcontrast);font-size:11.5px;font-weight:600;border-radius:10px;padding:1px 8px}
+.nav-item.active .count{background:#fff;color:var(--color-primary)}
+.nav-sp{flex:1}
+.nav-foot{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius);cursor:pointer;color:var(--color-text-maxcontrast);font-size:14px}
+.nav-foot:hover{background:var(--color-background-hover)}
+.nav-foot small{margin-left:auto;font-size:11px;opacity:.7}
+
+.main{flex:1;overflow:auto;padding:20px 24px;background:var(--color-main-background)}
+.view{display:none}.view.show{display:block}
+.head{display:flex;align-items:center;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+.head h2{font-size:22px;font-weight:600}
+.muted{color:var(--color-text-maxcontrast)}
+
+/* Controls */
+.seg{display:flex;background:var(--color-background-dark);border-radius:var(--radius-el);padding:3px}
+.seg button{font-family:var(--font);font-size:13px;font-weight:600;color:#555;background:none;border:none;padding:6px 14px;border-radius:var(--radius-el);cursor:pointer;display:flex;align-items:center;gap:6px}
+.seg button.active{background:#fff;color:var(--color-primary);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.sp{flex:1}
+.btn{font-family:var(--font);font-size:14px;font-weight:600;border:none;border-radius:var(--radius-el);padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;height:40px}
+.btn-primary{background:var(--color-primary);color:#fff}.btn-primary:hover{background:var(--color-primary-hover)}
+.btn-sec{background:var(--color-background-dark);color:var(--color-main-text)}.btn-sec:hover{background:#dcdee1}
+.btn-tert{background:transparent;color:var(--color-text-maxcontrast)}.btn-tert:hover{background:var(--color-background-hover)}
+.btn-sm{height:32px;padding:5px 12px;font-size:13px}
+.fld input,.fld select,.fld textarea,.input{width:100%;border:1px solid var(--color-border);border-radius:var(--radius-el);padding:9px 11px;font-size:14px;background:#fff;font-family:var(--font);color:var(--color-main-text)}
+.fld textarea{resize:vertical;min-height:62px}
+
+/* Cards */
+.card{background:var(--color-main-background);border:1px solid var(--color-border);border-radius:var(--radius);padding:16px}
+
+/* KPI-System (analog WorkTime) */
+.kpis{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px;margin-bottom:18px}
+.kpi .lab{font-size:12px;font-weight:600;color:var(--color-text-maxcontrast);margin-bottom:7px}
+.kpi .num{font-size:25px;font-weight:700;line-height:1}
+.kpi .num small{font-size:14px;font-weight:600;color:var(--color-text-maxcontrast)}
+.kpi .sub{font-size:12.5px;color:var(--color-text-maxcontrast);margin-top:6px}
+.kpi .pos{color:var(--vn-stock)}
+.kpi.brk{display:flex;flex-direction:column}
+.kpi.brk .stkrow{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.kpi.brk .stkrow .num{font-size:23px}
+.kpi.brk .stkrow .pct{font-weight:700;color:var(--color-primary);font-size:14px}
+.bar{height:10px;border-radius:var(--radius-el);background:var(--color-background-dark);overflow:hidden;display:flex}
+.bar>i{display:block;height:100%}
+.bar>i:first-child{border-radius:var(--radius-el) 0 0 var(--radius-el)}
+.bar>i:last-child{border-radius:0 var(--radius-el) var(--radius-el) 0}
+.bar.seg-red>i:nth-child(1){background:var(--w-red)}
+.bar.seg-red>i:nth-child(2){background:var(--w-white)}
+.bar.seg-red>i:nth-child(3){background:var(--w-rose)}
+.bar.seg-red>i:nth-child(4){background:var(--w-orange)}
+.bf{display:flex;justify-content:space-between;font-size:12px;color:var(--color-text-maxcontrast);margin-top:6px}
+
+/* Dashboard-Sektion */
+.dashgrid{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;align-items:start}
+.sec h3{font-size:17px;font-weight:600;margin-bottom:12px}
+.sec{margin-bottom:18px}
+
+/* Farb-Verteilung als horizontale Bars */
+.cb{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.cb:last-child{margin-bottom:0}
+.cb .cb-lab{font-size:13px;font-weight:600;min-width:90px;display:flex;align-items:center;gap:7px}
+.cb .cb-bar{flex:1;height:14px;background:var(--color-background-dark);border-radius:var(--radius-el);overflow:hidden}
+.cb .cb-bar>i{display:block;height:100%;border-radius:var(--radius-el)}
+.cb .cb-bar.red>i{background:var(--w-red)}
+.cb .cb-bar.white>i{background:var(--w-white)}
+.cb .cb-bar.rose>i{background:var(--w-rose)}
+.cb .cb-bar.orange>i{background:var(--w-orange)}
+.cb .cb-bar.sparkling>i{background:var(--w-sparkling)}
+.cb .cb-num{font-variant-numeric:tabular-nums;font-weight:600;font-size:13px;min-width:60px;text-align:right}
+
+/* Listen */
+.lst{list-style:none;padding:0;margin:0}
+.lst li{padding:10px 0;border-top:1px solid var(--color-border-light);display:flex;align-items:center;gap:10px;font-size:14px}
+.lst li:first-child{border-top:none}
+.lst li .meta{color:var(--color-text-maxcontrast);font-size:12.5px;margin-left:auto}
+.lst li strong{font-weight:600}
+
+/* Wein-Farb-Dot */
+.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;display:inline-block}
+.dot.red{background:var(--w-red)}.dot.white{background:var(--w-white)}
+.dot.rose{background:var(--w-rose)}.dot.orange{background:var(--w-orange)}
+.dot.sparkling{background:var(--w-sparkling)}
+
+/* Status-Chips */
+.chip{font-size:11.5px;font-weight:600;border-radius:var(--radius-el);padding:3px 10px;display:inline-flex;align-items:center;gap:5px}
+.chip.stk{background:var(--vn-stock-bg);color:var(--vn-stock)}
+.chip.pk{background:var(--vn-parked-bg);color:var(--vn-parked)}
+.chip.csm{background:var(--vn-consumed-bg);color:#5a5a5a}
+.chip.gft{background:var(--vn-gifted-bg);color:var(--vn-gifted)}
+.chip.lst-c{background:var(--vn-lost-bg);color:var(--vn-lost)}
+.chip.dcnt{background:var(--color-primary-light);color:var(--color-primary)}
+
+/* Bewertungs-Visualisierung — kleine Bar */
+.rat{display:inline-flex;align-items:center;gap:7px;font-variant-numeric:tabular-nums}
+.rat .rval{font-weight:700;color:var(--color-primary);font-size:14px;min-width:30px;text-align:right}
+.rat .rbar{width:70px;height:7px;background:var(--color-background-dark);border-radius:var(--radius-el);overflow:hidden}
+.rat .rbar>i{display:block;height:100%;background:var(--color-primary);border-radius:var(--radius-el)}
+
+/* Tabellen */
+.tbl{width:100%;border-collapse:collapse;font-size:14px}
+.tbl th{text-align:left;font-size:12px;font-weight:600;color:var(--color-text-maxcontrast);padding:9px 10px;border-bottom:1px solid var(--color-border)}
+.tbl td{padding:11px 10px;border-bottom:1px solid var(--color-border-light);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr.row:hover{background:var(--color-background-hover);cursor:pointer}
+.tbl .r{text-align:right}
+.tbl .photo{width:36px;height:36px;border-radius:6px;background:var(--color-background-dark) center/cover no-repeat;display:inline-block;vertical-align:middle}
+.tbl .ph-rose{background:linear-gradient(135deg,#f6e0e1,#cf8c8d)}
+.tbl .ph-red{background:linear-gradient(135deg,#efd9d8,#7a2a28)}
+.tbl .ph-white{background:linear-gradient(135deg,#f7f1d4,#c9b85a)}
+.tbl .ph-orange{background:linear-gradient(135deg,#f6dec7,#c87a3a)}
+
+/* Filter-Bar */
+.filters{display:flex;gap:10px;align-items:flex-end;padding:14px 14px;border:1px solid var(--color-border);border-radius:var(--radius);background:#fff;margin-bottom:14px;flex-wrap:wrap}
+.filters .fld{margin:0}
+.filters .fld label{display:block;font-size:11.5px;font-weight:600;color:var(--color-text-maxcontrast);margin-bottom:4px}
+.filters .fld input,.filters .fld select{min-width:140px}
+.filters .reset{align-self:flex-end;background:transparent;color:var(--color-text-maxcontrast);border:none;font-size:13px;cursor:pointer;padding:9px 4px}
+.filters .reset:hover{color:var(--color-main-text)}
+
+/* Sub-Tabs (z.B. Bestand: Flaschen / Stammdaten) */
+.subtabs{display:flex;gap:2px;border-bottom:1px solid var(--color-border);margin-bottom:16px}
+.subtabs button{font-family:var(--font);font-size:14px;font-weight:600;color:var(--color-text-maxcontrast);background:none;border:none;border-bottom:2px solid transparent;padding:10px 16px;cursor:pointer;margin-bottom:-1px}
+.subtabs button:hover{color:var(--color-main-text)}
+.subtabs button.active{color:var(--color-primary);border-bottom-color:var(--color-primary)}
+
+/* Stammdaten Sub-Sub-Tabs */
+.minitabs{display:inline-flex;background:var(--color-background-dark);border-radius:var(--radius-el);padding:3px;margin-bottom:14px}
+.minitabs button{font-family:var(--font);font-size:13px;font-weight:600;color:#555;background:none;border:none;padding:6px 14px;border-radius:var(--radius-el);cursor:pointer}
+.minitabs button.active{background:#fff;color:var(--color-primary);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+
+/* Regal-Ansicht */
+.shelf-layout{display:grid;grid-template-columns:280px 1fr;gap:18px;align-items:start}
+.pz{border:1px solid var(--color-border);border-radius:var(--radius);background:#fff;padding:14px}
+.pz h3{font-size:15px;font-weight:600;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between}
+.pz h3 .pzn{font-size:11.5px;font-weight:600;background:var(--vn-parked-bg);color:var(--vn-parked);border-radius:10px;padding:2px 9px}
+.pz .pzh{font-size:12px;color:var(--color-text-maxcontrast);margin-bottom:10px}
+.pz-list{display:flex;flex-direction:column;gap:6px}
+.pz-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--color-border-light);border-radius:var(--radius-el);background:#fff;cursor:grab;font-size:13.5px}
+.pz-item:hover{border-color:var(--color-primary);background:var(--color-primary-light)}
+.pz-item .pz-title{font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pz-item .pz-year{color:var(--color-text-maxcontrast);font-variant-numeric:tabular-nums}
+
+.shelf-area{display:flex;flex-direction:column;gap:12px}
+.shelf-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.shelf-tab{font-family:var(--font);font-size:13px;font-weight:600;background:#fff;border:1px solid var(--color-border);border-radius:var(--radius-el);padding:7px 14px;cursor:pointer;color:var(--color-text-maxcontrast)}
+.shelf-tab.active{background:var(--color-primary);color:#fff;border-color:var(--color-primary)}
+.shelf-tab.add{background:transparent;border-style:dashed}
+
+.shelf-grid{background:#fff;border:1px solid var(--color-border);border-radius:var(--radius);padding:14px 14px}
+.lvl{margin-bottom:12px}
+.lvl:last-child{margin-bottom:0}
+.lvl-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:12px;font-weight:600;color:var(--color-text-maxcontrast)}
+.lvl-h .lvl-name{text-transform:uppercase;letter-spacing:.04em}
+.slots{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
+.slot{aspect-ratio:1.4/1;border:1px solid var(--color-border-light);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11.5px;color:var(--color-text-maxcontrast);padding:6px;text-align:center;background:#fcfcfd;position:relative;overflow:hidden}
+.slot.fill{color:#fff;font-weight:600;border:none;cursor:pointer;text-shadow:0 1px 2px rgba(0,0,0,.18)}
+.slot.fill.red{background:linear-gradient(160deg,#9a3b39,#6e2624)}
+.slot.fill.white{background:linear-gradient(160deg,#d6c468,#a4943a)}
+.slot.fill.rose{background:linear-gradient(160deg,#e0a3a4,#b56e6f)}
+.slot.fill.orange{background:linear-gradient(160deg,#d6884a,#a4623a)}
+.slot.fill.sparkling{background:linear-gradient(160deg,#dccb6a,#a89a40)}
+.slot.fill .yr{font-variant-numeric:tabular-nums;opacity:.92;font-size:10.5px;font-weight:500}
+.slot.empty{color:#b8bbbf}
+.slot .slot-id{position:absolute;top:4px;left:6px;font-size:9.5px;font-weight:600;color:rgba(255,255,255,.7)}
+.slot.empty .slot-id{color:#b8bbbf}
+.shelf-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--color-text-maxcontrast);padding:8px 4px 0}
+.shelf-legend span{display:inline-flex;align-items:center;gap:6px}
+.shelf-legend .sw{width:14px;height:14px;border-radius:3px}
+.sw.red{background:linear-gradient(160deg,#9a3b39,#6e2624)}
+.sw.white{background:linear-gradient(160deg,#d6c468,#a4943a)}
+.sw.rose{background:linear-gradient(160deg,#e0a3a4,#b56e6f)}
+.sw.orange{background:linear-gradient(160deg,#d6884a,#a4623a)}
+.sw.empty{background:#fcfcfd;border:1px solid var(--color-border-light)}
+
+/* Modal-Showcase (Wizard / Tasting) */
+.viewnote{padding:10px 14px;background:var(--color-primary-light);border-left:3px solid var(--color-primary);border-radius:0 var(--radius) var(--radius) 0;color:#205681;font-size:13.5px;margin-bottom:16px}
+.modal-stage{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+@media(max-width:1180px){.modal-stage{grid-template-columns:1fr}}
+.modal-frame{border:1px solid var(--color-border);border-radius:var(--radius);background:#fff;overflow:hidden;box-shadow:0 6px 18px rgba(0,0,0,.10)}
+.modal-frame .mf-title{padding:14px 18px;background:var(--color-background-hover);border-bottom:1px solid var(--color-border-light);font-weight:600;font-size:15px;display:flex;align-items:center;justify-content:space-between}
+.modal-frame .mf-title .x{color:var(--color-text-maxcontrast);cursor:pointer;font-size:18px}
+.modal-frame .mf-body{padding:18px 18px}
+.modal-frame .mf-actions{padding:12px 18px;border-top:1px solid var(--color-border-light);background:#fff;display:flex;justify-content:flex-end;gap:8px}
+
+.stepper{display:flex;align-items:center;gap:0;margin-bottom:16px}
+.stepper .stp{flex:1;height:3px;background:var(--color-background-dark);border-radius:2px;position:relative}
+.stepper .stp.done{background:var(--color-primary)}
+.stepper .stp.cur{background:var(--color-primary)}
+.stepper .stp.cur::after{content:"";position:absolute;right:0;top:-3px;width:9px;height:9px;background:var(--color-primary);border-radius:50%;box-shadow:0 0 0 3px rgba(0,130,201,.18)}
+.stepper .stp+.stp{margin-left:4px}
+.steplab{font-size:12px;font-weight:600;color:var(--color-text-maxcontrast);margin-bottom:14px}
+.steplab strong{color:var(--color-primary)}
+
+.fld{margin-bottom:10px}
+.fld label{display:block;font-size:12px;font-weight:600;color:var(--color-text-maxcontrast);margin-bottom:4px}
+.frow{display:flex;gap:10px}.frow .fld{flex:1}
+.hint{font-size:12.5px;color:var(--color-text-maxcontrast);margin:6px 0 12px}
+
+.rating-row{display:flex;align-items:center;gap:14px}
+.rating-row input[type=range]{flex:1;accent-color:var(--color-primary)}
+.rating-row .rv{font-size:18px;font-weight:700;color:var(--color-primary);min-width:42px;text-align:center}
+
+.photo-row{display:flex;flex-wrap:wrap;gap:8px}
+.photo-thumb{width:64px;height:64px;border-radius:6px;background:linear-gradient(135deg,#efd9d8,#7a2a28);position:relative}
+.photo-thumb.b{background:linear-gradient(135deg,#f6e0e1,#cf8c8d)}
+.photo-thumb.c{background:linear-gradient(135deg,#f7f1d4,#c9b85a)}
+.photo-thumb .x{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.55);border-radius:50%;width:18px;height:18px;color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center}
+.photo-add{width:64px;height:64px;border:2px dashed var(--color-border);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:22px;color:var(--color-text-maxcontrast);cursor:pointer}
+
+/* Footer-Note */
+.foot-note{padding:10px 14px;font-size:12px;color:var(--color-text-maxcontrast);text-align:center}
+</style>
+</head>
+<body>
+
+<div class="mockup-bar">
+  <div class="brand">Vinarium <span>· UI-Konzept v1</span></div>
+  <div class="modeseg" style="margin-left:8px">
+    <button class="active" onclick="nav('vdash')">Dashboard</button>
+    <button onclick="nav('vbest')">Bestand</button>
+    <button onclick="nav('vreg')">Regal</button>
+    <button onclick="nav('vverk')">Verkostungen</button>
+    <button onclick="nav('vmod')">Modals</button>
+  </div>
+  <div class="note">4 statt 5 Top-Views · NC-Blau pur · gedämpfte Weinfarben nur als Dots/Bars · einheitliche Controls</div>
+</div>
+
+<div class="stage">
+<div class="nc">
+  <div class="nc-header">
+    <div class="nc-logo">V</div><div class="nc-appname">Vinarium</div><div class="sp"></div>
+    <div class="nc-hicon"><svg class="icon" viewBox="0 0 24 24"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/></svg></div>
+    <div class="nc-hicon"><svg class="icon" viewBox="0 0 24 24"><path d="M16,17H7V10.5C7,8 9,6 11.5,6C14,6 16,8 16,10.5M18,16V10.5C18,7.43 15.86,4.86 13,4.18V3.5A1.5,1.5 0 0,0 11.5,2A1.5,1.5 0 0,0 10,3.5V4.18C7.13,4.86 5,7.43 5,10.5V16L3,18V19H20V18M11.5,22A2,2 0 0,0 13.5,20H9.5A2,2 0 0,0 11.5,22Z"/></svg></div>
+    <div class="nc-ava">AB</div>
+  </div>
+
+  <div class="nc-body">
+    <div class="nav">
+      <div class="nav-item active" data-view="vdash" onclick="nav('vdash')">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M13,3V9H21V3M13,21H21V11H13M3,21H11V15H3M3,13H11V3H3V13Z"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" data-view="vbest" onclick="nav('vbest')">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M5,3H7V5H5V10A2,2 0 0,1 3,12A2,2 0 0,1 5,14V19H7V21H5C3.93,20.73 3,20.1 3,19V15A2,2 0 0,0 1,13H0V11H1A2,2 0 0,0 3,9V5A2,2 0 0,1 5,3M19,3A2,2 0 0,1 21,5V9A2,2 0 0,0 23,11H24V13H23A2,2 0 0,0 21,15V19A2,2 0 0,1 19,21H17V19H19V14A2,2 0 0,1 21,12A2,2 0 0,1 19,10V5H17V3H19M12,15A1,1 0 0,1 13,16A1,1 0 0,1 12,17A1,1 0 0,1 11,16A1,1 0 0,1 12,15M8,15A1,1 0 0,1 9,16A1,1 0 0,1 8,17A1,1 0 0,1 7,16A1,1 0 0,1 8,15M16,15A1,1 0 0,1 17,16A1,1 0 0,1 16,17A1,1 0 0,1 15,16A1,1 0 0,1 16,15Z"/></svg>
+        Bestand
+        <span class="count">87</span>
+      </div>
+      <div class="nav-item" data-view="vreg" onclick="nav('vreg')">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,5V8H5V5H19M5,10H8V19H5V10M10,10H14V19H10V10M16,10H19V19H16V10Z"/></svg>
+        Regal
+      </div>
+      <div class="nav-item" data-view="vverk" onclick="nav('vverk')">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M5,3V5H7V21H17V5H19V3H5M9,5H15V8H9V5M9,10H15V12H9V10Z"/></svg>
+        Verkostungen
+        <span class="count">42</span>
+      </div>
+      <div class="nav-item" data-view="vmod" onclick="nav('vmod')">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M4,6H20V16H4M20,18A2,2 0 0,0 22,16V6A2,2 0 0,0 20,4H4A2,2 0 0,0 2,6V16A2,2 0 0,0 4,18H0V20H24V18H20Z"/></svg>
+        Modals
+        <span class="count">2</span>
+      </div>
+      <div class="nav-sp"></div>
+      <div class="nav-foot">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M14,12L10,8V11H2V13H10V16M20,18V6C20,4.89 19.1,4 18,4H6A2,2 0 0,0 4,6V9H6V6H18V18H6V15H4V18A2,2 0 0,0 6,20H18A2,2 0 0,0 20,18Z"/></svg>
+        CSV-Export
+      </div>
+      <div class="nav-foot">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.22,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.22,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.04 4.95,18.95L7.44,17.95C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.68 16.04,18.34 16.56,17.95L19.05,18.95C19.27,19.04 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/></svg>
+        Einstellungen <small>App</small>
+      </div>
+    </div>
+
+    <div class="main">
+
+      <!-- =============== DASHBOARD =============== -->
+      <div class="view show" id="vdash">
+        <div class="head">
+          <h2>Dashboard</h2>
+          <div class="sp"></div>
+          <button class="btn btn-sec">⬇ CSV-Export</button>
+          <button class="btn btn-primary">+ Kauf erfassen</button>
+        </div>
+
+        <!-- KPIs: 4 prominente Cards mit Sub-Kontext -->
+        <div class="kpis">
+          <div class="card kpi brk">
+            <div class="lab">Im Bestand</div>
+            <div class="stkrow"><div class="num">87 <small>Flaschen</small></div><div class="pct">∑ 142</div></div>
+            <div class="bar seg-red"><i style="width:48%"></i><i style="width:24%"></i><i style="width:16%"></i><i style="width:12%"></i></div>
+            <div class="bf"><span>Rot 42 · Weiß 21 · Rosé 14 · Orange 10</span><span>verteilt auf 4 Regale</span></div>
+          </div>
+          <div class="card kpi">
+            <div class="lab">Getrunken</div>
+            <div class="num pos">42</div>
+            <div class="sub">davon 6 im Mai 2026</div>
+          </div>
+          <div class="card kpi">
+            <div class="lab">Verschenkt</div>
+            <div class="num">8</div>
+            <div class="sub">letztmals 12.04.2026</div>
+          </div>
+          <div class="card kpi">
+            <div class="lab">Parkzone</div>
+            <div class="num" style="color:var(--vn-parked)">5</div>
+            <div class="sub">noch nicht eingelagert</div>
+          </div>
+        </div>
+
+        <div class="dashgrid">
+          <div>
+            <div class="card sec" style="padding:18px">
+              <h3>Farb-Verteilung</h3>
+              <div class="cb"><div class="cb-lab"><span class="dot red"></span>Rotwein</div><div class="cb-bar red"><i style="width:100%"></i></div><div class="cb-num">42 (48%)</div></div>
+              <div class="cb"><div class="cb-lab"><span class="dot white"></span>Weißwein</div><div class="cb-bar white"><i style="width:50%"></i></div><div class="cb-num">21 (24%)</div></div>
+              <div class="cb"><div class="cb-lab"><span class="dot rose"></span>Rosé</div><div class="cb-bar rose"><i style="width:33%"></i></div><div class="cb-num">14 (16%)</div></div>
+              <div class="cb"><div class="cb-lab"><span class="dot orange"></span>Orange</div><div class="cb-bar orange"><i style="width:24%"></i></div><div class="cb-num">10 (12%)</div></div>
+            </div>
+
+            <div class="card sec" style="padding:18px">
+              <h3>Bald trinken <span style="font-weight:400;color:var(--color-text-maxcontrast);font-size:13px">— Trinkfenster läuft 2026/27 ab</span></h3>
+              <ul class="lst">
+                <li><span class="dot red"></span><strong>Château Clos Louie</strong> · Castillon Côtes de Bordeaux 2018 <span class="meta">bis 2026 · 3×</span></li>
+                <li><span class="dot rose"></span><strong>Domaine Tempier</strong> · Bandol Rosé 2021 <span class="meta">bis 2026 · 2×</span></li>
+                <li><span class="dot white"></span><strong>Weingut Knipser</strong> · Riesling Trocken 2020 <span class="meta">bis 2027 · 4×</span></li>
+                <li><span class="dot red"></span><strong>Domaine Marcel Lapierre</strong> · Morgon Cuvée Marcel 2019 <span class="meta">bis 2026 · 1×</span></li>
+              </ul>
+            </div>
+          </div>
+
+          <div>
+            <div class="card sec" style="padding:18px">
+              <h3>Letzte Verkostungen</h3>
+              <ul class="lst">
+                <li><span class="dot red"></span><strong>Sassicaia 2017</strong><div class="meta" style="margin-left:auto"><span class="rat"><span class="rval">9.2</span><span class="rbar"><i style="width:92%"></i></span></span></div></li>
+                <li><span class="dot red"></span><strong>Morgon Marcel 2019</strong><div class="meta" style="margin-left:auto"><span class="rat"><span class="rval">8.5</span><span class="rbar"><i style="width:85%"></i></span></span></div></li>
+                <li><span class="dot white"></span><strong>Riesling Knipser 2020</strong><div class="meta" style="margin-left:auto"><span class="rat"><span class="rval">8.0</span><span class="rbar"><i style="width:80%"></i></span></span></div></li>
+                <li><span class="dot rose"></span><strong>Bandol Tempier 2021</strong><div class="meta" style="margin-left:auto"><span class="rat"><span class="rval">7.5</span><span class="rbar"><i style="width:75%"></i></span></span></div></li>
+                <li><span class="dot orange"></span><strong>Radikon Jakot 2018</strong><div class="meta" style="margin-left:auto"><span class="rat"><span class="rval">8.8</span><span class="rbar"><i style="width:88%"></i></span></span></div></li>
+              </ul>
+            </div>
+
+            <div class="card sec" style="padding:18px">
+              <h3>Aktivität · Mai 2026</h3>
+              <ul class="lst">
+                <li><span class="chip stk">+ Kauf</span><span style="margin-left:6px">12 Flaschen · Château Clos Louie 2020</span><span class="meta">22.05.</span></li>
+                <li><span class="chip csm">Getrunken</span><span style="margin-left:6px">Sassicaia 2017</span><span class="meta">18.05.</span></li>
+                <li><span class="chip gft">Verschenkt</span><span style="margin-left:6px">2× Bandol Tempier 2021</span><span class="meta">12.04.</span></li>
+                <li><span class="chip stk">+ Kauf</span><span style="margin-left:6px">6× Riesling Knipser 2020</span><span class="meta">03.04.</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =============== BESTAND =============== -->
+      <div class="view" id="vbest">
+        <div class="head">
+          <h2>Bestand</h2>
+          <span class="muted" style="font-size:13px">87 Flaschen · 24 Weine · 8 Weingüter</span>
+          <div class="sp"></div>
+          <button class="btn btn-primary">+ Kauf erfassen</button>
+        </div>
+
+        <div class="subtabs">
+          <button class="active" id="bt-fl" onclick="bestab('fl')">Flaschen <span class="muted" style="font-weight:400">· 87</span></button>
+          <button id="bt-st" onclick="bestab('st')">Stammdaten <span class="muted" style="font-weight:400">· 8 Weingüter / 24 Weine / 37 Jahrgänge</span></button>
+        </div>
+
+        <!-- Sub-Tab: Flaschen -->
+        <div id="best-fl">
+          <div class="filters">
+            <div class="fld"><label>Farbe</label>
+              <select><option>alle</option><option>Rot</option><option>Weiß</option><option>Rosé</option><option>Orange</option></select>
+            </div>
+            <div class="fld"><label>Status</label>
+              <select><option>alle</option><option selected>Im Bestand</option><option>Parkzone</option><option>Getrunken</option><option>Verschenkt</option></select>
+            </div>
+            <div class="fld"><label>Jahrgang</label>
+              <input type="number" placeholder="z. B. 2020">
+            </div>
+            <div class="fld"><label>Weingut</label>
+              <select><option>alle</option><option>Château Clos Louie</option><option>Domaine Marcel Lapierre</option><option>Weingut Knipser</option></select>
+            </div>
+            <button class="reset">↺ Filter zurücksetzen</button>
+          </div>
+
+          <div class="card" style="padding:0">
+            <table class="tbl">
+              <thead><tr><th></th><th>Weingut</th><th>Wein</th><th>Jahrgang</th><th>Farbe</th><th>Status</th><th>Slot</th><th class="r">Bewertung</th></tr></thead>
+              <tbody>
+                <tr class="row"><td><span class="photo ph-red"></span></td><td>Château Clos Louie</td><td><span class="dot red"></span> Castillon Côtes de Bordeaux</td><td>2018</td><td>Rot</td><td><span class="chip stk">Im Bestand</span></td><td>Hauptregal · A3</td><td class="r"><span class="rat"><span class="rval">8.8</span><span class="rbar"><i style="width:88%"></i></span></span></td></tr>
+                <tr class="row"><td><span class="photo ph-red"></span></td><td>Domaine Marcel Lapierre</td><td><span class="dot red"></span> Morgon Cuvée Marcel</td><td>2019</td><td>Rot</td><td><span class="chip stk">Im Bestand</span></td><td>Hauptregal · B2</td><td class="r"><span class="rat"><span class="rval">8.5</span><span class="rbar"><i style="width:85%"></i></span></span></td></tr>
+                <tr class="row"><td><span class="photo ph-white"></span></td><td>Weingut Knipser</td><td><span class="dot white"></span> Riesling Trocken</td><td>2020</td><td>Weiß</td><td><span class="chip stk">Im Bestand</span></td><td>Keller · C1</td><td class="r"><span class="rat"><span class="rval">8.0</span><span class="rbar"><i style="width:80%"></i></span></span></td></tr>
+                <tr class="row"><td><span class="photo ph-rose"></span></td><td>Domaine Tempier</td><td><span class="dot rose"></span> Bandol Rosé</td><td>2021</td><td>Rosé</td><td><span class="chip pk">Parkzone</span></td><td class="muted">—</td><td class="r"><span class="rat"><span class="rval">7.5</span><span class="rbar"><i style="width:75%"></i></span></span></td></tr>
+                <tr class="row"><td><span class="photo ph-orange"></span></td><td>Radikon</td><td><span class="dot orange"></span> Jakot</td><td>2018</td><td>Orange</td><td><span class="chip stk">Im Bestand</span></td><td>Keller · A2</td><td class="r"><span class="rat"><span class="rval">8.8</span><span class="rbar"><i style="width:88%"></i></span></span></td></tr>
+                <tr class="row"><td><span class="photo ph-red"></span></td><td>Tenuta San Guido</td><td><span class="dot red"></span> Sassicaia</td><td>2017</td><td>Rot</td><td><span class="chip csm">Getrunken</span></td><td class="muted">18.05.2026</td><td class="r"><span class="rat"><span class="rval">9.2</span><span class="rbar"><i style="width:92%"></i></span></span></td></tr>
+                <tr class="row"><td><span class="photo ph-white"></span></td><td>Domaine Leflaive</td><td><span class="dot white"></span> Puligny-Montrachet</td><td>2019</td><td>Weiß</td><td><span class="chip stk">Im Bestand</span></td><td>Keller · A4</td><td class="r"><span class="muted">—</span></td></tr>
+                <tr class="row"><td><span class="photo ph-rose"></span></td><td>Domaine Tempier</td><td><span class="dot rose"></span> Bandol Rosé</td><td>2021</td><td>Rosé</td><td><span class="chip gft">Verschenkt</span></td><td class="muted">12.04.2026</td><td class="r"><span class="muted">—</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Sub-Tab: Stammdaten -->
+        <div id="best-st" style="display:none">
+          <div class="minitabs">
+            <button class="active" id="st-pr" onclick="stamm('pr')">Weingüter · 8</button>
+            <button id="st-wi" onclick="stamm('wi')">Weine · 24</button>
+            <button id="st-vi" onclick="stamm('vi')">Jahrgänge · 37</button>
+          </div>
+
+          <div id="stamm-pr">
+            <div class="card" style="padding:0">
+              <table class="tbl">
+                <thead><tr><th>Weingut</th><th>Region</th><th>Land</th><th class="r">Weine</th><th class="r"></th></tr></thead>
+                <tbody>
+                  <tr class="row"><td><strong>Château Clos Louie</strong></td><td>Castillon</td><td>Frankreich</td><td class="r">2</td><td class="r muted">✎ ⋯</td></tr>
+                  <tr class="row"><td><strong>Domaine Marcel Lapierre</strong></td><td>Beaujolais</td><td>Frankreich</td><td class="r">3</td><td class="r muted">✎ ⋯</td></tr>
+                  <tr class="row"><td><strong>Domaine Tempier</strong></td><td>Bandol</td><td>Frankreich</td><td class="r">2</td><td class="r muted">✎ ⋯</td></tr>
+                  <tr class="row"><td><strong>Domaine Leflaive</strong></td><td>Burgund</td><td>Frankreich</td><td class="r">4</td><td class="r muted">✎ ⋯</td></tr>
+                  <tr class="row"><td><strong>Weingut Knipser</strong></td><td>Pfalz</td><td>Deutschland</td><td class="r">5</td><td class="r muted">✎ ⋯</td></tr>
+                  <tr class="row"><td><strong>Radikon</strong></td><td>Friaul</td><td>Italien</td><td class="r">3</td><td class="r muted">✎ ⋯</td></tr>
+                  <tr class="row"><td><strong>Tenuta San Guido</strong></td><td>Toskana</td><td>Italien</td><td class="r">2</td><td class="r muted">✎ ⋯</td></tr>
+                  <tr class="row"><td><strong>Weingut Keller</strong></td><td>Rheinhessen</td><td>Deutschland</td><td class="r">3</td><td class="r muted">✎ ⋯</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="stamm-wi" style="display:none">
+            <div class="card" style="padding:0">
+              <table class="tbl">
+                <thead><tr><th>Wein (Cuvée)</th><th>Weingut</th><th>Farbe</th><th>Appellation</th><th class="r">Jahrgänge</th></tr></thead>
+                <tbody>
+                  <tr class="row"><td><strong>Castillon Côtes de Bordeaux</strong></td><td>Château Clos Louie</td><td><span class="dot red"></span> Rot</td><td>Castillon</td><td class="r">3</td></tr>
+                  <tr class="row"><td><strong>Morgon Cuvée Marcel</strong></td><td>Domaine Marcel Lapierre</td><td><span class="dot red"></span> Rot</td><td>Morgon</td><td class="r">4</td></tr>
+                  <tr class="row"><td><strong>Bandol Rosé</strong></td><td>Domaine Tempier</td><td><span class="dot rose"></span> Rosé</td><td>Bandol AOC</td><td class="r">2</td></tr>
+                  <tr class="row"><td><strong>Puligny-Montrachet</strong></td><td>Domaine Leflaive</td><td><span class="dot white"></span> Weiß</td><td>Puligny-Montrachet</td><td class="r">2</td></tr>
+                  <tr class="row"><td><strong>Riesling Trocken</strong></td><td>Weingut Knipser</td><td><span class="dot white"></span> Weiß</td><td>Pfalz</td><td class="r">3</td></tr>
+                  <tr class="row"><td><strong>Jakot</strong></td><td>Radikon</td><td><span class="dot orange"></span> Orange</td><td>Venezia Giulia</td><td class="r">2</td></tr>
+                  <tr class="row"><td><strong>Sassicaia</strong></td><td>Tenuta San Guido</td><td><span class="dot red"></span> Rot</td><td>Bolgheri DOC</td><td class="r">3</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="stamm-vi" style="display:none">
+            <div class="card" style="padding:0">
+              <table class="tbl">
+                <thead><tr><th>Jahr</th><th>Wein</th><th>Rebsorten</th><th>Alk %</th><th>Trinken</th><th class="r">Externe Bewertung</th></tr></thead>
+                <tbody>
+                  <tr class="row"><td><strong>2018</strong></td><td><span class="dot red"></span> Castillon Côtes de Bordeaux</td><td>Merlot 70%, Cab. Franc 30%</td><td>13,5</td><td>2022 – 2030</td><td class="r"><span class="muted">Parker</span> <strong>92</strong></td></tr>
+                  <tr class="row"><td><strong>2019</strong></td><td><span class="dot red"></span> Morgon Cuvée Marcel</td><td>Gamay 100%</td><td>13,0</td><td>2021 – 2026</td><td class="r"><span class="muted">RVF</span> <strong>16,5</strong></td></tr>
+                  <tr class="row"><td><strong>2020</strong></td><td><span class="dot white"></span> Riesling Trocken</td><td>Riesling 100%</td><td>12,5</td><td>2022 – 2027</td><td class="r"><span class="muted">Gault</span> <strong>91</strong></td></tr>
+                  <tr class="row"><td><strong>2017</strong></td><td><span class="dot red"></span> Sassicaia</td><td>Cab. Sauv. 85%, Cab. Franc 15%</td><td>14,0</td><td>2022 – 2040</td><td class="r"><span class="muted">Parker</span> <strong>95</strong></td></tr>
+                  <tr class="row"><td><strong>2021</strong></td><td><span class="dot rose"></span> Bandol Rosé</td><td>Mourvèdre 60%, Cinsault 25%, Grenache 15%</td><td>13,0</td><td>2022 – 2026</td><td class="r muted">—</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =============== REGAL =============== -->
+      <div class="view" id="vreg">
+        <div class="head">
+          <h2>Regal</h2>
+          <div class="sp"></div>
+          <button class="btn btn-sec">⚙ Regal konfigurieren</button>
+          <button class="btn btn-primary">+ Neues Regal</button>
+        </div>
+
+        <div class="shelf-layout">
+          <div class="pz">
+            <h3>Parkzone <span class="pzn">5</span></h3>
+            <div class="pzh">Drag & Drop in einen Slot</div>
+            <div class="pz-list">
+              <div class="pz-item"><span class="dot rose"></span><span class="pz-title">Bandol Rosé</span><span class="pz-year">2021</span></div>
+              <div class="pz-item"><span class="dot red"></span><span class="pz-title">Castillon</span><span class="pz-year">2020</span></div>
+              <div class="pz-item"><span class="dot red"></span><span class="pz-title">Castillon</span><span class="pz-year">2020</span></div>
+              <div class="pz-item"><span class="dot white"></span><span class="pz-title">Riesling Trocken</span><span class="pz-year">2021</span></div>
+              <div class="pz-item"><span class="dot orange"></span><span class="pz-title">Jakot</span><span class="pz-year">2019</span></div>
+            </div>
+          </div>
+
+          <div class="shelf-area">
+            <div class="shelf-tabs">
+              <button class="shelf-tab active">Hauptregal</button>
+              <button class="shelf-tab">Keller</button>
+              <button class="shelf-tab">Dekanter-Ablage</button>
+              <button class="shelf-tab add">+</button>
+            </div>
+
+            <div class="shelf-grid">
+              <div class="lvl">
+                <div class="lvl-h"><span class="lvl-name">Ebene A · Top</span><span>6 / 6 belegt</span></div>
+                <div class="slots">
+                  <div class="slot fill red"><span class="slot-id">A1</span>Castillon<span class="yr">2018</span></div>
+                  <div class="slot fill red"><span class="slot-id">A2</span>Castillon<span class="yr">2018</span></div>
+                  <div class="slot fill red"><span class="slot-id">A3</span>Castillon<span class="yr">2018</span></div>
+                  <div class="slot fill red"><span class="slot-id">A4</span>Morgon<span class="yr">2019</span></div>
+                  <div class="slot fill red"><span class="slot-id">A5</span>Morgon<span class="yr">2019</span></div>
+                  <div class="slot fill red"><span class="slot-id">A6</span>Sassicaia<span class="yr">2018</span></div>
+                </div>
+              </div>
+              <div class="lvl">
+                <div class="lvl-h"><span class="lvl-name">Ebene B · Mitte</span><span>5 / 6 belegt</span></div>
+                <div class="slots">
+                  <div class="slot fill white"><span class="slot-id">B1</span>Puligny<span class="yr">2019</span></div>
+                  <div class="slot fill white"><span class="slot-id">B2</span>Riesling<span class="yr">2020</span></div>
+                  <div class="slot fill white"><span class="slot-id">B3</span>Riesling<span class="yr">2020</span></div>
+                  <div class="slot fill orange"><span class="slot-id">B4</span>Jakot<span class="yr">2018</span></div>
+                  <div class="slot fill orange"><span class="slot-id">B5</span>Jakot<span class="yr">2018</span></div>
+                  <div class="slot empty"><span class="slot-id">B6</span>frei</div>
+                </div>
+              </div>
+              <div class="lvl">
+                <div class="lvl-h"><span class="lvl-name">Ebene C · Unten</span><span>3 / 6 belegt</span></div>
+                <div class="slots">
+                  <div class="slot fill rose"><span class="slot-id">C1</span>Bandol Rosé<span class="yr">2020</span></div>
+                  <div class="slot fill red"><span class="slot-id">C2</span>Morgon<span class="yr">2020</span></div>
+                  <div class="slot fill red"><span class="slot-id">C3</span>Morgon<span class="yr">2020</span></div>
+                  <div class="slot empty"><span class="slot-id">C4</span>frei</div>
+                  <div class="slot empty"><span class="slot-id">C5</span>frei</div>
+                  <div class="slot empty"><span class="slot-id">C6</span>frei</div>
+                </div>
+              </div>
+
+              <div class="shelf-legend">
+                <span><span class="sw red"></span> Rot</span>
+                <span><span class="sw white"></span> Weiß</span>
+                <span><span class="sw rose"></span> Rosé</span>
+                <span><span class="sw orange"></span> Orange</span>
+                <span><span class="sw empty"></span> frei</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- =============== VERKOSTUNGEN =============== -->
+      <div class="view" id="vverk">
+        <div class="head">
+          <h2>Verkostungen</h2>
+          <span class="muted" style="font-size:13px">42 Verkostungen · ⌀ 8,2</span>
+          <div class="sp"></div>
+          <div class="seg"><button class="active">Liste</button><button>Galerie</button></div>
+          <button class="btn btn-primary">🍾 Flasche entkorken</button>
+        </div>
+
+        <div class="kpis" style="grid-template-columns:repeat(4,1fr)">
+          <div class="card kpi"><div class="lab">Verkostungen 2026</div><div class="num">14</div><div class="sub">davon 6 im Mai</div></div>
+          <div class="card kpi"><div class="lab">Ø Bewertung</div><div class="num">8,2 <small>/ 10</small></div><div class="sub">über alle Verkostungen</div></div>
+          <div class="card kpi"><div class="lab">Bester Wein</div><div class="num" style="color:var(--color-primary)">9,2</div><div class="sub">Sassicaia 2017</div></div>
+          <div class="card kpi"><div class="lab">Mit Fotos</div><div class="num">28 <small>/ 42</small></div><div class="sub">67% dokumentiert</div></div>
+        </div>
+
+        <div class="card" style="padding:0">
+          <table class="tbl">
+            <thead><tr><th>Datum</th><th>Weingut</th><th>Wein</th><th>Jahrgang</th><th>Bewertung</th><th>Anlass</th><th>Notizen</th><th></th></tr></thead>
+            <tbody>
+              <tr class="row"><td>29.05.2026</td><td>Tenuta San Guido</td><td><span class="dot red"></span> Sassicaia</td><td>2017</td><td><span class="rat"><span class="rval">9.2</span><span class="rbar"><i style="width:92%"></i></span></span></td><td>Geburtstag Anna</td><td class="muted">Dunkle Kirsche, Lakritze, sehr lang.</td><td>📷 3</td></tr>
+              <tr class="row"><td>22.05.2026</td><td>Domaine Marcel Lapierre</td><td><span class="dot red"></span> Morgon Cuvée Marcel</td><td>2019</td><td><span class="rat"><span class="rval">8.5</span><span class="rbar"><i style="width:85%"></i></span></span></td><td>Sonntagsessen</td><td class="muted">Gewohnt zugänglich, schöne Frische.</td><td>📷 1</td></tr>
+              <tr class="row"><td>18.05.2026</td><td>Weingut Knipser</td><td><span class="dot white"></span> Riesling Trocken</td><td>2020</td><td><span class="rat"><span class="rval">8.0</span><span class="rbar"><i style="width:80%"></i></span></span></td><td>Apero</td><td class="muted">Mineralisch, Zitrus, gut gekühlt.</td><td>—</td></tr>
+              <tr class="row"><td>12.05.2026</td><td>Radikon</td><td><span class="dot orange"></span> Jakot</td><td>2018</td><td><span class="rat"><span class="rval">8.8</span><span class="rbar"><i style="width:88%"></i></span></span></td><td>mit Markus</td><td class="muted">Komplex, oxidativ, Honig & Nüsse.</td><td>📷 2</td></tr>
+              <tr class="row"><td>08.05.2026</td><td>Domaine Tempier</td><td><span class="dot rose"></span> Bandol Rosé</td><td>2021</td><td><span class="rat"><span class="rval">7.5</span><span class="rbar"><i style="width:75%"></i></span></span></td><td>Terrasse</td><td class="muted">Fruchtig, etwas zu jung noch.</td><td>📷 1</td></tr>
+              <tr class="row"><td>02.05.2026</td><td>Château Clos Louie</td><td><span class="dot red"></span> Castillon</td><td>2018</td><td><span class="rat"><span class="rval">8.8</span><span class="rbar"><i style="width:88%"></i></span></span></td><td>Maifeiertag</td><td class="muted">Reife, weicher Tannin, Pflaume.</td><td>📷 4</td></tr>
+              <tr class="row"><td>24.04.2026</td><td>Domaine Leflaive</td><td><span class="dot white"></span> Puligny-Montrachet</td><td>2019</td><td><span class="rat"><span class="rval">9.0</span><span class="rbar"><i style="width:90%"></i></span></span></td><td>Jahrestag</td><td class="muted">Druckvoll, Steinobst, lang am Gaumen.</td><td>📷 2</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- =============== MODAL-SHOWCASE =============== -->
+      <div class="view" id="vmod">
+        <div class="head">
+          <h2>Modale Flows</h2>
+          <div class="sp"></div>
+          <span class="muted" style="font-size:13px">Zwei zentrale Eingabe-Flows als Vorschau</span>
+        </div>
+        <div class="viewnote">In der echten App öffnen diese Modale aus dem Bestand oder Regal heraus. Hier nebeneinander zum Vergleich. Beide nutzen das gleiche Form-System (NC-Rundung 8px, kräftige Borders, Sub-Labels in Grau).</div>
+
+        <div class="modal-stage">
+          <!-- PurchaseWizard -->
+          <div class="modal-frame">
+            <div class="mf-title">Kauf erfassen · Schritt 3 von 4 · Jahrgang <span class="x">✕</span></div>
+            <div class="mf-body">
+              <div class="stepper">
+                <div class="stp done"></div>
+                <div class="stp done"></div>
+                <div class="stp cur"></div>
+                <div class="stp"></div>
+              </div>
+              <div class="steplab">Weingut ✓ &nbsp;·&nbsp; Wein ✓ &nbsp;·&nbsp; <strong>Jahrgang</strong> &nbsp;·&nbsp; Kauf</div>
+
+              <p class="hint">Hier landen nur Angaben, die <strong>diesen Jahrgang</strong> betreffen (Wetter/Lese, jahrgangsspezifische Bewertungen, Trinkfenster). Allgemeines zur Cuvée gehört in Schritt 2.</p>
+
+              <div class="frow">
+                <div class="fld"><label>Jahr *</label><input value="2020"></div>
+                <div class="fld"><label>Alkohol %</label><input value="13.5"></div>
+              </div>
+              <div class="fld"><label>Rebsorten (jahrgangsspezifisch)</label><input value="Merlot 70%, Cabernet Franc 30%"></div>
+              <div class="frow">
+                <div class="fld"><label>Trinken ab</label><input value="2024"></div>
+                <div class="fld"><label>Trinken bis</label><input value="2032"></div>
+              </div>
+              <div class="frow">
+                <div class="fld"><label>Externe Bewertung</label><input value="92"></div>
+                <div class="fld"><label>Quelle</label><input value="Parker"></div>
+              </div>
+              <div class="fld"><label>Jahrgangsnotizen</label><textarea>Sehr trockener Sommer 2020, sehr konzentrierte Lese. Parker: dunkle Kirsche, Tabak, langes Finale.</textarea></div>
+            </div>
+            <div class="mf-actions">
+              <button class="btn btn-sec">‹ Zurück</button>
+              <button class="btn btn-primary">Weiter ›</button>
+            </div>
+          </div>
+
+          <!-- TastingDialog -->
+          <div class="modal-frame">
+            <div class="mf-title">Flasche öffnen + Verkostung <span class="x">✕</span></div>
+            <div class="mf-body">
+              <p class="hint" style="margin-top:0">Die Flasche wird als „getrunken" markiert und der Slot freigegeben.</p>
+
+              <div class="fld"><label>Wein</label>
+                <div style="display:flex;align-items:center;gap:10px;padding:8px 11px;border:1px solid var(--color-border);border-radius:var(--radius-el);background:var(--color-background-hover)">
+                  <span class="dot red" style="width:14px;height:14px"></span>
+                  <strong>Castillon Côtes de Bordeaux 2018</strong>
+                  <span class="muted">· Château Clos Louie · Slot A3</span>
+                </div>
+              </div>
+              <div class="fld"><label>Datum (max heute)</label><input type="date" value="2026-05-29" max="2026-05-31"></div>
+              <div class="fld"><label>Bewertung (0,5 – 10)</label>
+                <div class="rating-row">
+                  <input type="range" min="0.5" max="10" step="0.5" value="8.8">
+                  <span class="rv">8.8</span>
+                </div>
+              </div>
+              <div class="fld"><label>Notizen</label><textarea>Reife dunkle Frucht, weicher Tannin, Pflaume, langes Finale. Sehr gut auf dem Punkt.</textarea></div>
+              <div class="frow">
+                <div class="fld"><label>Anlass</label><input value="Maifeiertag"></div>
+                <div class="fld"><label>Begleitung</label><input value="Anna, Markus"></div>
+              </div>
+              <div class="fld"><label>Fotos</label>
+                <div class="photo-row">
+                  <div class="photo-thumb"><span class="x">✕</span></div>
+                  <div class="photo-thumb b"><span class="x">✕</span></div>
+                  <div class="photo-thumb c"><span class="x">✕</span></div>
+                  <div class="photo-add">+</div>
+                </div>
+              </div>
+            </div>
+            <div class="mf-actions">
+              <button class="btn btn-sec">Abbrechen</button>
+              <button class="btn btn-primary">Flasche öffnen</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="foot-note">
+  Vinarium UI-Konzept v1 · 31.05.2026 · NC-faithful · gedämpfte Weinfarben nur als Listen-Akzent
+</div>
+
+<script>
+function nav(view){
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('show',v.id===view));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.view===view));
+  document.querySelectorAll('.modeseg button').forEach((b,i)=>{
+    const map=['vdash','vbest','vreg','vverk','vmod'];
+    b.classList.toggle('active',map[i]===view);
+  });
+}
+function bestab(t){
+  document.getElementById('bt-fl').classList.toggle('active',t==='fl');
+  document.getElementById('bt-st').classList.toggle('active',t==='st');
+  document.getElementById('best-fl').style.display=t==='fl'?'block':'none';
+  document.getElementById('best-st').style.display=t==='st'?'block':'none';
+}
+function stamm(t){
+  document.getElementById('st-pr').classList.toggle('active',t==='pr');
+  document.getElementById('st-wi').classList.toggle('active',t==='wi');
+  document.getElementById('st-vi').classList.toggle('active',t==='vi');
+  document.getElementById('stamm-pr').style.display=t==='pr'?'block':'none';
+  document.getElementById('stamm-wi').style.display=t==='wi'?'block':'none';
+  document.getElementById('stamm-vi').style.display=t==='vi'?'block':'none';
+}
+</script>
+</body>
+</html>
