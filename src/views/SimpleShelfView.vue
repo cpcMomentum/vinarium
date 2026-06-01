@@ -739,7 +739,7 @@ async function loadAllSlots() {
 	flex-direction: column;
 	max-height: calc(100vh - 140px);
 	background: #fff;
-	border: 1.5px solid #999;
+	border: 1px solid #aaa;
 	border-radius: 12px;
 	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 	padding: 14px;
@@ -950,7 +950,7 @@ async function loadAllSlots() {
 /* Compartment als self-fitting Card (Card-System aus Dashboard v4) */
 .compartment {
 	background: #fff;
-	border: 1.5px solid #999;
+	border: 1px solid #aaa;
 	border-radius: 12px;
 	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 	overflow: hidden;
@@ -1071,7 +1071,7 @@ async function loadAllSlots() {
 	flex: 0 0 var(--slot-w);
 	width: var(--slot-w);
 	height: 72px;
-	border: 1.5px solid #888;
+	border: 1px solid #999;
 	background: #fff;
 	color: var(--color-text-maxcontrast);
 	display: flex;
