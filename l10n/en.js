@@ -102,7 +102,6 @@ OC.L10N.register(
     "Parkzone": "Parking zone",
     "{label}, E{level}, H{col}": "{label}, L{level}, B{col}",
     "{label}, E{level}, V{col}": "{label}, L{level}, F{col}",
-    "+ Kauf erfassen": "+ Record purchase",
     "Weingüter": "Producers",
     "Jahrgänge": "Vintages",
     "Käufe": "Purchases",
