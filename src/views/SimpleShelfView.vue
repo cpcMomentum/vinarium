@@ -1,23 +1,33 @@
 <template>
 	<div class="shelf-view">
-		<div class="shelf-layout">
-			<div class="shelf-main">
-				<div class="shelf-head">
-				<header class="shelf-view__header">
-					<h2>{{ t('vinarium', 'Regal') }}</h2>
-					<NcButton variant="primary" @click="newShelfOpen = true">{{ t('vinarium', '+ Neues Regal') }}</NcButton>
-				</header>
+		<header class="shelf-view__top">
+			<h2>{{ t('vinarium', 'Weinkeller') }}</h2>
+			<div class="shelf-view__top-actions">
+				<NcButton
+					v-if="activeShelf && activeShelf.compartments.length === 1"
+					@click="openConfig(activeShelf.compartments[0])"
+				>
+					⚙ {{ t('vinarium', 'Regal konfigurieren') }}
+				</NcButton>
+				<NcButton variant="primary" @click="newShelfOpen = true">{{ t('vinarium', '+ Neues Regal') }}</NcButton>
+			</div>
+		</header>
 
-				<!-- Parkzone (immer sichtbar, unabhaengig vom Cellar) -->
+		<div class="shelf-layout">
+			<!-- Parkzone als sticky linke Spalte -->
+			<aside class="parkzone-col">
 				<section
 					:class="['parkzone', { 'parkzone--drag-over': parkzoneDragOver }]"
 					@dragover.prevent="parkzoneDragOver = true"
 					@dragleave="onParkzoneDragLeave"
 					@drop.prevent="onDropToParkzone"
 				>
-					<h3>{{ t('vinarium', 'Parkzone ({n})', { n: parkedBottles.length }) }}</h3>
+					<h3 class="parkzone__title">
+						{{ t('vinarium', 'Parkzone') }}
+						<span class="parkzone__count">{{ parkedBottles.length }}</span>
+					</h3>
 					<template v-if="parkedBottles.length > 0">
-						<p class="muted">{{ t('vinarium', 'Flaschen per Drag & Drop in einen Slot ziehen.') }}</p>
+						<p class="parkzone__hint">{{ t('vinarium', 'Flaschen per Drag & Drop in einen Slot ziehen.') }}</p>
 						<ul class="park-list">
 							<li
 								v-for="b in parkedBottles"
@@ -35,7 +45,11 @@
 					</template>
 					<p v-else class="empty-park">{{ t('vinarium', 'Keine Flaschen in der Parkzone.') }}</p>
 				</section>
+			</aside>
 
+			<div class="shelf-main">
+				<div class="shelf-main__inner">
+				<div class="shelf-head">
 				<!-- Regal-Tabs (immer sichtbar) -->
 				<div class="shelf-tabs">
 					<div
@@ -79,6 +93,7 @@
 				<div v-else-if="activeShelf" class="shelves">
 
 						<div v-for="compData in activeShelf.compartments" :key="compData.compartment.id" class="compartment">
+							<!-- Compartment-Header immer rendern (Card-Header mit Title und Hover-Actions) -->
 							<div class="compartment__header">
 								<input
 									v-if="renamingCompartmentId === compData.compartment.id"
@@ -103,70 +118,93 @@
 								>✕</button>
 							</div>
 
-							<div v-for="level in reversedLevels(compData.levels)" :key="level.id" class="level">
-								<div class="level__label-col">
-									<span class="level__label">{{ t('vinarium', 'Ebene {n}', { n: level.levelNumber + 1 }) }}</span>
+							<div
+								v-for="(level, idx) in reversedLevels(compData.levels)"
+								:key="level.id"
+								class="level"
+								:style="{
+									'--front-cols': level.columnsFront,
+									'--back-cols': level.columnsBack ?? 0,
+									'--max-cols': Math.max(level.columnsFront, level.columnsBack ?? 0),
+								}"
+							>
+								<div class="level__header">
+									<span class="level__title">
+										{{ t('vinarium', 'Ebene') }} {{ level.levelNumber + 1 }}<span v-if="levelPositionLabel(idx, compData.levels.length)" class="level__position"> · {{ levelPositionLabel(idx, compData.levels.length) }}</span>
+									</span>
+									<span class="level__occupancy">
+										<strong>{{ levelOccupancy(compData.compartment.id, level.levelNumber).filled }}</strong>
+										/ {{ levelOccupancy(compData.compartment.id, level.levelNumber).total }} {{ t('vinarium', 'belegt') }}
+									</span>
 								</div>
-								<div class="level__content">
-									<div v-if="level.columnsBack !== null" class="row-group">
-										<span class="row-label">{{ t('vinarium', 'Hinten') }}</span>
-										<div class="slot-row">
-											<div
-												v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'back')"
-												:key="slot.id"
-												:class="['slot', slotClasses(slot.id)]"
-												:style="bottleInSlot(slot.id) ? { background: cssColorFor(bottleInSlot(slot.id)!.wine_color) } : {}"
-												:title="slotTooltip(slot)"
-												@dragover.prevent="onDragOver(slot.id, $event)"
-												@dragleave="onDragLeave($event)"
-												@drop.prevent="onDrop(slot.id)"
-												@click="onSlotClick(slot.id)"
-											>
-												<div
-													v-if="bottleInSlot(slot.id)"
-													class="slot__bottle"
-													draggable="true"
-													@dragstart.stop="onDragStart(bottleInSlot(slot.id)!.id, $event)"
-													@dragend="onDragEnd"
-												>
-													<span class="slot__name">{{ bottleFullName(slot.id) }}</span>
-													<span class="slot__year">{{ bottleYear(slot.id) }}</span>
-												</div>
-											</div>
+
+								<!-- Hinten (oben, versetzt) -->
+								<div v-if="level.columnsBack !== null && level.columnsBack > 0" class="slot-row slot-row--back">
+									<div
+										v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'back')"
+										:key="slot.id"
+										:class="['slot', slotClasses(slot.id)]"
+										:style="bottleInSlot(slot.id) ? { background: cssSlotGradient(bottleInSlot(slot.id)!.wine_color) } : {}"
+										:title="slotTooltip(slot)"
+										@dragover.prevent="onDragOver(slot.id, $event)"
+										@dragleave="onDragLeave($event)"
+										@drop.prevent="onDrop(slot.id)"
+										@click="onSlotClick(slot.id)"
+									>
+										<span class="slot__id">{{ slotShortId(slot) }}<span class="slot__id-h">H</span></span>
+										<div
+											v-if="bottleInSlot(slot.id)"
+											class="slot__bottle"
+											draggable="true"
+											@dragstart.stop="onDragStart(bottleInSlot(slot.id)!.id, $event)"
+											@dragend="onDragEnd"
+										>
+											<span class="slot__name">{{ bottleFullName(slot.id) }}</span>
+											<span class="slot__year">{{ bottleYear(slot.id) }}</span>
 										</div>
 									</div>
-									<div class="row-group">
-										<span class="row-label">{{ t('vinarium', 'Vorne') }}</span>
-										<div class="slot-row">
-											<div
-												v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'front')"
-												:key="slot.id"
-												:class="['slot', slotClasses(slot.id)]"
-												:style="bottleInSlot(slot.id) ? { background: cssColorFor(bottleInSlot(slot.id)!.wine_color) } : {}"
-												:title="slotTooltip(slot)"
-												@dragover.prevent="onDragOver(slot.id, $event)"
-												@dragleave="onDragLeave($event)"
-												@drop.prevent="onDrop(slot.id)"
-												@click="onSlotClick(slot.id)"
-											>
-												<div
-													v-if="bottleInSlot(slot.id)"
-													class="slot__bottle"
-													draggable="true"
-													@dragstart.stop="onDragStart(bottleInSlot(slot.id)!.id, $event)"
-													@dragend="onDragEnd"
-												>
-													<span class="slot__name">{{ bottleFullName(slot.id) }}</span>
-													<span class="slot__year">{{ bottleYear(slot.id) }}</span>
-												</div>
-											</div>
+								</div>
+
+								<!-- Vorne (Hauptreihe unten) -->
+								<div class="slot-row slot-row--front">
+									<div
+										v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'front')"
+										:key="slot.id"
+										:class="['slot', slotClasses(slot.id)]"
+										:style="bottleInSlot(slot.id) ? { background: cssSlotGradient(bottleInSlot(slot.id)!.wine_color) } : {}"
+										:title="slotTooltip(slot)"
+										@dragover.prevent="onDragOver(slot.id, $event)"
+										@dragleave="onDragLeave($event)"
+										@drop.prevent="onDrop(slot.id)"
+										@click="onSlotClick(slot.id)"
+									>
+										<span class="slot__id">{{ slotShortId(slot) }}</span>
+										<div
+											v-if="bottleInSlot(slot.id)"
+											class="slot__bottle"
+											draggable="true"
+											@dragstart.stop="onDragStart(bottleInSlot(slot.id)!.id, $event)"
+											@dragend="onDragEnd"
+										>
+											<span class="slot__name">{{ bottleFullName(slot.id) }}</span>
+											<span class="slot__year">{{ bottleYear(slot.id) }}</span>
 										</div>
 									</div>
 								</div>
 							</div>
 						</div>
 
-						<div class="add-compartment-row">
+						<!-- Legende + Aktionen -->
+						<div class="shelf-footer">
+							<div class="shelf-legend">
+								<span><span class="legend-sw legend-sw--red"></span> {{ t('vinarium', 'Rot') }}</span>
+								<span><span class="legend-sw legend-sw--white"></span> {{ t('vinarium', 'Weiß') }}</span>
+								<span><span class="legend-sw legend-sw--rose"></span> {{ t('vinarium', 'Rosé') }}</span>
+								<span><span class="legend-sw legend-sw--sparkling"></span> {{ t('vinarium', 'Schaumwein') }}</span>
+								<span><span class="legend-sw legend-sw--dessert"></span> {{ t('vinarium', 'Dessertwein') }}</span>
+								<span><span class="legend-sw legend-sw--fortified"></span> {{ t('vinarium', 'Likörwein') }}</span>
+								<span><span class="legend-sw legend-sw--empty"></span> {{ t('vinarium', 'frei') }}</span>
+							</div>
 							<NcButton :disabled="addingCompartment" @click="onAddCompartment">
 								{{ t('vinarium', '+ Fach hinzufügen') }}
 							</NcButton>
@@ -174,16 +212,17 @@
 					</div>
 
 				<p v-if="errorMsg" class="error">{{ errorMsg }}</p>
+				</div>
+				<BottleDetailPanel
+					v-if="detailBottleId !== null"
+					:bottleId="detailBottleId"
+					@close="closeDetail"
+					@uncork="onUncork"
+					@gift="onGift"
+					@lose="onLose"
+				/>
 			</div>
 
-			<BottleDetailPanel
-				v-if="detailBottleId !== null"
-				:bottleId="detailBottleId"
-				@close="closeDetail"
-				@uncork="onUncork"
-				@gift="onGift"
-				@lose="onLose"
-			/>
 		</div>
 
 		<NewShelfDialog :open="newShelfOpen" @close="newShelfOpen = false" @created="onShelfCreated" />
@@ -242,7 +281,7 @@ import type { BottleListItem, CompartmentWithLevels, Level, Slot, WineColor } fr
 import type { CellarResponse } from '@/api/cellar'
 import { addCompartment, destroyCompartment, destroyShelf, fetchCellar, fetchSlots, updateCompartment, updateShelf } from '@/api/cellar'
 import { useBottleStore } from '@/stores/bottleStore'
-import { cssColorFor } from '@/utils/wineColors'
+import { cssColorFor, cssSlotGradient } from '@/utils/wineColors'
 
 const store = useBottleStore()
 
@@ -296,8 +335,34 @@ function bottleYear(slotId: number): string {
 	return b ? String(b.year) : ''
 }
 
+/** Ebenen sortiert für die Anzeige: Top zuerst (höchste Nummer oben) — Ebene 1 ist also unten */
 function reversedLevels(levels: Level[]): Level[] {
 	return [...levels].sort((a, b) => b.levelNumber - a.levelNumber)
+}
+
+/** Positions-Label (TOP / MITTE / BODEN) je nach Ebenen-Position */
+function levelPositionLabel(idx: number, total: number): string {
+	if (total === 1) return ''
+	if (idx === 0) return t('vinarium', 'TOP')
+	if (idx === total - 1) return t('vinarium', 'BODEN')
+	if (total === 3) return t('vinarium', 'MITTE')
+	if (idx === Math.floor(total / 2)) return t('vinarium', 'MITTE')
+	return ''
+}
+
+/** Slot-ID nur Spaltenzahl, weil Ebene schon im Header steht (Hinten bekommt H-Suffix im Template) */
+function slotShortId(slot: Slot): string {
+	return String(slot.column + 1)
+}
+
+/** Belegung pro Ebene (alle Slots dieser Ebene über vorne + hinten) */
+function levelOccupancy(compartmentId: number, levelNumber: number): { filled: number; total: number } {
+	const slots = allSlots.value.filter(s => s.compartmentId === compartmentId && s.level === levelNumber)
+	let filled = 0
+	for (const s of slots) {
+		if (bottleInSlot(s.id) !== undefined) filled++
+	}
+	return { filled, total: slots.length }
 }
 
 function slotsFor(compartmentId: number, levelNumber: number, row: string): Slot[] {
@@ -654,20 +719,145 @@ async function loadAllSlots() {
 	padding: 2rem 2rem 2rem 50px;
 }
 .shelf-layout {
-	display: flex;
-	align-items: flex-start;
-	gap: 1.5rem;
+	display: grid;
+	grid-template-columns: 280px 1fr;
+	gap: 18px;
+	align-items: start;
 	max-width: 1300px;
 }
-.shelf-main {
+@media (max-width: 900px) {
+	.shelf-layout { grid-template-columns: 1fr; }
+}
+
+/* Parkzone als sticky linke Spalte */
+.parkzone-col {
+	position: sticky;
+	top: 0;
+}
+.parkzone {
+	display: flex;
+	flex-direction: column;
+	max-height: calc(100vh - 140px);
+	background: #fff;
+	border: 1px solid var(--color-border, #d2d4d7);
+	border-radius: 12px;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+	padding: 14px;
+}
+.parkzone--drag-over {
+	background: var(--color-primary-element-light, #e8f0fe);
+	border-color: var(--color-primary-element);
+}
+.parkzone__title {
+	font-size: 15px;
+	font-weight: 600;
+	margin: 0 0 4px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-shrink: 0;
+}
+.parkzone__count {
+	font-size: 11.5px;
+	font-weight: 600;
+	background: #e9f0f9;
+	color: #5481b8;
+	border-radius: 10px;
+	padding: 2px 9px;
+}
+.parkzone__hint {
+	font-size: 12px;
+	color: var(--color-text-maxcontrast);
+	margin: 0 0 10px;
+	flex-shrink: 0;
+}
+.empty-park {
+	color: var(--color-text-maxcontrast);
+	font-style: italic;
+	margin: 0;
+	font-size: 13px;
+}
+.park-list {
+	list-style: none;
+	padding: 0 4px 0 0;
+	margin: 0 -4px 0 0;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	overflow-y: auto;
 	flex: 1;
+	min-height: 0;
+}
+.park-list { scrollbar-width: thin; scrollbar-color: var(--color-background-dark) transparent; }
+.park-list::-webkit-scrollbar { width: 6px; }
+.park-list::-webkit-scrollbar-thumb { background: var(--color-background-dark); border-radius: 3px; }
+.park-list::-webkit-scrollbar-thumb:hover { background: #c8c9cc; }
+
+.park-card {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 10px;
+	background: #fff;
+	border: 1px solid var(--color-border-light, #e2e3e5);
+	border-radius: var(--border-radius-element, 8px);
+	cursor: grab;
+	user-select: none;
+	font-size: 13.5px;
+	flex-shrink: 0;
+}
+.park-card:hover {
+	border-color: var(--color-primary-element);
+	background: var(--color-primary-element-light, #e8f0fe);
+}
+.park-card:active { cursor: grabbing; }
+.park-card.selected {
+	background: var(--color-primary-element);
+	color: var(--color-primary-element-text);
+	border-color: var(--color-primary-element);
+}
+.park-card__dot {
+	width: 10px; height: 10px;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+.park-card__label {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.shelf-main {
 	min-width: 0;
 }
-.shelf-view__header {
+.shelf-main__inner {
+	min-width: 0;
+}
+/* Slot-Grid: Compartments sitzen untereinander, jeweils als eigene self-fitting Card */
+.shelves {
+	margin-top: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	align-items: flex-start;
+}
+.shelf-view__top {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	margin-bottom: 1.5rem;
+	margin: 0 0 1.25rem 0;
+	gap: 1rem;
+}
+.shelf-view__top h2 {
+	font-size: 24px;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+}
+.shelf-view__top-actions {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
 }
 .shelf-view__empty {
 	display: flex;
@@ -684,249 +874,232 @@ async function loadAllSlots() {
 	padding-bottom: 1rem;
 	margin-bottom: 1rem;
 }
-.parkzone {
-	display: flex;
-	flex-direction: column;
-	max-height: 30vh;
-	background: var(--color-background-hover);
-	border: 1px solid var(--color-border-dark, #bbb);
-	border-left: 4px solid var(--color-warning, #e3a000);
-	border-radius: var(--border-radius);
-	padding: 1rem;
-	margin-bottom: 1rem;
-	min-height: 60px;
-}
-.parkzone--drag-over {
-	background: var(--color-primary-element-light, #e8f0fe);
-	border-color: var(--color-primary-element);
-}
-.empty-park {
-	color: var(--color-text-maxcontrast);
-	font-style: italic;
-	margin: 0;
-}
-.park-list {
-	list-style: none;
-	padding: 0;
-	margin: 0;
-	display: flex;
-	flex-wrap: wrap;
-	gap: 0.5rem;
-	flex: 1;
-	min-height: 0;
-	overflow-y: auto;
-}
-.park-card {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-	padding: 0.4rem 0.75rem;
-	background: var(--color-main-background);
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius);
-	cursor: grab;
-	user-select: none;
-	font-size: 0.85rem;
-}
-.park-card:active { cursor: grabbing; }
-.park-card.selected {
-	background: var(--color-primary-element);
-	color: var(--color-primary-element-text);
-	border-color: var(--color-primary-element);
-}
-.park-card__dot {
-	width: 10px; height: 10px;
-	border-radius: 50%;
-	flex-shrink: 0;
-}
 .muted {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9rem;
 }
+/* Regal-Tabs als NC-Pill-Buttons (Worktime-Style) */
 .shelf-tabs {
 	display: flex;
 	flex-wrap: wrap;
-	align-items: flex-end;
-	gap: 0;
-	border-bottom: 2px solid var(--color-border);
+	gap: 6px;
 }
 .shelf-tab {
 	display: inline-flex;
 	align-items: center;
-	border-bottom: 2px solid transparent;
-	margin-bottom: -2px;
+	height: var(--default-clickable-area, 44px);
+	background: #fff;
+	border: 1px solid var(--color-border, #d2d4d7);
+	border-radius: var(--border-radius-element, 8px);
 	color: var(--color-text-maxcontrast);
+	overflow: hidden;
+	transition: background 0.1s, border-color 0.1s;
 }
 .shelf-tab.active {
-	color: var(--color-main-text);
-	border-bottom-color: var(--color-primary-element);
+	background: var(--color-primary-element, #0082c9);
+	border-color: var(--color-primary-element, #0082c9);
+	color: #fff;
 }
 .shelf-tab__label {
-	padding: 0.5rem 0.5rem 0.5rem 1.25rem;
+	display: inline-flex;
+	align-items: center;
+	height: 100%;
+	padding: 0 16px;
 	background: none;
 	border: none;
 	cursor: pointer;
-	font-size: 0.9rem;
+	font-size: var(--default-font-size, 15px);
+	font-weight: bold;
 	color: inherit;
-}
-.shelf-tab.active .shelf-tab__label {
-	font-weight: 500;
+	font-family: inherit;
 }
 .shelf-tab__delete {
 	background: none;
 	border: none;
-	color: #c0392b;
-	font-size: 1rem;
+	color: inherit;
+	opacity: 0;
+	font-size: 0.95rem;
 	font-weight: bold;
-	padding: 0 0.6rem 0 0.25rem;
+	padding: 0 9px 0 4px;
 	line-height: 1;
 	cursor: pointer;
+	transition: opacity 0.12s;
 }
-.shelf-tab__delete:hover {
-	color: #b71c1c;
-}
+.shelf-tab:hover .shelf-tab__delete,
+.shelf-tab.active .shelf-tab__delete:focus { opacity: 0.75; }
+.shelf-tab__delete:hover { opacity: 1 !important; }
 .shelf-tab__input {
-	margin: 0.25rem 0.5rem;
-	padding: 0.25rem 0.5rem;
-	font-size: 0.9rem;
+	margin: 4px 8px;
+	padding: 4px 8px;
+	font-size: 13px;
 	border: 1px solid var(--color-primary-element);
-	border-radius: var(--border-radius);
+	border-radius: var(--border-radius-element, 8px);
 	min-width: 8rem;
 }
 .shelf-tab--add {
-	padding: 0.5rem 1rem;
-	background: none;
-	border: none;
-	border-bottom: 2px solid transparent;
-	margin-bottom: -2px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: var(--default-clickable-area, 44px);
+	padding: 0 16px;
+	background: transparent;
+	border: 1px dashed var(--color-border, #d2d4d7);
+	border-radius: var(--border-radius-element, 8px);
 	cursor: pointer;
-	font-size: 1.1rem;
+	font-size: var(--default-font-size, 15px);
 	font-weight: bold;
 	color: var(--color-text-maxcontrast);
+	font-family: inherit;
 }
 .shelf-tab--add:hover {
 	color: var(--color-main-text);
+	border-color: var(--color-primary-element);
 }
+
+/* Compartment als self-fitting Card (Card-System aus Dashboard v4) */
 .compartment {
-	border: 2px solid var(--color-border-dark, #999);
-	border-radius: var(--border-radius);
-	padding: 1rem;
-	margin-bottom: 1rem;
-	max-width: 720px;
+	background: #fff;
+	border: 1px solid var(--color-border, #d2d4d7);
+	border-radius: 12px;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+	overflow: visible;
+	width: fit-content;
 }
 .compartment__header {
 	display: flex;
 	align-items: center;
-	gap: 0.5rem;
-	margin-bottom: 0.75rem;
+	gap: 18px;
+	padding: 14px 18px;
+	background: linear-gradient(180deg, #f4f4f4 0%, #fdfdfd 100%);
+	border-bottom: 1px solid var(--color-border, #d2d4d7);
+	border-radius: 12px 12px 0 0;
 }
 .compartment__title {
 	margin: 0;
-	font-size: 1rem;
-	flex: 1;
+	font-size: 12.5px;
+	font-weight: 600;
+	color: var(--color-text-maxcontrast);
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	margin-right: auto;
 }
 .compartment__title--editable {
 	cursor: pointer;
-	border-radius: var(--border-radius);
-	padding: 0.1rem 0.3rem;
-	margin: -0.1rem -0.3rem;
+	border-radius: 4px;
+	padding: 2px 6px;
+	margin: -2px 0 -2px -6px;
 }
 .compartment__title--editable:hover {
 	background: var(--color-background-hover);
+	color: var(--color-main-text);
 }
 .compartment__title-input {
-	flex: 1;
-	font-size: 1rem;
-	padding: 0.2rem 0.4rem;
+	font-size: 12.5px;
+	padding: 2px 6px;
 	border: 1px solid var(--color-primary-element);
-	border-radius: var(--border-radius);
+	border-radius: 4px;
+	margin-right: auto;
 }
-.compartment__config-btn {
-	background: none;
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius);
-	padding: 0.15rem 0.4rem;
-	cursor: pointer;
-	font-size: 0.9rem;
-	color: var(--color-text-maxcontrast);
-}
-.compartment__config-btn:hover { background: var(--color-background-hover); }
+.compartment__config-btn,
 .compartment__delete-btn {
 	background: none;
 	border: none;
-	color: #c0392b;
-	font-size: 1rem;
-	font-weight: bold;
-	padding: 0 6px;
-	line-height: 1;
+	color: var(--color-text-maxcontrast);
+	font-size: 0.95rem;
+	padding: 2px 8px;
 	cursor: pointer;
+	opacity: 0;
+	border-radius: 4px;
+	transition: opacity 0.12s, background 0.12s;
 }
-.compartment__delete-btn:hover { color: #b71c1c; }
-.add-compartment-row {
-	margin-top: 0.5rem;
-	max-width: 720px;
-	display: flex;
-	justify-content: flex-start;
-}
+.compartment:hover .compartment__config-btn,
+.compartment:hover .compartment__delete-btn { opacity: 0.7; }
+.compartment__config-btn:hover { background: var(--color-background-hover); opacity: 1 !important; color: var(--color-main-text); }
+.compartment__delete-btn:hover { background: var(--color-background-hover); opacity: 1 !important; color: #b03b33; }
+
+/* Ebene als Sub-Sektion innerhalb der Compartment-Card */
 .level {
-	display: flex;
-	align-items: stretch;
-	border-bottom: 2px solid var(--color-border);
-	padding: 0.5rem 0;
+	padding: 14px 18px;
+	border-bottom: 1px solid #c8c8c8;
+	/* Fixe Slot-Größe — alle Slots gleich groß, völlig unabhängig vom Container */
+	--slot-w: 138px;
+	--gap: 8px;
 }
 .level:last-child { border-bottom: none; }
-.level__label-col {
+.level__header {
 	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 22px;
-	flex-shrink: 0;
-	margin-right: 0.5rem;
+	align-items: baseline;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-bottom: 12px;
 }
-.level__label {
-	writing-mode: vertical-rl;
-	transform: rotate(180deg);
-	font-size: 0.65rem;
+.level__title {
+	font-size: 13px;
+	font-weight: 700;
+	color: var(--color-main-text);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+.level__position {
+	color: var(--color-text-maxcontrast);
+	font-weight: 500;
+}
+.level__occupancy {
+	font-size: 11.5px;
 	font-weight: 600;
 	color: var(--color-text-maxcontrast);
-	white-space: nowrap;
-}
-.level__content {
-	display: flex;
-	flex-direction: column;
-	gap: 3px;
-	flex: 1;
-}
-.row-group {
-	display: flex;
+	background: var(--color-background-hover);
+	border-radius: 10px;
+	padding: 3px 10px;
+	display: inline-flex;
 	align-items: center;
-	gap: 0.5rem;
+	gap: 5px;
 }
-.row-label {
-	font-size: 0.7rem;
-	color: var(--color-text-maxcontrast);
-	width: 40px;
-	text-align: right;
-	flex-shrink: 0;
+.level__occupancy strong {
+	color: var(--color-main-text);
+	font-weight: 700;
 }
+
+/* Slot-Row — die längere Reihe ist linksbündig, die kürzere um halbe Slot-Breite eingerückt
+ * (Pflastersteinen-Versatz: erste Box der längeren Reihe sitzt halb links über der ersten der kürzeren) */
 .slot-row {
 	display: flex;
-	gap: 3px;
+	gap: var(--gap);
+	margin-bottom: var(--gap);
 }
+.slot-row:last-child { margin-bottom: 0; }
+.slot-row--front {
+	margin-left: calc((var(--max-cols) - var(--front-cols)) * (var(--slot-w) + var(--gap)) / 2);
+}
+.slot-row--back {
+	margin-left: calc((var(--max-cols) - var(--back-cols)) * (var(--slot-w) + var(--gap)) / 2);
+}
+
+/* Slot: feste Breite — alle Slots gleich groß, unabhängig vom Container */
 .slot {
-	width: 70px;
-	height: 48px;
-	border: 2px solid var(--color-border-dark, #aaa);
-	background: var(--color-background-dark, #f0f0f0);
+	flex: 0 0 var(--slot-w);
+	width: var(--slot-w);
+	height: 72px;
+	border: 1px solid var(--color-border, #d2d4d7);
+	background: #fff;
 	color: var(--color-text-maxcontrast);
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border-radius: 4px;
-	transition: background 0.1s, outline 0.1s;
+	border-radius: 8px;
+	transition: background 0.1s, outline 0.1s, transform 0.1s;
 	cursor: pointer;
+	position: relative;
+	padding: 8px;
+	overflow: hidden;
 }
-.slot.occupied { color: white; cursor: grab; }
+.slot.occupied {
+	color: #fff;
+	cursor: grab;
+	border: none;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.slot.occupied:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12); }
 .slot.occupied:active { cursor: grabbing; }
 .slot.selected-source { outline: 2px solid var(--color-primary-element); outline-offset: 1px; }
 .slot.drag-source { opacity: 0.4; }
@@ -934,6 +1107,26 @@ async function loadAllSlots() {
 	background: var(--color-primary-element-light, #e8f0fe);
 	border-color: var(--color-primary-element);
 }
+
+.slot__id {
+	position: absolute;
+	top: 5px;
+	left: 7px;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	color: rgba(255, 255, 255, 0.85);
+}
+.slot:not(.occupied) .slot__id {
+	color: #555;
+}
+.slot__id-h {
+	margin-left: 1px;
+	font-size: 9px;
+	font-weight: 600;
+	opacity: 0.85;
+}
+
 .slot__bottle {
 	display: flex;
 	flex-direction: column;
@@ -941,9 +1134,8 @@ async function loadAllSlots() {
 	justify-content: center;
 	width: 100%;
 	height: 100%;
-	padding: 1px 2px;
 	line-height: 1.2;
-	gap: 0;
+	gap: 1px;
 }
 .slot__name {
 	display: -webkit-box;
@@ -951,12 +1143,57 @@ async function loadAllSlots() {
 	-webkit-box-orient: vertical;
 	overflow: hidden;
 	text-align: center;
-	font-size: 0.6rem;
-	line-height: 1.15;
-	max-width: 66px;
+	font-size: 0.78rem;
+	font-weight: 600;
+	line-height: 1.2;
+	max-width: 124px;
 	word-break: break-word;
 }
-.slot__year { font-size: 0.6rem; opacity: 0.85; }
+.slot__year {
+	font-size: 0.72rem;
+	opacity: 0.92;
+	font-variant-numeric: tabular-nums;
+	margin-top: 1px;
+}
+
+/* Footer mit Legende + Compartment-Add-Button */
+.shelf-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	margin-top: 14px;
+	padding: 10px 4px 0;
+	flex-wrap: wrap;
+}
+.shelf-legend {
+	display: flex;
+	gap: 14px;
+	flex-wrap: wrap;
+	font-size: 12px;
+	color: var(--color-text-maxcontrast);
+}
+.shelf-legend > span {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+.legend-sw {
+	width: 14px;
+	height: 14px;
+	border-radius: 3px;
+	display: inline-block;
+}
+.legend-sw--red { background: linear-gradient(160deg, #9a3b39, #6e2624); }
+.legend-sw--white { background: linear-gradient(160deg, #d6c468, #a4943a); }
+.legend-sw--rose { background: linear-gradient(160deg, #e0a3a4, #b56e6f); }
+.legend-sw--sparkling { background: linear-gradient(160deg, #d4be58, #9a8b3a); }
+.legend-sw--dessert { background: linear-gradient(160deg, #c89352, #8e6128); }
+.legend-sw--fortified { background: linear-gradient(160deg, #86462f, #532b1f); }
+.legend-sw--empty {
+	background: #fcfcfd;
+	border: 1px solid var(--color-border-light, #e2e3e5);
+}
 .error {
 	margin-top: 1rem;
 	padding: 0.75rem;
