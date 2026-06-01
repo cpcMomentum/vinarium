@@ -125,6 +125,7 @@
 								:style="{
 									'--front-cols': level.columnsFront,
 									'--back-cols': level.columnsBack ?? 0,
+									'--max-cols': Math.max(level.columnsFront, level.columnsBack ?? 0),
 								}"
 							>
 								<div class="level__header">
@@ -170,7 +171,7 @@
 								</div>
 
 								<!-- Vorne (Hauptreihe unten) -->
-								<div class="slot-row">
+								<div class="slot-row slot-row--front">
 									<div
 										v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'front')"
 										:key="slot.id"
@@ -1009,14 +1010,14 @@ async function loadAllSlots() {
 .compartment__config-btn:hover { color: var(--color-main-text); opacity: 1 !important; }
 .compartment__delete-btn:hover { color: #b03b33; opacity: 1 !important; }
 
-/* Ebenen-Header horizontal, fett, Uppercase */
+/* Ebene */
 .level {
-	margin-bottom: 18px;
-	/* Slot-Breite konstant — abgeleitet aus den Vorne-Spalten */
+	margin-bottom: 22px;
+	/* Fixe Slot-Größe — alle Slots gleich groß, völlig unabhängig vom Container */
+	--slot-w: 110px;
 	--gap: 8px;
-	--slot-width: calc((100% - (var(--front-cols) - 1) * var(--gap)) / var(--front-cols));
-	/* Versatz für Hinten = halber Slot pro zusätzlicher Hinten-Spalte (rechts vs links symmetrisch) */
-	--back-offset: calc((var(--back-cols) - var(--front-cols)) * (var(--slot-width) + var(--gap)) / 2);
+	/* Versatz Hinten = halbe Slot-Breite + halben Gap pro zusätzlicher Hinten-Spalte (symmetrisch links + rechts) */
+	--back-offset: calc((var(--back-cols) - var(--front-cols)) * (var(--slot-w) + var(--gap)) / 2);
 }
 .level:last-child { margin-bottom: 0; }
 .level__header {
@@ -1033,22 +1034,25 @@ async function loadAllSlots() {
 .level__position { font-weight: 500; opacity: 0.8; }
 .level__occupancy { font-weight: 500; }
 
-/* Slot-Row — Vorne füllt den Container, Hinten ragt symmetrisch links/rechts heraus */
+/* Slot-Row — die längere Reihe ist linksbündig, die kürzere um halbe Slot-Breite eingerückt
+ * (Pflastersteinen-Versatz: erste Box der längeren Reihe sitzt halb links über der ersten der kürzeren) */
 .slot-row {
 	display: flex;
 	gap: var(--gap);
 	margin-bottom: var(--gap);
 }
 .slot-row:last-child { margin-bottom: 0; }
+.slot-row--front {
+	margin-left: calc((var(--max-cols) - var(--front-cols)) * (var(--slot-w) + var(--gap)) / 2);
+}
 .slot-row--back {
-	margin-left: calc(-1 * var(--back-offset));
-	margin-right: calc(-1 * var(--back-offset));
+	margin-left: calc((var(--max-cols) - var(--back-cols)) * (var(--slot-w) + var(--gap)) / 2);
 }
 
-/* Slot: feste Breite über CSS-Var, damit Vorne und Hinten gleich breit sind */
+/* Slot: feste Breite — alle Slots gleich groß, unabhängig vom Container */
 .slot {
-	flex: 0 0 var(--slot-width);
-	width: var(--slot-width);
+	flex: 0 0 var(--slot-w);
+	width: var(--slot-w);
 	height: 72px;
 	border: 1px solid #b8bbbf;
 	background: #fff;
