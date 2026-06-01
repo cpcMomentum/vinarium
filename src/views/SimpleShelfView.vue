@@ -887,6 +887,7 @@ async function loadAllSlots() {
 .shelf-tab {
 	display: inline-flex;
 	align-items: center;
+	height: var(--default-clickable-area, 44px);
 	background: #fff;
 	border: 1px solid var(--color-border, #d2d4d7);
 	border-radius: var(--border-radius-element, 8px);
@@ -900,12 +901,15 @@ async function loadAllSlots() {
 	color: #fff;
 }
 .shelf-tab__label {
-	padding: 9px 16px;
+	display: inline-flex;
+	align-items: center;
+	height: 100%;
+	padding: 0 16px;
 	background: none;
 	border: none;
 	cursor: pointer;
-	font-size: 14px;
-	font-weight: 600;
+	font-size: var(--default-font-size, 15px);
+	font-weight: bold;
 	color: inherit;
 	font-family: inherit;
 }
@@ -933,14 +937,19 @@ async function loadAllSlots() {
 	min-width: 8rem;
 }
 .shelf-tab--add {
-	padding: 9px 16px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: var(--default-clickable-area, 44px);
+	padding: 0 16px;
 	background: transparent;
 	border: 1px dashed var(--color-border, #d2d4d7);
 	border-radius: var(--border-radius-element, 8px);
 	cursor: pointer;
-	font-size: 14px;
-	font-weight: 600;
+	font-size: var(--default-font-size, 15px);
+	font-weight: bold;
 	color: var(--color-text-maxcontrast);
+	font-family: inherit;
 }
 .shelf-tab--add:hover {
 	color: var(--color-main-text);
