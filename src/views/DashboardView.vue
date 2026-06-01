@@ -60,7 +60,7 @@
 					<h3>{{ t('vinarium', 'Bald trinken') }}</h3>
 					<span class="hero__sub">— {{ t('vinarium', 'Trinkfenster läuft bald ab') }}</span>
 					<div class="sp"></div>
-					<a class="hero__all" @click.prevent="goToInventoryDrinkSoon">{{ t('vinarium', 'Alle ansehen ›') }}</a>
+					<a class="hero__all" @click.prevent="goToInventoryDrinkSoon">{{ t('vinarium', 'alle ›') }}</a>
 				</header>
 				<p v-if="topDrinkSoon.length === 0" class="hero__empty">
 					{{ t('vinarium', 'Keine Weine mit demnächst ablaufendem Trinkfenster. Trage „Trinken bis" am Jahrgang ein, damit hier Vorschläge erscheinen.') }}
