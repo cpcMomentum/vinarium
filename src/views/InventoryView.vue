@@ -3,26 +3,26 @@
 		<div ref="headEl" class="inventory-head">
 			<header class="inventory-view__header">
 				<h2>{{ t('vinarium', 'Bestand') }}</h2>
+				<div class="seg" role="group" :aria-label="t('vinarium', 'Ansicht')">
+					<button
+						class="seg-btn"
+						:class="{ active: activeTab === 'bottles' }"
+						@click="setTab('bottles')"
+					>
+						{{ t('vinarium', 'Flaschen') }}
+					</button>
+					<button
+						class="seg-btn"
+						:class="{ active: activeTab === 'masterdata' }"
+						@click="setTab('masterdata')"
+					>
+						{{ t('vinarium', 'Stammdaten') }}
+					</button>
+				</div>
 				<span class="count">{{ n('vinarium', '{count} Flasche', '{count} Flaschen', store.totalCount, { count: store.totalCount }) }}</span>
 				<div class="inventory-view__sp"></div>
 				<NcButton variant="primary" @click="wizardOpen = true">{{ t('vinarium', '+ Kauf erfassen') }}</NcButton>
 			</header>
-
-			<!-- Sub-Tabs Flaschen / Stammdaten -->
-			<nav class="subtabs">
-				<button
-					:class="['subtab', { 'subtab--active': activeTab === 'bottles' }]"
-					@click="setTab('bottles')"
-				>
-					{{ t('vinarium', 'Flaschen') }}
-				</button>
-				<button
-					:class="['subtab', { 'subtab--active': activeTab === 'masterdata' }]"
-					@click="setTab('masterdata')"
-				>
-					{{ t('vinarium', 'Stammdaten') }}
-				</button>
-			</nav>
 
 			<!-- Filter nur im Bottles-Tab -->
 			<section v-if="activeTab === 'bottles'" class="filters">
@@ -314,31 +314,31 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 	font-size: 0.9rem;
 }
 
-/* Sub-Tabs */
-.subtabs {
-	display: flex;
-	gap: 2px;
-	border-bottom: 1px solid var(--color-border);
-	margin-bottom: 1rem;
+/* Segmented Toggle (Worktime-Style) */
+.seg {
+	display: inline-flex;
+	background: var(--color-background-dark);
+	border-radius: var(--border-radius-element, 8px);
+	padding: 3px;
 }
-.subtab {
+.seg-btn {
 	font-family: inherit;
-	font-size: 14px;
+	font-size: 13px;
 	font-weight: 600;
 	color: var(--color-text-maxcontrast);
 	background: none;
 	border: none;
-	border-bottom: 2px solid transparent;
-	padding: 10px 16px;
+	padding: 6px 14px;
+	border-radius: var(--border-radius-element, 8px);
 	cursor: pointer;
-	margin-bottom: -1px;
 }
-.subtab:hover {
+.seg-btn:hover {
 	color: var(--color-main-text);
 }
-.subtab--active {
+.seg-btn.active {
+	background: var(--color-main-background);
 	color: var(--color-primary-element, #0082c9);
-	border-bottom-color: var(--color-primary-element, #0082c9);
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 
 .cat {
