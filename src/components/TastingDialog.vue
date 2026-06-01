@@ -5,7 +5,7 @@
 			<p v-if="!editMode" class="muted">{{ t('vinarium', 'Die Flasche wird als „getrunken“ markiert und der Slot freigegeben.') }}</p>
 
 			<fieldset class="fieldset">
-				<label class="field"><span>{{ t('vinarium', 'Datum') }}</span><input v-model="form.tastedAt" type="date" class="input" /></label>
+				<label class="field"><span>{{ t('vinarium', 'Datum') }}</span><input v-model="form.tastedAt" type="date" :max="todayIso" class="input" /></label>
 				<label class="field">
 					<span>{{ t('vinarium', 'Bewertung (0.5 – 10)') }}</span>
 					<div class="rating-row">
@@ -82,6 +82,12 @@ const emit = defineEmits<{
 }>()
 
 const editMode = computed(() => !!props.tasting)
+const todayIso = computed(() => {
+	const d = new Date()
+	const m = String(d.getMonth() + 1).padStart(2, '0')
+	const day = String(d.getDate()).padStart(2, '0')
+	return `${d.getFullYear()}-${m}-${day}`
+})
 const saving = ref(false)
 const pendingPhotos = ref<File[]>([])
 const pendingUrls = ref<string[]>([])
