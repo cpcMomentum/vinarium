@@ -67,7 +67,7 @@
 				<fieldset class="fieldset">
 					<div class="field-row">
 						<label class="field"><span>{{ t('vinarium', 'Jahr *') }}</span><input v-model.number="form3.year" :disabled="isPicked3" type="number" class="input" /></label>
-						<label class="field"><span>{{ t('vinarium', 'Alkohol %') }}</span><input v-model.number="form3.alcoholPercent" :disabled="isPicked3" type="number" step="0.1" class="input" :placeholder="t('vinarium', 'z. B. 92')" /></label>
+						<label class="field"><span>{{ t('vinarium', 'Alkohol %') }}</span><input v-model.number="form3.alcoholPercent" :disabled="isPicked3" type="number" step="0.1" class="input" :placeholder="t('vinarium', 'z. B. 13,5')" /></label>
 					</div>
 					<label class="field">
 						<span>{{ t('vinarium', 'Rebsorten (jahrgangsspezifisch)') }}</span>

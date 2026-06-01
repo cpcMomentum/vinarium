@@ -123,6 +123,7 @@ OC.L10N.register(
     "Bestehender Jahrgang": "Bestehender Jahrgang",
     "Jahr *": "Jahr *",
     "Alkohol %": "Alkohol %",
+    "z. B. 13,5": "z. B. 13,5",
     "Rebsorten (jahrgangsspezifisch)": "Rebsorten (jahrgangsspezifisch)",
     "Trinken ab (Jahr)": "Trinken ab (Jahr)",
     "Trinken bis (Jahr)": "Trinken bis (Jahr)",

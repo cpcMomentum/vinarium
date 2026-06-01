@@ -123,6 +123,7 @@ OC.L10N.register(
     "Bestehender Jahrgang": "Existing vintage",
     "Jahr *": "Year *",
     "Alkohol %": "Alcohol %",
+    "z. B. 13,5": "e.g. 13.5",
     "Rebsorten (jahrgangsspezifisch)": "Grape varieties (vintage-specific)",
     "Trinken ab (Jahr)": "Drink from (year)",
     "Trinken bis (Jahr)": "Drink until (year)",
