@@ -837,12 +837,9 @@ async function loadAllSlots() {
 .shelf-main__inner {
 	min-width: 0;
 }
-/* Slot-Grid in einer Card */
+/* Slot-Grid: KEIN Card-Wrapper mehr — Hinten kann frei nach links und rechts überstehen.
+ * Stattdessen liefert .compartment selbst die visuelle Trennung über border-top. */
 .shelves {
-	background: #fff;
-	border: 1px solid var(--color-border, #d2d4d7);
-	border-radius: var(--border-radius);
-	padding: 16px 18px;
 	margin-top: 12px;
 }
 .shelf-view__top {
