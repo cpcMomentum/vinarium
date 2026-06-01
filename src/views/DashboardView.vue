@@ -349,19 +349,19 @@ function goToActivity() {
 }
 .stock__where { white-space: nowrap; font-size: 13.5px; }
 
-/* Hero "Bald trinken" */
+/* Hero "Bald trinken" — vereinheitlichtes Padding/Spacing mit Bestand-Hero */
 .hero {
 	background: linear-gradient(180deg, #fafbfc 0%, #fff 100%);
 	border: 1px solid var(--color-border, #d2d4d7);
 	border-radius: 12px;
-	padding: 22px 24px;
-	margin-bottom: 18px;
+	padding: 20px 24px;
+	margin-bottom: 14px;
 }
 .hero__head {
 	display: flex;
 	align-items: baseline;
 	gap: 10px;
-	margin-bottom: 16px;
+	margin-bottom: 14px;
 	flex-wrap: wrap;
 }
 .hero__head h3 { font-size: 18px; font-weight: 600; }
