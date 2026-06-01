@@ -39,7 +39,15 @@
 				<div class="shelf-head">
 				<header class="shelf-view__header">
 					<h2>{{ t('vinarium', 'Regal') }}</h2>
-					<NcButton variant="primary" @click="newShelfOpen = true">{{ t('vinarium', '+ Neues Regal') }}</NcButton>
+					<div class="shelf-view__header-actions">
+						<NcButton
+							v-if="activeShelf && activeShelf.compartments.length === 1"
+							@click="openConfig(activeShelf.compartments[0])"
+						>
+							⚙ {{ t('vinarium', 'Regal konfigurieren') }}
+						</NcButton>
+						<NcButton variant="primary" @click="newShelfOpen = true">{{ t('vinarium', '+ Neues Regal') }}</NcButton>
+					</div>
 				</header>
 
 				<!-- Regal-Tabs (immer sichtbar) -->
@@ -85,7 +93,8 @@
 				<div v-else-if="activeShelf" class="shelves">
 
 						<div v-for="compData in activeShelf.compartments" :key="compData.compartment.id" class="compartment">
-							<div class="compartment__header">
+							<!-- Compartment-Header nur bei mehreren Fächern -->
+							<div v-if="activeShelf.compartments.length > 1" class="compartment__header">
 								<input
 									v-if="renamingCompartmentId === compData.compartment.id"
 									:ref="setCompartmentRenameInput"
@@ -109,70 +118,94 @@
 								>✕</button>
 							</div>
 
-							<div v-for="level in reversedLevels(compData.levels)" :key="level.id" class="level">
-								<div class="level__label-col">
-									<span class="level__label">{{ t('vinarium', 'Ebene {n}', { n: level.levelNumber + 1 }) }}</span>
+							<div
+								v-for="(level, idx) in reversedLevels(compData.levels)"
+								:key="level.id"
+								class="level"
+							>
+								<div class="level__header">
+									<span class="level__title">
+										{{ t('vinarium', 'EBENE') }} {{ levelLetter(idx) }}
+										<span v-if="levelPositionLabel(idx, compData.levels.length)" class="level__position">
+											· {{ levelPositionLabel(idx, compData.levels.length) }}
+										</span>
+									</span>
+									<span class="level__occupancy">
+										{{ levelOccupancy(compData.compartment.id, level.levelNumber).filled }}
+										/
+										{{ levelOccupancy(compData.compartment.id, level.levelNumber).total }}
+										{{ t('vinarium', 'belegt') }}
+									</span>
 								</div>
-								<div class="level__content">
-									<div v-if="level.columnsBack !== null" class="row-group">
-										<span class="row-label">{{ t('vinarium', 'Hinten') }}</span>
-										<div class="slot-row">
-											<div
-												v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'back')"
-												:key="slot.id"
-												:class="['slot', slotClasses(slot.id)]"
-												:style="bottleInSlot(slot.id) ? { background: cssSlotGradient(bottleInSlot(slot.id)!.wine_color) } : {}"
-												:title="slotTooltip(slot)"
-												@dragover.prevent="onDragOver(slot.id, $event)"
-												@dragleave="onDragLeave($event)"
-												@drop.prevent="onDrop(slot.id)"
-												@click="onSlotClick(slot.id)"
-											>
-												<div
-													v-if="bottleInSlot(slot.id)"
-													class="slot__bottle"
-													draggable="true"
-													@dragstart.stop="onDragStart(bottleInSlot(slot.id)!.id, $event)"
-													@dragend="onDragEnd"
-												>
-													<span class="slot__name">{{ bottleFullName(slot.id) }}</span>
-													<span class="slot__year">{{ bottleYear(slot.id) }}</span>
-												</div>
-											</div>
+
+								<!-- Vorne (Hauptreihe) -->
+								<div class="slot-row">
+									<div
+										v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'front')"
+										:key="slot.id"
+										:class="['slot', slotClasses(slot.id)]"
+										:style="bottleInSlot(slot.id) ? { background: cssSlotGradient(bottleInSlot(slot.id)!.wine_color) } : {}"
+										:title="slotTooltip(slot)"
+										@dragover.prevent="onDragOver(slot.id, $event)"
+										@dragleave="onDragLeave($event)"
+										@drop.prevent="onDrop(slot.id)"
+										@click="onSlotClick(slot.id)"
+									>
+										<span class="slot__id">{{ slotShortId(slot, idx) }}</span>
+										<div
+											v-if="bottleInSlot(slot.id)"
+											class="slot__bottle"
+											draggable="true"
+											@dragstart.stop="onDragStart(bottleInSlot(slot.id)!.id, $event)"
+											@dragend="onDragEnd"
+										>
+											<span class="slot__name">{{ bottleFullName(slot.id) }}</span>
+											<span class="slot__year">{{ bottleYear(slot.id) }}</span>
 										</div>
+										<span v-else class="slot__empty">{{ t('vinarium', 'frei') }}</span>
 									</div>
-									<div class="row-group">
-										<span class="row-label">{{ t('vinarium', 'Vorne') }}</span>
-										<div class="slot-row">
-											<div
-												v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'front')"
-												:key="slot.id"
-												:class="['slot', slotClasses(slot.id)]"
-												:style="bottleInSlot(slot.id) ? { background: cssSlotGradient(bottleInSlot(slot.id)!.wine_color) } : {}"
-												:title="slotTooltip(slot)"
-												@dragover.prevent="onDragOver(slot.id, $event)"
-												@dragleave="onDragLeave($event)"
-												@drop.prevent="onDrop(slot.id)"
-												@click="onSlotClick(slot.id)"
-											>
-												<div
-													v-if="bottleInSlot(slot.id)"
-													class="slot__bottle"
-													draggable="true"
-													@dragstart.stop="onDragStart(bottleInSlot(slot.id)!.id, $event)"
-													@dragend="onDragEnd"
-												>
-													<span class="slot__name">{{ bottleFullName(slot.id) }}</span>
-													<span class="slot__year">{{ bottleYear(slot.id) }}</span>
-												</div>
-											</div>
+								</div>
+
+								<!-- Hinten (kompakte zweite Reihe) -->
+								<div v-if="level.columnsBack !== null && level.columnsBack > 0" class="slot-row slot-row--back">
+									<div
+										v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'back')"
+										:key="slot.id"
+										:class="['slot', 'slot--back', slotClasses(slot.id)]"
+										:style="bottleInSlot(slot.id) ? { background: cssSlotGradient(bottleInSlot(slot.id)!.wine_color) } : {}"
+										:title="slotTooltip(slot)"
+										@dragover.prevent="onDragOver(slot.id, $event)"
+										@dragleave="onDragLeave($event)"
+										@drop.prevent="onDrop(slot.id)"
+										@click="onSlotClick(slot.id)"
+									>
+										<span class="slot__id">{{ slotShortId(slot, idx) }}<span class="slot__id-h">H</span></span>
+										<div
+											v-if="bottleInSlot(slot.id)"
+											class="slot__bottle"
+											draggable="true"
+											@dragstart.stop="onDragStart(bottleInSlot(slot.id)!.id, $event)"
+											@dragend="onDragEnd"
+										>
+											<span class="slot__name">{{ bottleFullName(slot.id) }}</span>
+											<span class="slot__year">{{ bottleYear(slot.id) }}</span>
 										</div>
 									</div>
 								</div>
 							</div>
 						</div>
 
-						<div class="add-compartment-row">
+						<!-- Legende + Aktionen -->
+						<div class="shelf-footer">
+							<div class="shelf-legend">
+								<span><span class="legend-sw legend-sw--red"></span> {{ t('vinarium', 'Rot') }}</span>
+								<span><span class="legend-sw legend-sw--white"></span> {{ t('vinarium', 'Weiß') }}</span>
+								<span><span class="legend-sw legend-sw--rose"></span> {{ t('vinarium', 'Rosé') }}</span>
+								<span><span class="legend-sw legend-sw--sparkling"></span> {{ t('vinarium', 'Schaumwein') }}</span>
+								<span><span class="legend-sw legend-sw--dessert"></span> {{ t('vinarium', 'Dessertwein') }}</span>
+								<span><span class="legend-sw legend-sw--fortified"></span> {{ t('vinarium', 'Likörwein') }}</span>
+								<span><span class="legend-sw legend-sw--empty"></span> {{ t('vinarium', 'frei') }}</span>
+							</div>
 							<NcButton :disabled="addingCompartment" @click="onAddCompartment">
 								{{ t('vinarium', '+ Fach hinzufügen') }}
 							</NcButton>
@@ -305,6 +338,37 @@ function bottleYear(slotId: number): string {
 
 function reversedLevels(levels: Level[]): Level[] {
 	return [...levels].sort((a, b) => b.levelNumber - a.levelNumber)
+}
+
+/** Buchstabe für die Anzeige-Ebene (oberste = A) — idx ist Position im reversedLevels-Array */
+function levelLetter(idx: number): string {
+	return String.fromCharCode(65 + idx) // A, B, C, ...
+}
+
+/** Positions-Label (TOP / MITTE / BODEN) je nach Ebenen-Position */
+function levelPositionLabel(idx: number, total: number): string {
+	if (total === 1) return t('vinarium', 'EBENE')
+	if (idx === 0) return t('vinarium', 'TOP')
+	if (idx === total - 1) return t('vinarium', 'BODEN')
+	if (total === 3) return t('vinarium', 'MITTE')
+	if (idx === Math.floor(total / 2)) return t('vinarium', 'MITTE')
+	return ''
+}
+
+/** Slot-ID wie A1, A2 — Hinten bekommt zusätzlich Sub-Label "H" via separate column */
+function slotShortId(slot: Slot, displayIdx: number): string {
+	const letter = levelLetter(displayIdx)
+	return `${letter}${slot.column + 1}`
+}
+
+/** Belegung pro Ebene (alle Slots dieser Ebene über vorne + hinten) */
+function levelOccupancy(compartmentId: number, levelNumber: number): { filled: number; total: number } {
+	const slots = allSlots.value.filter(s => s.compartmentId === compartmentId && s.level === levelNumber)
+	let filled = 0
+	for (const s of slots) {
+		if (bottleInSlot(s.id) !== undefined) filled++
+	}
+	return { filled, total: slots.length }
 }
 
 function slotsFor(compartmentId: number, levelNumber: number, row: string): Slot[] {
@@ -784,6 +848,12 @@ async function loadAllSlots() {
 	justify-content: space-between;
 	align-items: center;
 	margin-bottom: 1.5rem;
+	gap: 1rem;
+}
+.shelf-view__header-actions {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
 }
 .shelf-view__empty {
 	display: flex;
@@ -804,86 +874,95 @@ async function loadAllSlots() {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9rem;
 }
+/* Regal-Tabs als NC-Pill-Buttons (Worktime-Style) */
 .shelf-tabs {
 	display: flex;
 	flex-wrap: wrap;
-	align-items: flex-end;
-	gap: 0;
-	border-bottom: 2px solid var(--color-border);
+	gap: 6px;
 }
 .shelf-tab {
 	display: inline-flex;
 	align-items: center;
-	border-bottom: 2px solid transparent;
-	margin-bottom: -2px;
+	background: #fff;
+	border: 1px solid var(--color-border, #d2d4d7);
+	border-radius: var(--border-radius-element, 8px);
 	color: var(--color-text-maxcontrast);
+	overflow: hidden;
+	transition: background 0.1s, border-color 0.1s;
 }
 .shelf-tab.active {
-	color: var(--color-main-text);
-	border-bottom-color: var(--color-primary-element);
+	background: var(--color-primary-element, #0082c9);
+	border-color: var(--color-primary-element, #0082c9);
+	color: #fff;
 }
 .shelf-tab__label {
-	padding: 0.5rem 0.5rem 0.5rem 1.25rem;
+	padding: 7px 14px;
 	background: none;
 	border: none;
 	cursor: pointer;
-	font-size: 0.9rem;
+	font-size: 13px;
+	font-weight: 600;
 	color: inherit;
-}
-.shelf-tab.active .shelf-tab__label {
-	font-weight: 500;
+	font-family: inherit;
 }
 .shelf-tab__delete {
 	background: none;
 	border: none;
-	color: #c0392b;
-	font-size: 1rem;
+	color: inherit;
+	opacity: 0.65;
+	font-size: 0.95rem;
 	font-weight: bold;
-	padding: 0 0.6rem 0 0.25rem;
+	padding: 0 9px 0 4px;
 	line-height: 1;
 	cursor: pointer;
 }
-.shelf-tab__delete:hover {
-	color: #b71c1c;
-}
+.shelf-tab__delete:hover { opacity: 1; }
 .shelf-tab__input {
-	margin: 0.25rem 0.5rem;
-	padding: 0.25rem 0.5rem;
-	font-size: 0.9rem;
+	margin: 4px 8px;
+	padding: 4px 8px;
+	font-size: 13px;
 	border: 1px solid var(--color-primary-element);
-	border-radius: var(--border-radius);
+	border-radius: var(--border-radius-element, 8px);
 	min-width: 8rem;
 }
 .shelf-tab--add {
-	padding: 0.5rem 1rem;
-	background: none;
-	border: none;
-	border-bottom: 2px solid transparent;
-	margin-bottom: -2px;
+	padding: 7px 14px;
+	background: transparent;
+	border: 1px dashed var(--color-border, #d2d4d7);
+	border-radius: var(--border-radius-element, 8px);
 	cursor: pointer;
-	font-size: 1.1rem;
-	font-weight: bold;
+	font-size: 1rem;
+	font-weight: 600;
 	color: var(--color-text-maxcontrast);
 }
 .shelf-tab--add:hover {
 	color: var(--color-main-text);
+	border-color: var(--color-primary-element);
 }
+
+/* Compartment: nur leichter Wrapper, Header dezent (nur bei >1 Fach) */
 .compartment {
-	border: 2px solid var(--color-border-dark, #999);
+	background: #fff;
+	border: 1px solid var(--color-border, #d2d4d7);
 	border-radius: var(--border-radius);
-	padding: 1rem;
-	margin-bottom: 1rem;
-	max-width: 720px;
+	padding: 14px 16px;
+	margin-bottom: 14px;
 }
 .compartment__header {
 	display: flex;
 	align-items: center;
 	gap: 0.5rem;
-	margin-bottom: 0.75rem;
+	margin-bottom: 14px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid var(--color-border-light, #e2e3e5);
 }
 .compartment__title {
 	margin: 0;
-	font-size: 1rem;
+	font-size: 0.78rem;
+	font-weight: 600;
+	color: var(--color-text-maxcontrast);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
 	flex: 1;
 }
 .compartment__title--editable {
@@ -897,96 +976,77 @@ async function loadAllSlots() {
 }
 .compartment__title-input {
 	flex: 1;
-	font-size: 1rem;
+	font-size: 0.85rem;
 	padding: 0.2rem 0.4rem;
 	border: 1px solid var(--color-primary-element);
 	border-radius: var(--border-radius);
 }
-.compartment__config-btn {
-	background: none;
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius);
-	padding: 0.15rem 0.4rem;
-	cursor: pointer;
-	font-size: 0.9rem;
-	color: var(--color-text-maxcontrast);
-}
-.compartment__config-btn:hover { background: var(--color-background-hover); }
+.compartment__config-btn,
 .compartment__delete-btn {
 	background: none;
 	border: none;
-	color: #c0392b;
-	font-size: 1rem;
-	font-weight: bold;
-	padding: 0 6px;
-	line-height: 1;
+	color: var(--color-text-maxcontrast);
+	font-size: 0.95rem;
+	padding: 2px 6px;
 	cursor: pointer;
+	opacity: 0.6;
 }
-.compartment__delete-btn:hover { color: #b71c1c; }
-.add-compartment-row {
-	margin-top: 0.5rem;
-	max-width: 720px;
-	display: flex;
-	justify-content: flex-start;
-}
+.compartment__config-btn:hover { color: var(--color-main-text); opacity: 1; }
+.compartment__delete-btn:hover { color: #b03b33; opacity: 1; }
+
+/* Ebenen-Header horizontal, fett, Uppercase */
 .level {
-	display: flex;
-	align-items: stretch;
-	border-bottom: 2px solid var(--color-border);
-	padding: 0.5rem 0;
+	margin-bottom: 14px;
 }
-.level:last-child { border-bottom: none; }
-.level__label-col {
+.level:last-child { margin-bottom: 0; }
+.level__header {
 	display: flex;
 	align-items: center;
-	justify-content: center;
-	width: 22px;
-	flex-shrink: 0;
-	margin-right: 0.5rem;
-}
-.level__label {
-	writing-mode: vertical-rl;
-	transform: rotate(180deg);
-	font-size: 0.65rem;
+	justify-content: space-between;
+	margin-bottom: 6px;
+	font-size: 0.72rem;
 	font-weight: 600;
 	color: var(--color-text-maxcontrast);
-	white-space: nowrap;
+	letter-spacing: 0.04em;
 }
-.level__content {
-	display: flex;
-	flex-direction: column;
-	gap: 3px;
-	flex: 1;
-}
-.row-group {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-}
-.row-label {
-	font-size: 0.7rem;
-	color: var(--color-text-maxcontrast);
-	width: 40px;
-	text-align: right;
-	flex-shrink: 0;
-}
+.level__title { text-transform: uppercase; }
+.level__position { font-weight: 500; opacity: 0.8; }
+.level__occupancy { font-weight: 500; }
+
+/* Slot-Row */
 .slot-row {
 	display: flex;
-	gap: 3px;
+	gap: 6px;
+	flex-wrap: wrap;
 }
+.slot-row--back {
+	margin-top: 3px;
+	gap: 4px;
+}
+
+/* Slots: groß, lesbar, Slot-ID oben links */
 .slot {
-	width: 70px;
-	height: 48px;
+	flex: 1 1 0;
+	min-width: 110px;
+	max-width: 150px;
+	height: 72px;
 	border: 1px solid var(--color-border-light, #e2e3e5);
 	background: #fcfcfd;
 	color: var(--color-text-maxcontrast);
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border-radius: 6px;
+	border-radius: 8px;
 	transition: background 0.1s, outline 0.1s, transform 0.1s;
 	cursor: pointer;
-	font-size: 0.72rem;
+	position: relative;
+	padding: 8px;
+	overflow: hidden;
+}
+.slot--back {
+	height: 48px;
+	min-width: 90px;
+	opacity: 0.92;
 }
 .slot.occupied {
 	color: #fff;
@@ -994,7 +1054,7 @@ async function loadAllSlots() {
 	border: none;
 	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
-.slot.occupied:hover { transform: translateY(-1px); }
+.slot.occupied:hover { transform: translateY(-1px); box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12); }
 .slot.occupied:active { cursor: grabbing; }
 .slot.selected-source { outline: 2px solid var(--color-primary-element); outline-offset: 1px; }
 .slot.drag-source { opacity: 0.4; }
@@ -1002,6 +1062,30 @@ async function loadAllSlots() {
 	background: var(--color-primary-element-light, #e8f0fe);
 	border-color: var(--color-primary-element);
 }
+
+.slot__id {
+	position: absolute;
+	top: 4px;
+	left: 6px;
+	font-size: 9.5px;
+	font-weight: 600;
+	color: rgba(255, 255, 255, 0.72);
+	letter-spacing: 0.02em;
+}
+.slot:not(.occupied) .slot__id {
+	color: #b8bbbf;
+}
+.slot__id-h {
+	margin-left: 1px;
+	opacity: 0.85;
+	font-size: 8px;
+}
+.slot__empty {
+	font-size: 0.7rem;
+	color: #b8bbbf;
+	font-style: italic;
+}
+
 .slot__bottle {
 	display: flex;
 	flex-direction: column;
@@ -1009,9 +1093,8 @@ async function loadAllSlots() {
 	justify-content: center;
 	width: 100%;
 	height: 100%;
-	padding: 1px 2px;
 	line-height: 1.2;
-	gap: 0;
+	gap: 1px;
 }
 .slot__name {
 	display: -webkit-box;
@@ -1019,12 +1102,62 @@ async function loadAllSlots() {
 	-webkit-box-orient: vertical;
 	overflow: hidden;
 	text-align: center;
-	font-size: 0.6rem;
-	line-height: 1.15;
-	max-width: 66px;
+	font-size: 0.78rem;
+	font-weight: 600;
+	line-height: 1.2;
+	max-width: 130px;
 	word-break: break-word;
 }
-.slot__year { font-size: 0.6rem; opacity: 0.85; }
+.slot--back .slot__name {
+	font-size: 0.7rem;
+	-webkit-line-clamp: 1;
+}
+.slot__year {
+	font-size: 0.7rem;
+	opacity: 0.92;
+	font-variant-numeric: tabular-nums;
+	margin-top: 1px;
+}
+.slot--back .slot__year { font-size: 0.65rem; }
+
+/* Footer mit Legende + Compartment-Add-Button */
+.shelf-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	margin-top: 14px;
+	padding: 10px 4px 0;
+	flex-wrap: wrap;
+}
+.shelf-legend {
+	display: flex;
+	gap: 14px;
+	flex-wrap: wrap;
+	font-size: 12px;
+	color: var(--color-text-maxcontrast);
+}
+.shelf-legend > span {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+.legend-sw {
+	width: 14px;
+	height: 14px;
+	border-radius: 3px;
+	display: inline-block;
+}
+.legend-sw--red { background: linear-gradient(160deg, #9a3b39, #6e2624); }
+.legend-sw--white { background: linear-gradient(160deg, #d6c468, #a4943a); }
+.legend-sw--rose { background: linear-gradient(160deg, #e0a3a4, #b56e6f); }
+.legend-sw--sparkling { background: linear-gradient(160deg, #d4be58, #9a8b3a); }
+.legend-sw--dessert { background: linear-gradient(160deg, #c89352, #8e6128); }
+.legend-sw--fortified { background: linear-gradient(160deg, #86462f, #532b1f); }
+.legend-sw--empty {
+	background: #fcfcfd;
+	border: 1px solid var(--color-border-light, #e2e3e5);
+}
 .error {
 	margin-top: 1rem;
 	padding: 0.75rem;
