@@ -1,23 +1,20 @@
 <template>
 	<div class="shelf-view">
 		<div class="shelf-layout">
-			<div class="shelf-main">
-				<div class="shelf-head">
-				<header class="shelf-view__header">
-					<h2>{{ t('vinarium', 'Regal') }}</h2>
-					<NcButton variant="primary" @click="newShelfOpen = true">{{ t('vinarium', '+ Neues Regal') }}</NcButton>
-				</header>
-
-				<!-- Parkzone (immer sichtbar, unabhaengig vom Cellar) -->
+			<!-- Parkzone als sticky linke Spalte -->
+			<aside class="parkzone-col">
 				<section
 					:class="['parkzone', { 'parkzone--drag-over': parkzoneDragOver }]"
 					@dragover.prevent="parkzoneDragOver = true"
 					@dragleave="onParkzoneDragLeave"
 					@drop.prevent="onDropToParkzone"
 				>
-					<h3>{{ t('vinarium', 'Parkzone ({n})', { n: parkedBottles.length }) }}</h3>
+					<h3 class="parkzone__title">
+						{{ t('vinarium', 'Parkzone') }}
+						<span class="parkzone__count">{{ parkedBottles.length }}</span>
+					</h3>
 					<template v-if="parkedBottles.length > 0">
-						<p class="muted">{{ t('vinarium', 'Flaschen per Drag & Drop in einen Slot ziehen.') }}</p>
+						<p class="parkzone__hint">{{ t('vinarium', 'Flaschen per Drag & Drop in einen Slot ziehen.') }}</p>
 						<ul class="park-list">
 							<li
 								v-for="b in parkedBottles"
@@ -35,6 +32,14 @@
 					</template>
 					<p v-else class="empty-park">{{ t('vinarium', 'Keine Flaschen in der Parkzone.') }}</p>
 				</section>
+			</aside>
+
+			<div class="shelf-main">
+				<div class="shelf-head">
+				<header class="shelf-view__header">
+					<h2>{{ t('vinarium', 'Regal') }}</h2>
+					<NcButton variant="primary" @click="newShelfOpen = true">{{ t('vinarium', '+ Neues Regal') }}</NcButton>
+				</header>
 
 				<!-- Regal-Tabs (immer sichtbar) -->
 				<div class="shelf-tabs">
@@ -115,7 +120,7 @@
 												v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'back')"
 												:key="slot.id"
 												:class="['slot', slotClasses(slot.id)]"
-												:style="bottleInSlot(slot.id) ? { background: cssColorFor(bottleInSlot(slot.id)!.wine_color) } : {}"
+												:style="bottleInSlot(slot.id) ? { background: cssSlotGradient(bottleInSlot(slot.id)!.wine_color) } : {}"
 												:title="slotTooltip(slot)"
 												@dragover.prevent="onDragOver(slot.id, $event)"
 												@dragleave="onDragLeave($event)"
@@ -142,7 +147,7 @@
 												v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'front')"
 												:key="slot.id"
 												:class="['slot', slotClasses(slot.id)]"
-												:style="bottleInSlot(slot.id) ? { background: cssColorFor(bottleInSlot(slot.id)!.wine_color) } : {}"
+												:style="bottleInSlot(slot.id) ? { background: cssSlotGradient(bottleInSlot(slot.id)!.wine_color) } : {}"
 												:title="slotTooltip(slot)"
 												@dragover.prevent="onDragOver(slot.id, $event)"
 												@dragleave="onDragLeave($event)"
@@ -242,7 +247,7 @@ import type { BottleListItem, CompartmentWithLevels, Level, Slot, WineColor } fr
 import type { CellarResponse } from '@/api/cellar'
 import { addCompartment, destroyCompartment, destroyShelf, fetchCellar, fetchSlots, updateCompartment, updateShelf } from '@/api/cellar'
 import { useBottleStore } from '@/stores/bottleStore'
-import { cssColorFor } from '@/utils/wineColors'
+import { cssColorFor, cssSlotGradient } from '@/utils/wineColors'
 
 const store = useBottleStore()
 
@@ -654,13 +659,114 @@ async function loadAllSlots() {
 	padding: 2rem 2rem 2rem 50px;
 }
 .shelf-layout {
-	display: flex;
-	align-items: flex-start;
-	gap: 1.5rem;
+	display: grid;
+	grid-template-columns: 280px 1fr;
+	gap: 18px;
+	align-items: start;
 	max-width: 1300px;
 }
-.shelf-main {
+@media (max-width: 900px) {
+	.shelf-layout { grid-template-columns: 1fr; }
+}
+
+/* Parkzone als sticky linke Spalte */
+.parkzone-col {
+	position: sticky;
+	top: 0;
+}
+.parkzone {
+	display: flex;
+	flex-direction: column;
+	max-height: calc(100vh - 140px);
+	background: #fff;
+	border: 1px solid var(--color-border, #d2d4d7);
+	border-radius: var(--border-radius);
+	padding: 14px;
+}
+.parkzone--drag-over {
+	background: var(--color-primary-element-light, #e8f0fe);
+	border-color: var(--color-primary-element);
+}
+.parkzone__title {
+	font-size: 15px;
+	font-weight: 600;
+	margin: 0 0 4px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	flex-shrink: 0;
+}
+.parkzone__count {
+	font-size: 11.5px;
+	font-weight: 600;
+	background: #e9f0f9;
+	color: #5481b8;
+	border-radius: 10px;
+	padding: 2px 9px;
+}
+.parkzone__hint {
+	font-size: 12px;
+	color: var(--color-text-maxcontrast);
+	margin: 0 0 10px;
+	flex-shrink: 0;
+}
+.empty-park {
+	color: var(--color-text-maxcontrast);
+	font-style: italic;
+	margin: 0;
+	font-size: 13px;
+}
+.park-list {
+	list-style: none;
+	padding: 0 4px 0 0;
+	margin: 0 -4px 0 0;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	overflow-y: auto;
 	flex: 1;
+	min-height: 0;
+}
+.park-list::-webkit-scrollbar { width: 6px; }
+.park-list::-webkit-scrollbar-thumb { background: var(--color-background-dark); border-radius: 3px; }
+.park-list::-webkit-scrollbar-thumb:hover { background: #c8c9cc; }
+
+.park-card {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 10px;
+	background: #fff;
+	border: 1px solid var(--color-border-light, #e2e3e5);
+	border-radius: var(--border-radius-element, 8px);
+	cursor: grab;
+	user-select: none;
+	font-size: 13.5px;
+	flex-shrink: 0;
+}
+.park-card:hover {
+	border-color: var(--color-primary-element);
+	background: var(--color-primary-element-light, #e8f0fe);
+}
+.park-card:active { cursor: grabbing; }
+.park-card.selected {
+	background: var(--color-primary-element);
+	color: var(--color-primary-element-text);
+	border-color: var(--color-primary-element);
+}
+.park-card__dot {
+	width: 10px; height: 10px;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+.park-card__label {
+	flex: 1;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.shelf-main {
 	min-width: 0;
 }
 .shelf-view__header {
@@ -683,61 +789,6 @@ async function loadAllSlots() {
 	background: var(--color-main-background);
 	padding-bottom: 1rem;
 	margin-bottom: 1rem;
-}
-.parkzone {
-	display: flex;
-	flex-direction: column;
-	max-height: 30vh;
-	background: var(--color-background-hover);
-	border: 1px solid var(--color-border-dark, #bbb);
-	border-left: 4px solid var(--color-warning, #e3a000);
-	border-radius: var(--border-radius);
-	padding: 1rem;
-	margin-bottom: 1rem;
-	min-height: 60px;
-}
-.parkzone--drag-over {
-	background: var(--color-primary-element-light, #e8f0fe);
-	border-color: var(--color-primary-element);
-}
-.empty-park {
-	color: var(--color-text-maxcontrast);
-	font-style: italic;
-	margin: 0;
-}
-.park-list {
-	list-style: none;
-	padding: 0;
-	margin: 0;
-	display: flex;
-	flex-wrap: wrap;
-	gap: 0.5rem;
-	flex: 1;
-	min-height: 0;
-	overflow-y: auto;
-}
-.park-card {
-	display: flex;
-	align-items: center;
-	gap: 0.5rem;
-	padding: 0.4rem 0.75rem;
-	background: var(--color-main-background);
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius);
-	cursor: grab;
-	user-select: none;
-	font-size: 0.85rem;
-}
-.park-card:active { cursor: grabbing; }
-.park-card.selected {
-	background: var(--color-primary-element);
-	color: var(--color-primary-element-text);
-	border-color: var(--color-primary-element);
-}
-.park-card__dot {
-	width: 10px; height: 10px;
-	border-radius: 50%;
-	flex-shrink: 0;
 }
 .muted {
 	color: var(--color-text-maxcontrast);
@@ -916,17 +967,24 @@ async function loadAllSlots() {
 .slot {
 	width: 70px;
 	height: 48px;
-	border: 2px solid var(--color-border-dark, #aaa);
-	background: var(--color-background-dark, #f0f0f0);
+	border: 1px solid var(--color-border-light, #e2e3e5);
+	background: #fcfcfd;
 	color: var(--color-text-maxcontrast);
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	border-radius: 4px;
-	transition: background 0.1s, outline 0.1s;
+	border-radius: 6px;
+	transition: background 0.1s, outline 0.1s, transform 0.1s;
 	cursor: pointer;
+	font-size: 0.72rem;
 }
-.slot.occupied { color: white; cursor: grab; }
+.slot.occupied {
+	color: #fff;
+	cursor: grab;
+	border: none;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+.slot.occupied:hover { transform: translateY(-1px); }
 .slot.occupied:active { cursor: grabbing; }
 .slot.selected-source { outline: 2px solid var(--color-primary-element); outline-offset: 1px; }
 .slot.drag-source { opacity: 0.4; }
