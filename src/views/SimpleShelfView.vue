@@ -739,8 +739,9 @@ async function loadAllSlots() {
 	flex-direction: column;
 	max-height: calc(100vh - 140px);
 	background: #fff;
-	border: 1px solid var(--color-border, #d2d4d7);
-	border-radius: var(--border-radius);
+	border: 1.5px solid #999;
+	border-radius: 12px;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 	padding: 14px;
 }
 .parkzone--drag-over {
@@ -961,8 +962,8 @@ async function loadAllSlots() {
 	align-items: center;
 	gap: 18px;
 	padding: 14px 18px;
-	background: linear-gradient(180deg, #ececec 0%, #f8f8f8 100%);
-	border-bottom: 1.5px solid #999;
+	background: linear-gradient(180deg, #f4f4f4 0%, #fdfdfd 100%);
+	border-bottom: 1px solid #aaa;
 }
 .compartment__title {
 	margin: 0;
@@ -1010,7 +1011,7 @@ async function loadAllSlots() {
 /* Ebene als Sub-Sektion innerhalb der Compartment-Card */
 .level {
 	padding: 14px 18px;
-	border-bottom: 1.5px solid #bbb;
+	border-bottom: 1px solid #c8c8c8;
 	/* Fixe Slot-Größe — alle Slots gleich groß, völlig unabhängig vom Container */
 	--slot-w: 110px;
 	--gap: 8px;
@@ -1070,7 +1071,7 @@ async function loadAllSlots() {
 	flex: 0 0 var(--slot-w);
 	width: var(--slot-w);
 	height: 72px;
-	border: 2px solid #666;
+	border: 1.5px solid #888;
 	background: #fff;
 	color: var(--color-text-maxcontrast);
 	display: flex;
