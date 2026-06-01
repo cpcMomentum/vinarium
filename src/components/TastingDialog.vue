@@ -96,7 +96,7 @@ const photoError = ref<string | null>(null)
 const submitError = ref<string | null>(null)
 
 const form = ref({
-	tastedAt: new Date().toISOString().substring(0, 10),
+	tastedAt: todayIso.value,
 	rating: 7.0 as number | null,
 	notes: '',
 	occasion: '',
@@ -121,7 +121,7 @@ watch(() => props.open, (isOpen) => {
 		existingFileIds.value = [...(props.tasting.photo_file_ids ?? [])]
 	} else {
 		form.value = {
-			tastedAt: new Date().toISOString().substring(0, 10),
+			tastedAt: todayIso.value,
 			rating: 7.0,
 			notes: '',
 			occasion: '',

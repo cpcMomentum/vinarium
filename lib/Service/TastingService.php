@@ -48,7 +48,7 @@ class TastingService {
 
 		$tasting = new Tasting();
 		$tasting->setBottleId($bottleId);
-		$tastedAt = new DateTime($data['tastedAt'] ?? 'now');
+		$tastedAt = new DateTime($data['tastedAt'] ?? 'now', new \DateTimeZone('UTC'));
 		$this->assertTastedAtNotInFuture($tastedAt);
 		$tasting->setTastedAt($tastedAt);
 
@@ -158,7 +158,7 @@ class TastingService {
 		$tasting = $this->get($id, $userId);
 
 		if (isset($data['tastedAt'])) {
-			$tastedAt = new DateTime($data['tastedAt']);
+			$tastedAt = new DateTime($data['tastedAt'], new \DateTimeZone('UTC'));
 			$this->assertTastedAtNotInFuture($tastedAt);
 			$tasting->setTastedAt($tastedAt);
 		}
@@ -197,7 +197,7 @@ class TastingService {
 
 	/**
 	 * Reject tasting dates in the future. Tolerates timezone offsets by allowing
-	 * up to the end of tomorrow (UTC) — covers any client timezone west of UTC+12.
+	 * up to the start of tomorrow (UTC) — covers any client timezone up to UTC-12.
 	 */
 	private function assertTastedAtNotInFuture(DateTime $tastedAt): void {
 		$limit = new DateTime('tomorrow 00:00:00', new \DateTimeZone('UTC'));
