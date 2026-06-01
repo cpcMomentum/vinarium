@@ -1012,8 +1012,9 @@ async function loadAllSlots() {
 .level {
 	padding: 14px 18px;
 	border-bottom: 1px solid var(--color-border-light, #e2e3e5);
-	/* Fixe Slot-Größe — alle Slots gleich groß, völlig unabhängig vom Container (Mockup v3: 110px) */
-	--slot-w: 110px;
+	/* Fixe Slot-Größe — alle Slots gleich groß, völlig unabhängig vom Container
+	 * 138px statt Mockup-110px, damit zweizeilige Weinnamen lesbar bleiben */
+	--slot-w: 138px;
 	--gap: 8px;
 }
 .level:last-child { border-bottom: none; }
@@ -1137,7 +1138,7 @@ async function loadAllSlots() {
 	font-size: 0.78rem;
 	font-weight: 600;
 	line-height: 1.2;
-	max-width: 94px;
+	max-width: 124px;
 	word-break: break-word;
 }
 .slot__year {
