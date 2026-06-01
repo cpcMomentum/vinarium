@@ -113,6 +113,7 @@
 			@close="deleteConfirmOpen = false"
 			@confirm="performDelete"
 		/>
+		<p v-if="deleteError" class="master-data__error">{{ deleteError }}</p>
 	</div>
 </template>
 
@@ -130,6 +131,7 @@ type EntityType = 'producer' | 'wine' | 'vintage'
 
 const store = useWineStore()
 const activeTab = ref<'producers' | 'wines' | 'vintages' | 'purchases'>('producers')
+const deleteError = ref<string | null>(null)
 
 const editOpen = ref(false)
 const editType = ref<EntityType>('producer')
@@ -202,10 +204,15 @@ async function performDelete() {
 	const id = deletePendingId.value
 	if (id === null) return
 	const type = deletePendingType.value
-	if (type === 'producer') await store.deleteProducer(id)
-	else if (type === 'wine') await store.deleteWine(id)
-	else await store.deleteVintage(id)
-	deletePendingId.value = null
+	deleteError.value = null
+	try {
+		if (type === 'producer') await store.deleteProducer(id)
+		else if (type === 'wine') await store.deleteWine(id)
+		else await store.deleteVintage(id)
+		deletePendingId.value = null
+	} catch (e: any) {
+		deleteError.value = e?.message ?? t('vinarium', 'Löschen fehlgeschlagen')
+	}
 }
 </script>
 
@@ -290,6 +297,15 @@ async function performDelete() {
 .master-data__table th {
 	background: var(--color-background-hover);
 	font-weight: 500;
+	font-size: 0.9rem;
+}
+.master-data__error {
+	margin: 1rem 0 0;
+	padding: 0.5rem 0.75rem;
+	background: rgba(198, 40, 40, 0.1);
+	border-left: 3px solid #c62828;
+	border-radius: var(--border-radius);
+	color: #c62828;
 	font-size: 0.9rem;
 }
 </style>
