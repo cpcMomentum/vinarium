@@ -949,9 +949,9 @@ async function loadAllSlots() {
 /* Compartment als self-fitting Card (Card-System aus Dashboard v4) */
 .compartment {
 	background: #fff;
-	border: 1px solid var(--color-border, #d2d4d7);
+	border: 1.5px solid #999;
 	border-radius: 12px;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 	overflow: hidden;
 	width: fit-content;
 	max-width: 100%;
@@ -961,8 +961,8 @@ async function loadAllSlots() {
 	align-items: center;
 	gap: 18px;
 	padding: 14px 18px;
-	background: linear-gradient(180deg, #fafbfc 0%, #fff 100%);
-	border-bottom: 1px solid var(--color-border, #d2d4d7);
+	background: linear-gradient(180deg, #ececec 0%, #f8f8f8 100%);
+	border-bottom: 1.5px solid #999;
 }
 .compartment__title {
 	margin: 0;
@@ -1010,7 +1010,7 @@ async function loadAllSlots() {
 /* Ebene als Sub-Sektion innerhalb der Compartment-Card */
 .level {
 	padding: 14px 18px;
-	border-bottom: 1px solid var(--color-border-light, #e2e3e5);
+	border-bottom: 1.5px solid #bbb;
 	/* Fixe Slot-Größe — alle Slots gleich groß, völlig unabhängig vom Container */
 	--slot-w: 110px;
 	--gap: 8px;
@@ -1070,7 +1070,7 @@ async function loadAllSlots() {
 	flex: 0 0 var(--slot-w);
 	width: var(--slot-w);
 	height: 72px;
-	border: 1px solid #b8bbbf;
+	border: 2px solid #666;
 	background: #fff;
 	color: var(--color-text-maxcontrast);
 	display: flex;
