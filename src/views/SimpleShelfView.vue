@@ -93,8 +93,8 @@
 				<div v-else-if="activeShelf" class="shelves">
 
 						<div v-for="compData in activeShelf.compartments" :key="compData.compartment.id" class="compartment">
-							<!-- Compartment-Header nur bei mehreren Fächern -->
-							<div v-if="activeShelf.compartments.length > 1" class="compartment__header">
+							<!-- Compartment-Header immer rendern (Card-Header mit Title und Hover-Actions) -->
+							<div class="compartment__header">
 								<input
 									v-if="renamingCompartmentId === compData.compartment.id"
 									:ref="setCompartmentRenameInput"
@@ -130,16 +130,11 @@
 							>
 								<div class="level__header">
 									<span class="level__title">
-										{{ t('vinarium', 'Ebene') }} {{ level.levelNumber + 1 }}
-										<span v-if="levelPositionLabel(idx, compData.levels.length)" class="level__position">
-											· {{ levelPositionLabel(idx, compData.levels.length) }}
-										</span>
+										{{ t('vinarium', 'Ebene') }} {{ level.levelNumber + 1 }}<span v-if="levelPositionLabel(idx, compData.levels.length)" class="level__position"> · {{ levelPositionLabel(idx, compData.levels.length) }}</span>
 									</span>
 									<span class="level__occupancy">
-										{{ levelOccupancy(compData.compartment.id, level.levelNumber).filled }}
-										/
-										{{ levelOccupancy(compData.compartment.id, level.levelNumber).total }}
-										{{ t('vinarium', 'belegt') }}
+										<strong>{{ levelOccupancy(compData.compartment.id, level.levelNumber).filled }}</strong>
+										/ {{ levelOccupancy(compData.compartment.id, level.levelNumber).total }} {{ t('vinarium', 'belegt') }}
 									</span>
 								</div>
 
@@ -838,10 +833,13 @@ async function loadAllSlots() {
 .shelf-main__inner {
 	min-width: 0;
 }
-/* Slot-Grid: KEIN Card-Wrapper mehr — Hinten kann frei nach links und rechts überstehen.
- * Stattdessen liefert .compartment selbst die visuelle Trennung über border-top. */
+/* Slot-Grid: Compartments sitzen untereinander, jeweils als eigene self-fitting Card */
 .shelves {
 	margin-top: 12px;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	align-items: flex-start;
 }
 .shelf-view__top {
 	display: flex;
@@ -948,48 +946,48 @@ async function loadAllSlots() {
 	border-color: var(--color-primary-element);
 }
 
-/* Compartment: keine Card mehr, nur dezenter Header bei mehreren */
+/* Compartment als self-fitting Card (Card-System aus Dashboard v4) */
 .compartment {
-	padding: 0;
-	margin-bottom: 22px;
-	padding-top: 12px;
-	border-top: 1px solid var(--color-border-light, #e2e3e5);
-}
-.compartment:first-child {
-	padding-top: 0;
-	border-top: none;
+	background: #fff;
+	border: 1px solid var(--color-border, #d2d4d7);
+	border-radius: 12px;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+	overflow: hidden;
+	width: fit-content;
+	max-width: 100%;
 }
 .compartment__header {
 	display: flex;
 	align-items: center;
-	justify-content: flex-end;
-	gap: 0.25rem;
-	margin-bottom: 10px;
+	gap: 18px;
+	padding: 14px 18px;
+	background: linear-gradient(180deg, #fafbfc 0%, #fff 100%);
+	border-bottom: 1px solid var(--color-border, #d2d4d7);
 }
 .compartment__title {
 	margin: 0;
-	font-size: 0.7rem;
+	font-size: 12.5px;
 	font-weight: 600;
 	color: var(--color-text-maxcontrast);
 	text-transform: uppercase;
-	letter-spacing: 0.04em;
+	letter-spacing: 0.05em;
 	margin-right: auto;
 }
 .compartment__title--editable {
 	cursor: pointer;
-	border-radius: var(--border-radius);
-	padding: 0.1rem 0.3rem;
-	margin: -0.1rem 0 -0.1rem -0.3rem;
+	border-radius: 4px;
+	padding: 2px 6px;
+	margin: -2px 0 -2px -6px;
 }
 .compartment__title--editable:hover {
 	background: var(--color-background-hover);
 	color: var(--color-main-text);
 }
 .compartment__title-input {
-	font-size: 0.85rem;
-	padding: 0.2rem 0.4rem;
+	font-size: 12.5px;
+	padding: 2px 6px;
 	border: 1px solid var(--color-primary-element);
-	border-radius: var(--border-radius);
+	border-radius: 4px;
 	margin-right: auto;
 }
 .compartment__config-btn,
@@ -997,42 +995,60 @@ async function loadAllSlots() {
 	background: none;
 	border: none;
 	color: var(--color-text-maxcontrast);
-	font-size: 0.85rem;
-	padding: 2px 6px;
+	font-size: 0.95rem;
+	padding: 2px 8px;
 	cursor: pointer;
 	opacity: 0;
-	transition: opacity 0.12s;
+	border-radius: 4px;
+	transition: opacity 0.12s, background 0.12s;
 }
 .compartment:hover .compartment__config-btn,
-.compartment:hover .compartment__delete-btn,
-.compartment__header:focus-within .compartment__config-btn,
-.compartment__header:focus-within .compartment__delete-btn { opacity: 0.55; }
-.compartment__config-btn:hover { color: var(--color-main-text); opacity: 1 !important; }
-.compartment__delete-btn:hover { color: #b03b33; opacity: 1 !important; }
+.compartment:hover .compartment__delete-btn { opacity: 0.7; }
+.compartment__config-btn:hover { background: var(--color-background-hover); opacity: 1 !important; color: var(--color-main-text); }
+.compartment__delete-btn:hover { background: var(--color-background-hover); opacity: 1 !important; color: #b03b33; }
 
-/* Ebene */
+/* Ebene als Sub-Sektion innerhalb der Compartment-Card */
 .level {
-	margin-bottom: 22px;
+	padding: 14px 18px;
+	border-bottom: 1px solid var(--color-border-light, #e2e3e5);
 	/* Fixe Slot-Größe — alle Slots gleich groß, völlig unabhängig vom Container */
 	--slot-w: 110px;
 	--gap: 8px;
-	/* Versatz Hinten = halbe Slot-Breite + halben Gap pro zusätzlicher Hinten-Spalte (symmetrisch links + rechts) */
-	--back-offset: calc((var(--back-cols) - var(--front-cols)) * (var(--slot-w) + var(--gap)) / 2);
 }
-.level:last-child { margin-bottom: 0; }
+.level:last-child { border-bottom: none; }
 .level__header {
 	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	margin-bottom: 6px;
-	font-size: 0.72rem;
-	font-weight: 600;
-	color: var(--color-text-maxcontrast);
+	align-items: baseline;
+	flex-wrap: wrap;
+	gap: 12px;
+	margin-bottom: 12px;
+}
+.level__title {
+	font-size: 13px;
+	font-weight: 700;
+	color: var(--color-main-text);
+	text-transform: uppercase;
 	letter-spacing: 0.04em;
 }
-.level__title { text-transform: uppercase; }
-.level__position { font-weight: 500; opacity: 0.8; }
-.level__occupancy { font-weight: 500; }
+.level__position {
+	color: var(--color-text-maxcontrast);
+	font-weight: 500;
+}
+.level__occupancy {
+	font-size: 11.5px;
+	font-weight: 600;
+	color: var(--color-text-maxcontrast);
+	background: var(--color-background-hover);
+	border-radius: 10px;
+	padding: 3px 10px;
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+}
+.level__occupancy strong {
+	color: var(--color-main-text);
+	font-weight: 700;
+}
 
 /* Slot-Row — die längere Reihe ist linksbündig, die kürzere um halbe Slot-Breite eingerückt
  * (Pflastersteinen-Versatz: erste Box der längeren Reihe sitzt halb links über der ersten der kürzeren) */
@@ -1092,7 +1108,7 @@ async function loadAllSlots() {
 	color: rgba(255, 255, 255, 0.85);
 }
 .slot:not(.occupied) .slot__id {
-	color: var(--color-text-maxcontrast, #6b6b6b);
+	color: #555;
 }
 .slot__id-h {
 	margin-left: 1px;
