@@ -50,61 +50,66 @@
 
 		<!-- Bottles-Tab -->
 		<div v-show="activeTab === 'bottles'">
-			<table v-if="store.bottles.length > 0" class="bottles">
-				<thead>
-					<tr>
-						<th class="photo-col"></th>
-						<th>{{ t('vinarium', 'Weingut') }}</th>
-						<th>{{ t('vinarium', 'Wein') }}</th>
-						<th>{{ t('vinarium', 'Jahrgang') }}</th>
-						<th>{{ t('vinarium', 'Kategorie') }}</th>
-						<th>{{ t('vinarium', 'Status') }}</th>
-						<th>{{ t('vinarium', 'Slot') }}</th>
-						<th></th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr v-for="b in store.bottles" :key="b.id">
-						<td class="photo-cell">
-							<img
-								v-if="b.photo_file_id !== null"
-								:src="bottlePhotoUrl(b.id)"
-								class="bottle-thumb"
-								:alt="b.wine_name"
-							/>
-						</td>
-						<td>{{ b.producer_name }}</td>
-						<td>{{ b.wine_name }}</td>
-						<td>{{ b.year }}</td>
-						<td>
-							<span class="dot" :style="{ background: cssColorFor(b.wine_color) }"></span>
-							{{ t('vinarium', WINE_COLOR_LABELS[b.wine_color]) }}
-						</td>
-						<td>
-							{{ t('vinarium', BOTTLE_STATUS_LABELS[b.status]) }}
-							<span v-if="b.status === 'gifted' && b.event_recipient" class="event-info" :title="giftTooltip(b)">→ {{ b.event_recipient }}</span>
-							<span v-else-if="b.status === 'lost' && b.event_note" class="event-info">({{ b.event_note }})</span>
-						</td>
-						<td>{{ formatSlotLabel(b) }}</td>
-						<td>
-							<div v-if="b.status === 'in_storage'" class="actions-cell">
-								<NcButton variant="secondary" @click="openTasting(b.id)">{{ t('vinarium', 'Entkorken') }}</NcButton>
-								<NcActions :aria-label="t('vinarium', 'Weitere Aktionen')">
-									<NcActionButton @click="openEvent(b.id, 'gift')">
-										<template #icon><Gift :size="20" /></template>
-										{{ t('vinarium', 'Verschenken') }}
-									</NcActionButton>
-									<NcActionButton @click="openEvent(b.id, 'lost')">
-										<template #icon><CloseCircleOutline :size="20" /></template>
-										{{ t('vinarium', 'Verloren') }}
-									</NcActionButton>
-								</NcActions>
-							</div>
-							<NcButton v-else-if="b.status === 'gifted' || b.status === 'lost'" variant="tertiary" @click="doRestore(b.id)">{{ t('vinarium', 'Zurück in Bestand') }}</NcButton>
-						</td>
-					</tr>
-				</tbody>
-			</table>
+			<div v-if="store.bottles.length > 0" class="bottles-card">
+				<table class="bottles">
+					<thead>
+						<tr>
+							<th class="photo-col"></th>
+							<th>{{ t('vinarium', 'Weingut') }}</th>
+							<th>{{ t('vinarium', 'Wein') }}</th>
+							<th>{{ t('vinarium', 'Jahrgang') }}</th>
+							<th>{{ t('vinarium', 'Kategorie') }}</th>
+							<th>{{ t('vinarium', 'Status') }}</th>
+							<th>{{ t('vinarium', 'Slot') }}</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="b in store.bottles" :key="b.id">
+							<td class="photo-cell">
+								<img
+									v-if="b.photo_file_id !== null"
+									:src="bottlePhotoUrl(b.id)"
+									class="bottle-thumb"
+									:alt="b.wine_name"
+								/>
+								<span v-else class="bottle-tile" :class="'bottle-tile--' + b.wine_color" :title="t('vinarium', WINE_COLOR_LABELS[b.wine_color])"></span>
+							</td>
+							<td>{{ b.producer_name }}</td>
+							<td>{{ b.wine_name }}</td>
+							<td>{{ b.year }}</td>
+							<td>
+								<span class="cat">
+									<span class="dot" :style="{ background: cssColorFor(b.wine_color) }"></span>
+									{{ t('vinarium', WINE_COLOR_LABELS[b.wine_color]) }}
+								</span>
+							</td>
+							<td>
+								<span class="chip" :class="chipClass(b.status)">{{ t('vinarium', BOTTLE_STATUS_LABELS[b.status]) }}</span>
+								<span v-if="b.status === 'gifted' && b.event_recipient" class="event-info" :title="giftTooltip(b)">→ {{ b.event_recipient }}</span>
+								<span v-else-if="b.status === 'lost' && b.event_note" class="event-info">({{ b.event_note }})</span>
+							</td>
+							<td>{{ formatSlotLabel(b) }}</td>
+							<td>
+								<div v-if="b.status === 'in_storage'" class="actions-cell">
+									<NcButton variant="secondary" @click="openTasting(b.id)">{{ t('vinarium', 'Entkorken') }}</NcButton>
+									<NcActions :aria-label="t('vinarium', 'Weitere Aktionen')">
+										<NcActionButton @click="openEvent(b.id, 'gift')">
+											<template #icon><Gift :size="20" /></template>
+											{{ t('vinarium', 'Verschenken') }}
+										</NcActionButton>
+										<NcActionButton @click="openEvent(b.id, 'lost')">
+											<template #icon><CloseCircleOutline :size="20" /></template>
+											{{ t('vinarium', 'Verloren') }}
+										</NcActionButton>
+									</NcActions>
+								</div>
+								<NcButton v-else-if="b.status === 'gifted' || b.status === 'lost'" variant="tertiary" @click="doRestore(b.id)">{{ t('vinarium', 'Zurück in Bestand') }}</NcButton>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 			<p v-else class="empty">{{ t('vinarium', 'Keine Flaschen gefunden.') }}</p>
 			<p v-if="restoreError" class="restore-error">{{ restoreError }}</p>
 		</div>
@@ -259,6 +264,16 @@ function bottlePhotoUrl(id: number): string {
 	return getBottlePhotoUrl(id)
 }
 
+function chipClass(status: BottleStatus): string {
+	switch (status) {
+		case 'in_storage': return 'chip--stk'
+		case 'consumed': return 'chip--csm'
+		case 'gifted': return 'chip--gft'
+		case 'lost': return 'chip--lst'
+	}
+	return ''
+}
+
 function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot_level: number | null; slot_row: string | null; slot_column: number | null; compartment_label: string | null }): string {
 	if (b.status !== 'in_storage') return '—'
 	if (!b.slot_id) return t('vinarium', 'Parkzone')
@@ -326,20 +341,29 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 	border-bottom-color: var(--color-primary-element, #0082c9);
 }
 
+.cat {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	white-space: nowrap;
+}
 .dot {
 	display: inline-block;
-	width: 14px;
-	height: 14px;
+	width: 10px;
+	height: 10px;
 	border-radius: 50%;
-	border: 1px solid var(--color-border);
+	flex-shrink: 0;
 }
+
+/* Filter-Bar als helle Card */
 .filters {
 	display: flex;
 	gap: 1rem;
 	align-items: end;
 	margin-bottom: 0;
-	padding: 1rem;
-	background: var(--color-background-hover);
+	padding: 0.875rem 1rem;
+	background: #fff;
+	border: 1px solid var(--color-border, #d2d4d7);
 	border-radius: var(--border-radius);
 }
 .filters label {
@@ -347,27 +371,74 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 	flex-direction: column;
 	font-size: 0.85rem;
 	color: var(--color-text-maxcontrast);
+	font-weight: 600;
 }
 .input {
 	margin-top: 0.25rem;
-	padding: 0.4rem;
+	padding: 0.4rem 0.6rem;
 	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius);
+	border-radius: var(--border-radius-element, 8px);
 	background: var(--color-main-background);
 	color: var(--color-main-text);
+	min-width: 140px;
 }
 .reset {
 	background: none;
-	border: 1px solid var(--color-border);
-	border-radius: var(--border-radius);
-	padding: 0.5rem 0.75rem;
+	border: none;
+	color: var(--color-text-maxcontrast);
+	font-size: 0.85rem;
+	padding: 0.5rem 0.25rem;
 	cursor: pointer;
-	color: var(--color-main-text);
+	align-self: end;
+}
+.reset:hover { color: var(--color-main-text); }
+
+/* Tabelle in Card-Wrapper */
+.bottles-card {
+	background: #fff;
+	border: 1px solid var(--color-border, #d2d4d7);
+	border-radius: var(--border-radius);
+	overflow: hidden;
 }
 .bottles {
 	width: 100%;
 	border-collapse: collapse;
 }
+.bottles tbody tr:hover {
+	background: var(--color-background-hover);
+}
+
+/* Status-Chips (analog Dashboard) */
+.chip {
+	font-size: 11.5px;
+	font-weight: 600;
+	border-radius: var(--border-radius-element, 8px);
+	padding: 3px 10px;
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	white-space: nowrap;
+}
+.chip--stk { background: #eaf5ee; color: #2f7d49; }
+.chip--csm { background: #eeeeee; color: #5a5a5a; }
+.chip--gft { background: #fbf3e6; color: #9a6c25; }
+.chip--lst { background: #fbecea; color: #b03b33; }
+
+/* Fallback-Tile, wenn keine Foto-URL existiert */
+.bottle-tile {
+	display: inline-block;
+	width: 40px;
+	height: 40px;
+	border-radius: 4px;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+.bottle-tile--red { background: linear-gradient(135deg, #efd9d8, #7a2a28); }
+.bottle-tile--white { background: linear-gradient(135deg, #f7f1d4, #c9b85a); }
+.bottle-tile--rose { background: linear-gradient(135deg, #f6e0e1, #cf8c8d); }
+.bottle-tile--sparkling { background: linear-gradient(135deg, #f4ecbf, #b8a64e); }
+.bottle-tile--dessert { background: linear-gradient(135deg, #f0dcb8, #b07d3a); }
+.bottle-tile--fortified { background: linear-gradient(135deg, #dec1ad, #6e3a2a); }
+
 .event-info {
 	color: var(--color-text-maxcontrast);
 	font-size: 0.85rem;
@@ -390,16 +461,22 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 }
 .bottles th, .bottles td {
 	text-align: left;
-	padding: 0.5rem 0.75rem;
-	border-bottom: 1px solid var(--color-border);
+	padding: 0.6rem 0.75rem;
+	border-bottom: 1px solid var(--color-border-light, #e2e3e5);
+	vertical-align: middle;
 }
+.bottles tbody tr:last-child td { border-bottom: none; }
 .bottles th {
 	position: sticky;
 	top: var(--inventory-head-h, 0px);
 	z-index: 10;
-	background: var(--color-background-dark);
-	font-weight: 500;
-	font-size: 0.9rem;
+	background: #fff;
+	font-weight: 600;
+	font-size: 0.78rem;
+	color: var(--color-text-maxcontrast);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	border-bottom: 1px solid var(--color-border, #d2d4d7);
 }
 .empty {
 	color: var(--color-text-maxcontrast);
