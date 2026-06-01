@@ -4,6 +4,33 @@
  */
 
 import { apiGet, apiUrl } from './client'
+import type { WineColor } from '@/types/api'
+
+export type ActivityType = 'purchase' | 'tasting' | 'gifted' | 'lost'
+
+export interface ActivityEvent {
+	type: ActivityType
+	date: string
+	label: string
+	refs: {
+		wine_id?: number
+		wine_color?: WineColor
+		producer_name?: string
+		tasting_id?: number
+		bottle_id?: number
+	}
+}
+
+export interface DrinkSoonEntry {
+	wine_id: number
+	wine_name: string
+	wine_color: WineColor
+	year: number
+	drink_until_year: number
+	producer_name: string
+	bottle_count: number
+	slot_label: string | null
+}
 
 export interface DashboardStats {
 	totalBottles: number
@@ -12,14 +39,9 @@ export interface DashboardStats {
 	gifted: number
 	lost: number
 	parked: number
+	shelfCount: number
 	colorDistribution: Record<string, number>
-	drinkSoon: Array<{
-		wine_name: string
-		year: number
-		drink_until_year: number
-		producer_name: string
-		bottle_count: number
-	}>
+	drinkSoon: DrinkSoonEntry[]
 	recentTastings: Array<{
 		tasted_at: string
 		rating: number | null
@@ -27,7 +49,9 @@ export interface DashboardStats {
 		wine_name: string
 		year: number
 		producer_name: string
+		wine_color?: WineColor
 	}>
+	recentActivity: ActivityEvent[]
 }
 
 export const fetchStats = (): Promise<DashboardStats> =>
