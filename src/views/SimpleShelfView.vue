@@ -739,7 +739,7 @@ async function loadAllSlots() {
 	flex-direction: column;
 	max-height: calc(100vh - 140px);
 	background: #fff;
-	border: 1px solid #aaa;
+	border: 1px solid var(--color-border, #d2d4d7);
 	border-radius: 12px;
 	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 	padding: 14px;
@@ -950,12 +950,11 @@ async function loadAllSlots() {
 /* Compartment als self-fitting Card (Card-System aus Dashboard v4) */
 .compartment {
 	background: #fff;
-	border: 1px solid #aaa;
+	border: 1px solid var(--color-border, #d2d4d7);
 	border-radius: 12px;
 	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-	overflow: hidden;
+	overflow: visible;
 	width: fit-content;
-	max-width: 100%;
 }
 .compartment__header {
 	display: flex;
@@ -963,7 +962,8 @@ async function loadAllSlots() {
 	gap: 18px;
 	padding: 14px 18px;
 	background: linear-gradient(180deg, #f4f4f4 0%, #fdfdfd 100%);
-	border-bottom: 1px solid #aaa;
+	border-bottom: 1px solid var(--color-border, #d2d4d7);
+	border-radius: 12px 12px 0 0;
 }
 .compartment__title {
 	margin: 0;
@@ -1071,7 +1071,7 @@ async function loadAllSlots() {
 	flex: 0 0 var(--slot-w);
 	width: var(--slot-w);
 	height: 72px;
-	border: 1px solid #999;
+	border: 1px solid var(--color-border, #d2d4d7);
 	background: #fff;
 	color: var(--color-text-maxcontrast);
 	display: flex;
