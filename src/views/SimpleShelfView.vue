@@ -122,6 +122,10 @@
 								v-for="(level, idx) in reversedLevels(compData.levels)"
 								:key="level.id"
 								class="level"
+								:style="{
+									'--front-cols': level.columnsFront,
+									'--back-cols': level.columnsBack ?? 0,
+								}"
 							>
 								<div class="level__header">
 									<span class="level__title">
@@ -1010,7 +1014,12 @@ async function loadAllSlots() {
 
 /* Ebenen-Header horizontal, fett, Uppercase */
 .level {
-	margin-bottom: 14px;
+	margin-bottom: 18px;
+	/* Slot-Breite konstant — abgeleitet aus den Vorne-Spalten */
+	--gap: 8px;
+	--slot-width: calc((100% - (var(--front-cols) - 1) * var(--gap)) / var(--front-cols));
+	/* Versatz für Hinten = halber Slot pro zusätzlicher Hinten-Spalte (rechts vs links symmetrisch) */
+	--back-offset: calc((var(--back-cols) - var(--front-cols)) * (var(--slot-width) + var(--gap)) / 2);
 }
 .level:last-child { margin-bottom: 0; }
 .level__header {
@@ -1027,27 +1036,24 @@ async function loadAllSlots() {
 .level__position { font-weight: 500; opacity: 0.8; }
 .level__occupancy { font-weight: 500; }
 
-/* Slot-Row */
+/* Slot-Row — Vorne füllt den Container, Hinten ragt symmetrisch links/rechts heraus */
 .slot-row {
 	display: flex;
-	gap: 6px;
-	flex-wrap: wrap;
-	margin-bottom: 6px;
+	gap: var(--gap);
+	margin-bottom: var(--gap);
 }
 .slot-row:last-child { margin-bottom: 0; }
-/* Hinten oben + horizontal um halbe Slot-Breite nach rechts versetzt
- * (visuelle Tiefe — Hinten-Slots sitzen "zwischen" den Vorne-Slots) */
 .slot-row--back {
-	margin-left: calc(((100% - 5 * 6px) / 6) / 2);
-	margin-right: calc(((100% - 5 * 6px) / 6) / -2);
+	margin-left: calc(-1 * var(--back-offset));
+	margin-right: calc(-1 * var(--back-offset));
 }
 
-/* Slots: groß, lesbar, Slot-ID oben links */
+/* Slot: feste Breite über CSS-Var, damit Vorne und Hinten gleich breit sind */
 .slot {
-	flex: 1 1 0;
-	min-width: 90px;
+	flex: 0 0 var(--slot-width);
+	width: var(--slot-width);
 	height: 72px;
-	border: 1px solid var(--color-border, #d2d4d7);
+	border: 1px solid #b8bbbf;
 	background: #fff;
 	color: var(--color-text-maxcontrast);
 	display: flex;
