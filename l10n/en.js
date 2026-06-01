@@ -36,6 +36,8 @@ OC.L10N.register(
     "Dashboard": "Dashboard",
     "Weine": "Wines",
     "Bestand": "Inventory",
+    "Stammdaten": "Master data",
+    "Kategorie": "Category",
     "Regal": "Cellar",
     "Verkostungen": "Tastings",
     "Kennzahlen": "Key figures",

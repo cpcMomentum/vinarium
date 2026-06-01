@@ -1,100 +1,140 @@
 <template>
 	<div class="inventory-view">
 		<div ref="headEl" class="inventory-head">
-		<header class="inventory-view__header">
-			<h2>{{ t('vinarium', 'Bestand') }}</h2>
-			<span class="count">{{ n('vinarium', '{count} Flasche', '{count} Flaschen', store.totalCount, { count: store.totalCount }) }}</span>
-		</header>
+			<header class="inventory-view__header">
+				<h2>{{ t('vinarium', 'Bestand') }}</h2>
+				<span class="count">{{ n('vinarium', '{count} Flasche', '{count} Flaschen', store.totalCount, { count: store.totalCount }) }}</span>
+				<div class="inventory-view__sp"></div>
+				<NcButton variant="primary" @click="wizardOpen = true">{{ t('vinarium', '+ Kauf erfassen') }}</NcButton>
+			</header>
 
-		<section class="filters">
-			<label>
-				{{ t('vinarium', 'Farbe') }}
-				<select v-model="filterColor" class="input" @change="applyFilter">
-					<option value="">{{ t('vinarium', 'alle') }}</option>
-					<option v-for="c in WINE_COLORS" :key="c" :value="c">{{ t('vinarium', WINE_COLOR_LABELS[c]) }}</option>
-				</select>
-			</label>
-			<label>
-				{{ t('vinarium', 'Status') }}
-				<select v-model="filterStatus" class="input" @change="applyFilter">
-					<option value="">{{ t('vinarium', 'alle') }}</option>
-					<option v-for="(label, key) in BOTTLE_STATUS_LABELS" :key="key" :value="key">{{ t('vinarium', label) }}</option>
-				</select>
-			</label>
-			<label>
-				{{ t('vinarium', 'Jahrgang') }}
-				<input v-model.number.lazy="filterYear" type="number" class="input" :placeholder="t('vinarium', 'z. B. 2020')" @change="applyFilter" />
-			</label>
-			<button class="reset" @click="resetFilter">{{ t('vinarium', 'Filter zurücksetzen') }}</button>
-		</section>
+			<!-- Sub-Tabs Flaschen / Stammdaten -->
+			<nav class="subtabs">
+				<button
+					:class="['subtab', { 'subtab--active': activeTab === 'bottles' }]"
+					@click="setTab('bottles')"
+				>
+					{{ t('vinarium', 'Flaschen') }}
+				</button>
+				<button
+					:class="['subtab', { 'subtab--active': activeTab === 'masterdata' }]"
+					@click="setTab('masterdata')"
+				>
+					{{ t('vinarium', 'Stammdaten') }}
+				</button>
+			</nav>
+
+			<!-- Filter nur im Bottles-Tab -->
+			<section v-if="activeTab === 'bottles'" class="filters">
+				<label>
+					{{ t('vinarium', 'Kategorie') }}
+					<select v-model="filterColor" class="input" @change="applyFilter">
+						<option value="">{{ t('vinarium', 'alle') }}</option>
+						<option v-for="c in WINE_COLORS" :key="c" :value="c">{{ t('vinarium', WINE_COLOR_LABELS[c]) }}</option>
+					</select>
+				</label>
+				<label>
+					{{ t('vinarium', 'Status') }}
+					<select v-model="filterStatus" class="input" @change="applyFilter">
+						<option value="">{{ t('vinarium', 'alle') }}</option>
+						<option v-for="(label, key) in BOTTLE_STATUS_LABELS" :key="key" :value="key">{{ t('vinarium', label) }}</option>
+					</select>
+				</label>
+				<label>
+					{{ t('vinarium', 'Jahrgang') }}
+					<input v-model.number.lazy="filterYear" type="number" class="input" :placeholder="t('vinarium', 'z. B. 2020')" @change="applyFilter" />
+				</label>
+				<button class="reset" @click="resetFilter">{{ t('vinarium', 'Filter zurücksetzen') }}</button>
+			</section>
 		</div>
 
-		<table v-if="store.bottles.length > 0" class="bottles">
-			<thead>
-				<tr>
-					<th class="photo-col"></th>
-					<th>{{ t('vinarium', 'Weingut') }}</th>
-					<th>{{ t('vinarium', 'Wein') }}</th>
-					<th>{{ t('vinarium', 'Jahrgang') }}</th>
-					<th>{{ t('vinarium', 'Farbe') }}</th>
-					<th>{{ t('vinarium', 'Status') }}</th>
-					<th>{{ t('vinarium', 'Slot') }}</th>
-					<th></th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr v-for="b in store.bottles" :key="b.id">
-					<td class="photo-cell">
-						<img
-							v-if="b.photo_file_id !== null"
-							:src="bottlePhotoUrl(b.id)"
-							class="bottle-thumb"
-							:alt="b.wine_name"
-						/>
-					</td>
-					<td>{{ b.producer_name }}</td>
-					<td>{{ b.wine_name }}</td>
-					<td>{{ b.year }}</td>
-					<td>
-						<span class="dot" :style="{ background: cssColorFor(b.wine_color) }"></span>
-						{{ t('vinarium', WINE_COLOR_LABELS[b.wine_color]) }}
-					</td>
-					<td>
-						{{ t('vinarium', BOTTLE_STATUS_LABELS[b.status]) }}
-						<span v-if="b.status === 'gifted' && b.event_recipient" class="event-info" :title="giftTooltip(b)">→ {{ b.event_recipient }}</span>
-						<span v-else-if="b.status === 'lost' && b.event_note" class="event-info">({{ b.event_note }})</span>
-					</td>
-					<td>{{ formatSlotLabel(b) }}</td>
-					<td>
-						<div v-if="b.status === 'in_storage'" class="actions-cell">
-							<NcButton variant="secondary" @click="openTasting(b.id)">{{ t('vinarium', 'Entkorken') }}</NcButton>
-							<NcActions :aria-label="t('vinarium', 'Weitere Aktionen')">
-								<NcActionButton @click="openEvent(b.id, 'gift')">
-									<template #icon><Gift :size="20" /></template>
-									{{ t('vinarium', 'Verschenken') }}
-								</NcActionButton>
-								<NcActionButton @click="openEvent(b.id, 'lost')">
-									<template #icon><CloseCircleOutline :size="20" /></template>
-									{{ t('vinarium', 'Verloren') }}
-								</NcActionButton>
-							</NcActions>
-						</div>
-						<NcButton v-else variant="tertiary" @click="doRestore(b.id)">{{ t('vinarium', 'Zurück in Bestand') }}</NcButton>
-					</td>
-				</tr>
-			</tbody>
-		</table>
-		<p v-else class="empty">{{ t('vinarium', 'Keine Flaschen gefunden.') }}</p>
+		<!-- Bottles-Tab -->
+		<div v-show="activeTab === 'bottles'">
+			<table v-if="store.bottles.length > 0" class="bottles">
+				<thead>
+					<tr>
+						<th class="photo-col"></th>
+						<th>{{ t('vinarium', 'Weingut') }}</th>
+						<th>{{ t('vinarium', 'Wein') }}</th>
+						<th>{{ t('vinarium', 'Jahrgang') }}</th>
+						<th>{{ t('vinarium', 'Kategorie') }}</th>
+						<th>{{ t('vinarium', 'Status') }}</th>
+						<th>{{ t('vinarium', 'Slot') }}</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr v-for="b in store.bottles" :key="b.id">
+						<td class="photo-cell">
+							<img
+								v-if="b.photo_file_id !== null"
+								:src="bottlePhotoUrl(b.id)"
+								class="bottle-thumb"
+								:alt="b.wine_name"
+							/>
+						</td>
+						<td>{{ b.producer_name }}</td>
+						<td>{{ b.wine_name }}</td>
+						<td>{{ b.year }}</td>
+						<td>
+							<span class="dot" :style="{ background: cssColorFor(b.wine_color) }"></span>
+							{{ t('vinarium', WINE_COLOR_LABELS[b.wine_color]) }}
+						</td>
+						<td>
+							{{ t('vinarium', BOTTLE_STATUS_LABELS[b.status]) }}
+							<span v-if="b.status === 'gifted' && b.event_recipient" class="event-info" :title="giftTooltip(b)">→ {{ b.event_recipient }}</span>
+							<span v-else-if="b.status === 'lost' && b.event_note" class="event-info">({{ b.event_note }})</span>
+						</td>
+						<td>{{ formatSlotLabel(b) }}</td>
+						<td>
+							<div v-if="b.status === 'in_storage'" class="actions-cell">
+								<NcButton variant="secondary" @click="openTasting(b.id)">{{ t('vinarium', 'Entkorken') }}</NcButton>
+								<NcActions :aria-label="t('vinarium', 'Weitere Aktionen')">
+									<NcActionButton @click="openEvent(b.id, 'gift')">
+										<template #icon><Gift :size="20" /></template>
+										{{ t('vinarium', 'Verschenken') }}
+									</NcActionButton>
+									<NcActionButton @click="openEvent(b.id, 'lost')">
+										<template #icon><CloseCircleOutline :size="20" /></template>
+										{{ t('vinarium', 'Verloren') }}
+									</NcActionButton>
+								</NcActions>
+							</div>
+							<NcButton v-else-if="b.status === 'gifted' || b.status === 'lost'" variant="tertiary" @click="doRestore(b.id)">{{ t('vinarium', 'Zurück in Bestand') }}</NcButton>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<p v-else class="empty">{{ t('vinarium', 'Keine Flaschen gefunden.') }}</p>
+			<p v-if="restoreError" class="restore-error">{{ restoreError }}</p>
+		</div>
 
-		<p v-if="restoreError" class="restore-error">{{ restoreError }}</p>
+		<!-- Masterdata-Tab -->
+		<div v-show="activeTab === 'masterdata'">
+			<MasterDataPanel />
+		</div>
 
-		<TastingDialog :open="tastingOpen" :bottle-id="tastingBottleId" @close="tastingOpen = false" @consumed="onConsumed" />
-		<BottleEventDialog :open="eventOpen" :bottle-id="eventBottleId" :mode="eventMode" @close="eventOpen = false" @done="onEventDone" />
+		<!-- Modals -->
+		<TastingDialog
+			:open="tastingOpen"
+			:bottle-id="tastingBottleId"
+			@close="tastingOpen = false"
+			@consumed="onConsumed"
+		/>
+		<BottleEventDialog
+			:open="eventOpen"
+			:bottle-id="eventBottleId"
+			:mode="eventMode"
+			@close="eventOpen = false"
+			@done="onEventDone"
+		/>
+		<PurchaseWizardModal :open="wizardOpen" @close="wizardOpen = false" @complete="onWizardComplete" />
 	</div>
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
@@ -103,21 +143,41 @@ import Gift from 'vue-material-design-icons/Gift.vue'
 import CloseCircleOutline from 'vue-material-design-icons/CloseCircleOutline.vue'
 import TastingDialog from '@/components/TastingDialog.vue'
 import BottleEventDialog from '@/components/BottleEventDialog.vue'
+import PurchaseWizardModal from '@/components/PurchaseWizardModal.vue'
+import MasterDataPanel from '@/components/MasterDataPanel.vue'
 import { BOTTLE_STATUS_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleListItem, type BottleStatus, type WineColor } from '@/types/api'
 import { useBottleStore } from '@/stores/bottleStore'
 import { getBottlePhotoUrl } from '@/api/bottles'
 import { cssColorFor } from '@/utils/wineColors'
 
+type SubTab = 'bottles' | 'masterdata'
+
+const route = useRoute()
+const router = useRouter()
 const store = useBottleStore()
+
 const tastingOpen = ref(false)
 const tastingBottleId = ref<number | null>(null)
 const eventOpen = ref(false)
 const eventBottleId = ref<number | null>(null)
 const eventMode = ref<'gift' | 'lost'>('gift')
 const restoreError = ref<string | null>(null)
+const wizardOpen = ref(false)
 const filterColor = ref<WineColor | ''>('')
 const filterStatus = ref<BottleStatus | ''>('in_storage')
 const filterYear = ref<number | null>(null)
+
+const activeTab = ref<SubTab>((route.query.tab === 'stammdaten' || route.query.tab === 'masterdata') ? 'masterdata' : 'bottles')
+
+watch(() => route.query.tab, (q) => {
+	activeTab.value = (q === 'stammdaten' || q === 'masterdata') ? 'masterdata' : 'bottles'
+})
+
+function setTab(tab: SubTab) {
+	activeTab.value = tab
+	const target = tab === 'masterdata' ? 'stammdaten' : undefined
+	router.replace({ query: { ...route.query, tab: target } })
+}
 
 const headEl = ref<HTMLElement | null>(null)
 let headObserver: ResizeObserver | null = null
@@ -173,6 +233,11 @@ async function onEventDone() {
 	await store.fetchBottles(store.filter)
 }
 
+async function onWizardComplete(_payload: { purchaseId: number; bottleCount: number }) {
+	wizardOpen.value = false
+	await store.fetchBottles(store.filter)
+}
+
 function giftTooltip(b: BottleListItem): string {
 	const parts: string[] = []
 	if (b.event_recipient) parts.push(b.event_recipient)
@@ -221,16 +286,46 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 }
 .inventory-view__header {
 	display: flex;
-	justify-content: space-between;
 	align-items: center;
-	margin-bottom: 1.5rem;
+	gap: 1rem;
+	margin-bottom: 1rem;
+	flex-wrap: wrap;
 }
+.inventory-view__sp { flex: 1; }
 .count {
 	padding: 0.25rem 0.75rem;
 	border-radius: var(--border-radius);
 	background: var(--color-background-dark);
 	font-size: 0.9rem;
 }
+
+/* Sub-Tabs */
+.subtabs {
+	display: flex;
+	gap: 2px;
+	border-bottom: 1px solid var(--color-border);
+	margin-bottom: 1rem;
+}
+.subtab {
+	font-family: inherit;
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--color-text-maxcontrast);
+	background: none;
+	border: none;
+	border-bottom: 2px solid transparent;
+	padding: 10px 16px;
+	cursor: pointer;
+	margin-bottom: -1px;
+}
+.subtab:hover {
+	color: var(--color-main-text);
+}
+.subtab--active {
+	color: var(--color-primary-element, #0082c9);
+	border-bottom-color: var(--color-primary-element, #0082c9);
+}
+
 .dot {
 	display: inline-block;
 	width: 14px;
