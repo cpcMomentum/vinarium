@@ -741,8 +741,8 @@ async function loadAllSlots() {
 	background: #fff;
 	border: 1px solid var(--color-border, #d2d4d7);
 	border-radius: 12px;
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-	padding: 16px;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+	padding: 14px;
 }
 .parkzone--drag-over {
 	background: var(--color-primary-element-light, #e8f0fe);
@@ -947,23 +947,23 @@ async function loadAllSlots() {
 	border-color: var(--color-primary-element);
 }
 
-/* Compartment als self-fitting Card (1:1 aus Mockup v3) */
+/* Compartment als self-fitting Card (Card-System aus Dashboard v4) */
 .compartment {
 	background: #fff;
 	border: 1px solid var(--color-border, #d2d4d7);
 	border-radius: 12px;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-	overflow: hidden;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+	overflow: visible;
 	width: fit-content;
-	max-width: 100%;
 }
 .compartment__header {
 	display: flex;
 	align-items: center;
 	gap: 18px;
 	padding: 14px 18px;
-	background: linear-gradient(180deg, #fafbfc 0%, #fff 100%);
+	background: linear-gradient(180deg, #f4f4f4 0%, #fdfdfd 100%);
 	border-bottom: 1px solid var(--color-border, #d2d4d7);
+	border-radius: 12px 12px 0 0;
 }
 .compartment__title {
 	margin: 0;
@@ -1011,9 +1011,8 @@ async function loadAllSlots() {
 /* Ebene als Sub-Sektion innerhalb der Compartment-Card */
 .level {
 	padding: 14px 18px;
-	border-bottom: 1px solid var(--color-border-light, #e2e3e5);
-	/* Fixe Slot-Größe — alle Slots gleich groß, völlig unabhängig vom Container
-	 * 138px statt Mockup-110px, damit zweizeilige Weinnamen lesbar bleiben */
+	border-bottom: 1px solid #c8c8c8;
+	/* Fixe Slot-Größe — alle Slots gleich groß, völlig unabhängig vom Container */
 	--slot-w: 138px;
 	--gap: 8px;
 }
@@ -1067,12 +1066,12 @@ async function loadAllSlots() {
 	margin-left: calc((var(--max-cols) - var(--back-cols)) * (var(--slot-w) + var(--gap)) / 2);
 }
 
-/* Slot: feste Breite — alle Slots gleich groß, unabhängig vom Container (Mockup v3) */
+/* Slot: feste Breite — alle Slots gleich groß, unabhängig vom Container */
 .slot {
 	flex: 0 0 var(--slot-w);
 	width: var(--slot-w);
 	height: 72px;
-	border: 1.5px solid #888;
+	border: 1px solid var(--color-border, #d2d4d7);
 	background: #fff;
 	color: var(--color-text-maxcontrast);
 	display: flex;
@@ -1183,8 +1182,8 @@ async function loadAllSlots() {
 .legend-sw--dessert { background: linear-gradient(160deg, #c89352, #8e6128); }
 .legend-sw--fortified { background: linear-gradient(160deg, #86462f, #532b1f); }
 .legend-sw--empty {
-	background: #fff;
-	border: 1.5px solid #888;
+	background: #fcfcfd;
+	border: 1px solid var(--color-border-light, #e2e3e5);
 }
 .error {
 	margin-top: 1rem;
