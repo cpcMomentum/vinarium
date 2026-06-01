@@ -1,5 +1,18 @@
 <template>
 	<div class="shelf-view">
+		<header class="shelf-view__top">
+			<h2>{{ t('vinarium', 'Weinkeller') }}</h2>
+			<div class="shelf-view__top-actions">
+				<NcButton
+					v-if="activeShelf && activeShelf.compartments.length === 1"
+					@click="openConfig(activeShelf.compartments[0])"
+				>
+					⚙ {{ t('vinarium', 'Regal konfigurieren') }}
+				</NcButton>
+				<NcButton variant="primary" @click="newShelfOpen = true">{{ t('vinarium', '+ Neues Regal') }}</NcButton>
+			</div>
+		</header>
+
 		<div class="shelf-layout">
 			<!-- Parkzone als sticky linke Spalte -->
 			<aside class="parkzone-col">
@@ -37,19 +50,6 @@
 			<div class="shelf-main">
 				<div class="shelf-main__inner">
 				<div class="shelf-head">
-				<header class="shelf-view__header">
-					<h2>{{ t('vinarium', 'Regal') }}</h2>
-					<div class="shelf-view__header-actions">
-						<NcButton
-							v-if="activeShelf && activeShelf.compartments.length === 1"
-							@click="openConfig(activeShelf.compartments[0])"
-						>
-							⚙ {{ t('vinarium', 'Regal konfigurieren') }}
-						</NcButton>
-						<NcButton variant="primary" @click="newShelfOpen = true">{{ t('vinarium', '+ Neues Regal') }}</NcButton>
-					</div>
-				</header>
-
 				<!-- Regal-Tabs (immer sichtbar) -->
 				<div class="shelf-tabs">
 					<div
@@ -125,7 +125,7 @@
 							>
 								<div class="level__header">
 									<span class="level__title">
-										{{ t('vinarium', 'EBENE') }} {{ levelLetter(idx) }}
+										{{ t('vinarium', 'Ebene') }} {{ level.levelNumber + 1 }}
 										<span v-if="levelPositionLabel(idx, compData.levels.length)" class="level__position">
 											· {{ levelPositionLabel(idx, compData.levels.length) }}
 										</span>
@@ -138,7 +138,34 @@
 									</span>
 								</div>
 
-								<!-- Vorne (Hauptreihe) -->
+								<!-- Hinten (oben, versetzt) -->
+								<div v-if="level.columnsBack !== null && level.columnsBack > 0" class="slot-row slot-row--back">
+									<div
+										v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'back')"
+										:key="slot.id"
+										:class="['slot', slotClasses(slot.id)]"
+										:style="bottleInSlot(slot.id) ? { background: cssSlotGradient(bottleInSlot(slot.id)!.wine_color) } : {}"
+										:title="slotTooltip(slot)"
+										@dragover.prevent="onDragOver(slot.id, $event)"
+										@dragleave="onDragLeave($event)"
+										@drop.prevent="onDrop(slot.id)"
+										@click="onSlotClick(slot.id)"
+									>
+										<span class="slot__id">{{ slotShortId(slot) }}<span class="slot__id-h">H</span></span>
+										<div
+											v-if="bottleInSlot(slot.id)"
+											class="slot__bottle"
+											draggable="true"
+											@dragstart.stop="onDragStart(bottleInSlot(slot.id)!.id, $event)"
+											@dragend="onDragEnd"
+										>
+											<span class="slot__name">{{ bottleFullName(slot.id) }}</span>
+											<span class="slot__year">{{ bottleYear(slot.id) }}</span>
+										</div>
+									</div>
+								</div>
+
+								<!-- Vorne (Hauptreihe unten) -->
 								<div class="slot-row">
 									<div
 										v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'front')"
@@ -151,35 +178,7 @@
 										@drop.prevent="onDrop(slot.id)"
 										@click="onSlotClick(slot.id)"
 									>
-										<span class="slot__id">{{ slotShortId(slot, idx) }}</span>
-										<div
-											v-if="bottleInSlot(slot.id)"
-											class="slot__bottle"
-											draggable="true"
-											@dragstart.stop="onDragStart(bottleInSlot(slot.id)!.id, $event)"
-											@dragend="onDragEnd"
-										>
-											<span class="slot__name">{{ bottleFullName(slot.id) }}</span>
-											<span class="slot__year">{{ bottleYear(slot.id) }}</span>
-										</div>
-										<span v-else class="slot__empty">{{ t('vinarium', 'frei') }}</span>
-									</div>
-								</div>
-
-								<!-- Hinten (kompakte zweite Reihe) -->
-								<div v-if="level.columnsBack !== null && level.columnsBack > 0" class="slot-row slot-row--back">
-									<div
-										v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'back')"
-										:key="slot.id"
-										:class="['slot', 'slot--back', slotClasses(slot.id)]"
-										:style="bottleInSlot(slot.id) ? { background: cssSlotGradient(bottleInSlot(slot.id)!.wine_color) } : {}"
-										:title="slotTooltip(slot)"
-										@dragover.prevent="onDragOver(slot.id, $event)"
-										@dragleave="onDragLeave($event)"
-										@drop.prevent="onDrop(slot.id)"
-										@click="onSlotClick(slot.id)"
-									>
-										<span class="slot__id">{{ slotShortId(slot, idx) }}<span class="slot__id-h">H</span></span>
+										<span class="slot__id">{{ slotShortId(slot) }}</span>
 										<div
 											v-if="bottleInSlot(slot.id)"
 											class="slot__bottle"
@@ -336,18 +335,14 @@ function bottleYear(slotId: number): string {
 	return b ? String(b.year) : ''
 }
 
+/** Ebenen sortiert für die Anzeige: Top zuerst (höchste Nummer oben) — Ebene 1 ist also unten */
 function reversedLevels(levels: Level[]): Level[] {
 	return [...levels].sort((a, b) => b.levelNumber - a.levelNumber)
 }
 
-/** Buchstabe für die Anzeige-Ebene (oberste = A) — idx ist Position im reversedLevels-Array */
-function levelLetter(idx: number): string {
-	return String.fromCharCode(65 + idx) // A, B, C, ...
-}
-
 /** Positions-Label (TOP / MITTE / BODEN) je nach Ebenen-Position */
 function levelPositionLabel(idx: number, total: number): string {
-	if (total === 1) return t('vinarium', 'EBENE')
+	if (total === 1) return ''
 	if (idx === 0) return t('vinarium', 'TOP')
 	if (idx === total - 1) return t('vinarium', 'BODEN')
 	if (total === 3) return t('vinarium', 'MITTE')
@@ -355,10 +350,9 @@ function levelPositionLabel(idx: number, total: number): string {
 	return ''
 }
 
-/** Slot-ID wie A1, A2 — Hinten bekommt zusätzlich Sub-Label "H" via separate column */
-function slotShortId(slot: Slot, displayIdx: number): string {
-	const letter = levelLetter(displayIdx)
-	return `${letter}${slot.column + 1}`
+/** Slot-ID nur Spaltenzahl, weil Ebene schon im Header steht (Hinten bekommt H-Suffix im Template) */
+function slotShortId(slot: Slot): string {
+	return String(slot.column + 1)
 }
 
 /** Belegung pro Ebene (alle Slots dieser Ebene über vorne + hinten) */
@@ -835,22 +829,31 @@ async function loadAllSlots() {
 
 .shelf-main {
 	min-width: 0;
-	display: flex;
-	gap: 18px;
-	align-items: flex-start;
 }
 .shelf-main__inner {
-	flex: 1;
 	min-width: 0;
 }
-.shelf-view__header {
+/* Slot-Grid in einer Card */
+.shelves {
+	background: #fff;
+	border: 1px solid var(--color-border, #d2d4d7);
+	border-radius: var(--border-radius);
+	padding: 16px 18px;
+	margin-top: 12px;
+}
+.shelf-view__top {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	margin-bottom: 1.5rem;
+	margin: 0 0 1.25rem 0;
 	gap: 1rem;
 }
-.shelf-view__header-actions {
+.shelf-view__top h2 {
+	font-size: 24px;
+	font-weight: 600;
+	letter-spacing: -0.01em;
+}
+.shelf-view__top-actions {
 	display: flex;
 	gap: 8px;
 	flex-wrap: wrap;
@@ -909,14 +912,17 @@ async function loadAllSlots() {
 	background: none;
 	border: none;
 	color: inherit;
-	opacity: 0.65;
+	opacity: 0;
 	font-size: 0.95rem;
 	font-weight: bold;
 	padding: 0 9px 0 4px;
 	line-height: 1;
 	cursor: pointer;
+	transition: opacity 0.12s;
 }
-.shelf-tab__delete:hover { opacity: 1; }
+.shelf-tab:hover .shelf-tab__delete,
+.shelf-tab.active .shelf-tab__delete:focus { opacity: 0.75; }
+.shelf-tab__delete:hover { opacity: 1 !important; }
 .shelf-tab__input {
 	margin: 4px 8px;
 	padding: 4px 8px;
@@ -940,59 +946,67 @@ async function loadAllSlots() {
 	border-color: var(--color-primary-element);
 }
 
-/* Compartment: nur leichter Wrapper, Header dezent (nur bei >1 Fach) */
+/* Compartment: keine Card mehr, nur dezenter Header bei mehreren */
 .compartment {
-	background: #fff;
-	border: 1px solid var(--color-border, #d2d4d7);
-	border-radius: var(--border-radius);
-	padding: 14px 16px;
-	margin-bottom: 14px;
+	padding: 0;
+	margin-bottom: 22px;
+	padding-top: 12px;
+	border-top: 1px solid var(--color-border-light, #e2e3e5);
+}
+.compartment:first-child {
+	padding-top: 0;
+	border-top: none;
 }
 .compartment__header {
 	display: flex;
 	align-items: center;
-	gap: 0.5rem;
-	margin-bottom: 14px;
-	padding-bottom: 10px;
-	border-bottom: 1px solid var(--color-border-light, #e2e3e5);
+	justify-content: flex-end;
+	gap: 0.25rem;
+	margin-bottom: 10px;
 }
 .compartment__title {
 	margin: 0;
-	font-size: 0.78rem;
+	font-size: 0.7rem;
 	font-weight: 600;
 	color: var(--color-text-maxcontrast);
 	text-transform: uppercase;
 	letter-spacing: 0.04em;
-	flex: 1;
+	margin-right: auto;
 }
 .compartment__title--editable {
 	cursor: pointer;
 	border-radius: var(--border-radius);
 	padding: 0.1rem 0.3rem;
-	margin: -0.1rem -0.3rem;
+	margin: -0.1rem 0 -0.1rem -0.3rem;
 }
 .compartment__title--editable:hover {
 	background: var(--color-background-hover);
+	color: var(--color-main-text);
 }
 .compartment__title-input {
-	flex: 1;
 	font-size: 0.85rem;
 	padding: 0.2rem 0.4rem;
 	border: 1px solid var(--color-primary-element);
 	border-radius: var(--border-radius);
+	margin-right: auto;
 }
 .compartment__config-btn,
 .compartment__delete-btn {
 	background: none;
 	border: none;
 	color: var(--color-text-maxcontrast);
-	font-size: 0.95rem;
+	font-size: 0.85rem;
 	padding: 2px 6px;
 	cursor: pointer;
-	opacity: 0.6;
+	opacity: 0;
+	transition: opacity 0.12s;
 }
-.compartment__config-btn:hover { color: var(--color-main-text); opacity: 1; }
-.compartment__delete-btn:hover { color: #b03b33; opacity: 1; }
+.compartment:hover .compartment__config-btn,
+.compartment:hover .compartment__delete-btn,
+.compartment__header:focus-within .compartment__config-btn,
+.compartment__header:focus-within .compartment__delete-btn { opacity: 0.55; }
+.compartment__config-btn:hover { color: var(--color-main-text); opacity: 1 !important; }
+.compartment__delete-btn:hover { color: #b03b33; opacity: 1 !important; }
 
 /* Ebenen-Header horizontal, fett, Uppercase */
 .level {
@@ -1018,20 +1032,23 @@ async function loadAllSlots() {
 	display: flex;
 	gap: 6px;
 	flex-wrap: wrap;
+	margin-bottom: 6px;
 }
+.slot-row:last-child { margin-bottom: 0; }
+/* Hinten oben + horizontal um halbe Slot-Breite nach rechts versetzt
+ * (visuelle Tiefe — Hinten-Slots sitzen "zwischen" den Vorne-Slots) */
 .slot-row--back {
-	margin-top: 3px;
-	gap: 4px;
+	margin-left: calc(((100% - 5 * 6px) / 6) / 2);
+	margin-right: calc(((100% - 5 * 6px) / 6) / -2);
 }
 
 /* Slots: groß, lesbar, Slot-ID oben links */
 .slot {
 	flex: 1 1 0;
-	min-width: 110px;
-	max-width: 150px;
+	min-width: 90px;
 	height: 72px;
-	border: 1px solid var(--color-border-light, #e2e3e5);
-	background: #fcfcfd;
+	border: 1px solid var(--color-border, #d2d4d7);
+	background: #fff;
 	color: var(--color-text-maxcontrast);
 	display: flex;
 	align-items: center;
@@ -1042,11 +1059,6 @@ async function loadAllSlots() {
 	position: relative;
 	padding: 8px;
 	overflow: hidden;
-}
-.slot--back {
-	height: 48px;
-	min-width: 90px;
-	opacity: 0.92;
 }
 .slot.occupied {
 	color: #fff;
@@ -1065,25 +1077,21 @@ async function loadAllSlots() {
 
 .slot__id {
 	position: absolute;
-	top: 4px;
-	left: 6px;
-	font-size: 9.5px;
-	font-weight: 600;
-	color: rgba(255, 255, 255, 0.72);
+	top: 5px;
+	left: 7px;
+	font-size: 11px;
+	font-weight: 700;
 	letter-spacing: 0.02em;
+	color: rgba(255, 255, 255, 0.85);
 }
 .slot:not(.occupied) .slot__id {
-	color: #b8bbbf;
+	color: var(--color-text-maxcontrast, #6b6b6b);
 }
 .slot__id-h {
 	margin-left: 1px;
+	font-size: 9px;
+	font-weight: 600;
 	opacity: 0.85;
-	font-size: 8px;
-}
-.slot__empty {
-	font-size: 0.7rem;
-	color: #b8bbbf;
-	font-style: italic;
 }
 
 .slot__bottle {
@@ -1108,17 +1116,12 @@ async function loadAllSlots() {
 	max-width: 130px;
 	word-break: break-word;
 }
-.slot--back .slot__name {
-	font-size: 0.7rem;
-	-webkit-line-clamp: 1;
-}
 .slot__year {
-	font-size: 0.7rem;
+	font-size: 0.72rem;
 	opacity: 0.92;
 	font-variant-numeric: tabular-nums;
 	margin-top: 1px;
 }
-.slot--back .slot__year { font-size: 0.65rem; }
 
 /* Footer mit Legende + Compartment-Add-Button */
 .shelf-footer {
