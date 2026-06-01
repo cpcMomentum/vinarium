@@ -1013,7 +1013,7 @@ async function loadAllSlots() {
 	padding: 14px 18px;
 	border-bottom: 1px solid #c8c8c8;
 	/* Fixe Slot-Größe — alle Slots gleich groß, völlig unabhängig vom Container */
-	--slot-w: 110px;
+	--slot-w: 138px;
 	--gap: 8px;
 }
 .level:last-child { border-bottom: none; }
@@ -1137,7 +1137,7 @@ async function loadAllSlots() {
 	font-size: 0.78rem;
 	font-weight: 600;
 	line-height: 1.2;
-	max-width: 130px;
+	max-width: 124px;
 	word-break: break-word;
 }
 .slot__year {
