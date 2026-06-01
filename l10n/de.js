@@ -1,6 +1,10 @@
 OC.L10N.register(
     "vinarium",
     {
+    "Jahrgangsnotizen": "Jahrgangsnotizen",
+    "Hier landen nur Angaben, die diesen Jahrgang betreffen — Wetter/Lese, jahrgangsspezifische Bewertungen, Trinkfenster. Allgemeines zur Cuvée gehört in Schritt 2.": "Hier landen nur Angaben, die diesen Jahrgang betreffen — Wetter/Lese, jahrgangsspezifische Bewertungen, Trinkfenster. Allgemeines zur Cuvée gehört in Schritt 2.",
+    "z. B. trockener Sommer 2019, sehr konzentrierte Lese": "z. B. trockener Sommer 2019, sehr konzentrierte Lese",
+    "z. B. tanninbetonter Saint-Émilion, klassischer Bordeaux-Stil": "z. B. tanninbetonter Saint-Émilion, klassischer Bordeaux-Stil",
     "Rot": "Rot",
     "Weiß": "Weiß",
     "Rosé": "Rosé",
@@ -131,6 +135,7 @@ OC.L10N.register(
     "Bestehender Jahrgang": "Bestehender Jahrgang",
     "Jahr *": "Jahr *",
     "Alkohol %": "Alkohol %",
+    "z. B. 13,5": "z. B. 13,5",
     "Rebsorten (jahrgangsspezifisch)": "Rebsorten (jahrgangsspezifisch)",
     "Trinken ab (Jahr)": "Trinken ab (Jahr)",
     "Trinken bis (Jahr)": "Trinken bis (Jahr)",
