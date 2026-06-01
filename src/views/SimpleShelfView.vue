@@ -900,11 +900,11 @@ async function loadAllSlots() {
 	color: #fff;
 }
 .shelf-tab__label {
-	padding: 7px 14px;
+	padding: 9px 16px;
 	background: none;
 	border: none;
 	cursor: pointer;
-	font-size: 13px;
+	font-size: 14px;
 	font-weight: 600;
 	color: inherit;
 	font-family: inherit;
@@ -933,12 +933,12 @@ async function loadAllSlots() {
 	min-width: 8rem;
 }
 .shelf-tab--add {
-	padding: 7px 14px;
+	padding: 9px 16px;
 	background: transparent;
 	border: 1px dashed var(--color-border, #d2d4d7);
 	border-radius: var(--border-radius-element, 8px);
 	cursor: pointer;
-	font-size: 1rem;
+	font-size: 14px;
 	font-weight: 600;
 	color: var(--color-text-maxcontrast);
 }
