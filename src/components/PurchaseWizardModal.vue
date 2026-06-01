@@ -49,12 +49,13 @@
 						<label class="field"><span>{{ t('vinarium', 'Appellation') }}</span><input v-model="form2.appellation" :disabled="isPicked2" class="input" :placeholder="t('vinarium', 'z. B. Saint-Émilion GC')" /></label>
 					</div>
 					<label class="field"><span>{{ t('vinarium', 'Barcode') }}</span><input v-model="form2.barcode" :disabled="isPicked2" class="input" /></label>
-					<label class="field"><span>{{ t('vinarium', 'Notizen zur Cuvée') }}</span><textarea v-model="form2.notes" :disabled="isPicked2" class="input" rows="2" /></label>
+					<label class="field"><span>{{ t('vinarium', 'Notizen zur Cuvée') }}</span><textarea v-model="form2.notes" :disabled="isPicked2" class="input" rows="2" :placeholder="t('vinarium', 'z. B. tanninbetonter Saint-Émilion, klassischer Bordeaux-Stil')" /></label>
 				</fieldset>
 			</section>
 
 			<!-- Step 3: Vintage -->
 			<section v-else-if="step === 3" class="wizard__section">
+				<p class="hint">{{ t('vinarium', 'Hier landen nur Angaben, die diesen Jahrgang betreffen — Wetter/Lese, jahrgangsspezifische Bewertungen, Trinkfenster. Allgemeines zur Cuvée gehört in Schritt 2.') }}</p>
 				<label v-if="vintagesForWine.length > 0" class="field">
 					<span>{{ t('vinarium', 'Bestehender Jahrgang') }}</span>
 					<select v-model.number="vintageId" class="input">
@@ -81,7 +82,7 @@
 						<label class="field"><span>{{ t('vinarium', 'Quelle') }}</span><input v-model="form3.externalRatingSource" :disabled="isPicked3" class="input" :placeholder="t('vinarium', 'z. B. Parker')" /></label>
 					</div>
 					<label class="field"><span>{{ t('vinarium', 'Referenz-URL') }}</span><input v-model="form3.referenceUrl" :disabled="isPicked3" class="input" /></label>
-					<label class="field"><span>{{ t('vinarium', 'Beschreibung') }}</span><textarea v-model="form3.description" :disabled="isPicked3" class="input" rows="2" /></label>
+					<label class="field"><span>{{ t('vinarium', 'Jahrgangsnotizen') }}</span><textarea v-model="form3.description" :disabled="isPicked3" class="input" rows="2" :placeholder="t('vinarium', 'z. B. trockener Sommer 2019, sehr konzentrierte Lese')" /></label>
 				</fieldset>
 			</section>
 
