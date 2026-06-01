@@ -54,15 +54,18 @@
 				</div>
 			</section>
 
-			<!-- Hero "Bald trinken" -->
-			<section v-if="topDrinkSoon.length > 0" class="hero">
+			<!-- Hero "Bald trinken" — immer sichtbar, Empty-State wenn keine Daten -->
+			<section class="hero">
 				<header class="hero__head">
 					<h3>{{ t('vinarium', 'Bald trinken') }}</h3>
 					<span class="hero__sub">— {{ t('vinarium', 'Trinkfenster läuft bald ab') }}</span>
 					<div class="sp"></div>
-					<a class="hero__all" @click.prevent="goToInventoryDrinkSoon">{{ t('vinarium', 'Alle ansehen ›') }}</a>
+					<a class="hero__all" @click.prevent="goToInventoryDrinkSoon">{{ t('vinarium', 'alle ›') }}</a>
 				</header>
-				<div class="hero__cards">
+				<p v-if="topDrinkSoon.length === 0" class="hero__empty">
+					{{ t('vinarium', 'Keine Weine mit demnächst ablaufendem Trinkfenster. Trage „Trinken bis" am Jahrgang ein, damit hier Vorschläge erscheinen.') }}
+				</p>
+				<div v-else class="hero__cards">
 					<article
 						v-for="d in topDrinkSoon"
 						:key="d.wine_id + '-' + d.year"
@@ -91,7 +94,7 @@
 				<section class="dash-card">
 					<h3>
 						{{ t('vinarium', 'Letzte Verkostungen') }}
-						<a v-if="stats.recentTastings.length > 0" class="dash-card__all" @click.prevent="goToTastings">{{ t('vinarium', 'alle ›') }}</a>
+						<a class="dash-card__all" @click.prevent="goToTastings">{{ t('vinarium', 'alle ›') }}</a>
 					</h3>
 					<p v-if="stats.recentTastings.length === 0" class="muted">
 						{{ t('vinarium', 'Noch keine Verkostungen erfasst.') }}
@@ -113,7 +116,7 @@
 				<section class="dash-card">
 					<h3>
 						{{ t('vinarium', 'Aktivität') }}
-						<a v-if="stats.recentActivity.length > 0" class="dash-card__all" @click.prevent="goToActivity">{{ t('vinarium', 'alle ›') }}</a>
+						<a class="dash-card__all" @click.prevent="goToActivity">{{ t('vinarium', 'alle ›') }}</a>
 					</h3>
 					<p v-if="stats.recentActivity.length === 0" class="muted">
 						{{ t('vinarium', 'Noch keine Aktivität.') }}
@@ -346,19 +349,19 @@ function goToActivity() {
 }
 .stock__where { white-space: nowrap; font-size: 13.5px; }
 
-/* Hero "Bald trinken" */
+/* Hero "Bald trinken" — vereinheitlichtes Padding/Spacing mit Bestand-Hero */
 .hero {
 	background: linear-gradient(180deg, #fafbfc 0%, #fff 100%);
 	border: 1px solid var(--color-border, #d2d4d7);
 	border-radius: 12px;
-	padding: 22px 24px;
-	margin-bottom: 18px;
+	padding: 20px 24px;
+	margin-bottom: 14px;
 }
 .hero__head {
 	display: flex;
 	align-items: baseline;
 	gap: 10px;
-	margin-bottom: 16px;
+	margin-bottom: 14px;
 	flex-wrap: wrap;
 }
 .hero__head h3 { font-size: 18px; font-weight: 600; }
@@ -370,6 +373,12 @@ function goToActivity() {
 	font-weight: 600;
 	cursor: pointer;
 	text-decoration: none;
+}
+.hero__empty {
+	color: var(--color-text-maxcontrast);
+	font-size: 13.5px;
+	padding: 6px 0 4px;
+	margin: 0;
 }
 .hero__cards {
 	display: grid;

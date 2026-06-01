@@ -41,6 +41,21 @@
         "Gesamt": "Gesamt",
         "Farb-Verteilung": "Farb-Verteilung",
         "Bald trinken": "Bald trinken",
+        "Aktivität": "Aktivität",
+        "Flaschen": "Flaschen",
+        "Weine, Weingüter, Jahrgänge suchen…": "Weine, Weingüter, Jahrgänge suchen…",
+        "Suche folgt in einem späteren Update": "Suche folgt in einem späteren Update",
+        "+ Kauf": "+ Kauf",
+        "verteilt auf {n} Regal": [
+            "verteilt auf {n} Regal",
+            "verteilt auf {n} Regale"
+        ],
+        "Trinkfenster läuft bald ab": "Trinkfenster läuft bald ab",
+        "Alle ansehen ›": "Alle ansehen ›",
+        "Keine Weine mit demnächst ablaufendem Trinkfenster. Trage „Trinken bis" am Jahrgang ein, damit hier Vorschläge erscheinen.": "Keine Weine mit demnächst ablaufendem Trinkfenster. Trage „Trinken bis" am Jahrgang ein, damit hier Vorschläge erscheinen.",
+        "bis {y}": "bis {y}",
+        "alle ›": "alle ›",
+        "Noch keine Aktivität.": "Noch keine Aktivität.",
         "Letzte Verkostungen": "Letzte Verkostungen",
         "CSV-Export herunterladen": "CSV-Export herunterladen",
         "{count} Flasche": [
