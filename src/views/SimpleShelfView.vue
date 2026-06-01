@@ -35,6 +35,7 @@
 			</aside>
 
 			<div class="shelf-main">
+				<div class="shelf-main__inner">
 				<div class="shelf-head">
 				<header class="shelf-view__header">
 					<h2>{{ t('vinarium', 'Regal') }}</h2>
@@ -179,16 +180,17 @@
 					</div>
 
 				<p v-if="errorMsg" class="error">{{ errorMsg }}</p>
+				</div>
+				<BottleDetailPanel
+					v-if="detailBottleId !== null"
+					:bottleId="detailBottleId"
+					@close="closeDetail"
+					@uncork="onUncork"
+					@gift="onGift"
+					@lose="onLose"
+				/>
 			</div>
 
-			<BottleDetailPanel
-				v-if="detailBottleId !== null"
-				:bottleId="detailBottleId"
-				@close="closeDetail"
-				@uncork="onUncork"
-				@gift="onGift"
-				@lose="onLose"
-			/>
 		</div>
 
 		<NewShelfDialog :open="newShelfOpen" @close="newShelfOpen = false" @created="onShelfCreated" />
@@ -727,6 +729,7 @@ async function loadAllSlots() {
 	flex: 1;
 	min-height: 0;
 }
+.park-list { scrollbar-width: thin; scrollbar-color: var(--color-background-dark) transparent; }
 .park-list::-webkit-scrollbar { width: 6px; }
 .park-list::-webkit-scrollbar-thumb { background: var(--color-background-dark); border-radius: 3px; }
 .park-list::-webkit-scrollbar-thumb:hover { background: #c8c9cc; }
@@ -767,6 +770,13 @@ async function loadAllSlots() {
 }
 
 .shelf-main {
+	min-width: 0;
+	display: flex;
+	gap: 18px;
+	align-items: flex-start;
+}
+.shelf-main__inner {
+	flex: 1;
 	min-width: 0;
 }
 .shelf-view__header {
