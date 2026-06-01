@@ -86,4 +86,42 @@ class TastingServiceTest extends TestCase {
 		$this->expectException(\RuntimeException::class);
 		$this->service->consumeWithTasting('alice', 42, ['tastedAt' => '2026-05-18']);
 	}
+
+	public function testCreateRejectsFutureDate(): void {
+		$this->bottleService->expects($this->once())->method('get')->with(42, 'alice');
+		$this->tastingMapper->expects($this->never())->method('insert');
+
+		$future = (new \DateTime('+5 days'))->format('Y-m-d');
+
+		$this->expectException(ValidationException::class);
+		$this->expectExceptionMessage('Tasting date cannot be in the future');
+		$this->service->create('alice', 42, ['tastedAt' => $future]);
+	}
+
+	public function testCreateAcceptsTodayDate(): void {
+		$tasting = new Tasting();
+		$tasting->setId(1);
+		$this->bottleService->expects($this->once())->method('get')->with(42, 'alice');
+		$this->tastingMapper->expects($this->once())->method('insert')->willReturn($tasting);
+
+		$today = (new \DateTime('today'))->format('Y-m-d');
+
+		$result = $this->service->create('alice', 42, ['tastedAt' => $today]);
+		$this->assertSame($tasting, $result);
+	}
+
+	public function testUpdateRejectsFutureDate(): void {
+		$existing = new Tasting();
+		$existing->setId(7);
+		$existing->setBottleId(42);
+		$this->tastingMapper->expects($this->once())->method('find')->with(7)->willReturn($existing);
+		$this->bottleService->expects($this->once())->method('get')->with(42, 'alice');
+		$this->tastingMapper->expects($this->never())->method('update');
+
+		$future = (new \DateTime('+5 days'))->format('Y-m-d');
+
+		$this->expectException(ValidationException::class);
+		$this->expectExceptionMessage('Tasting date cannot be in the future');
+		$this->service->update(7, 'alice', ['tastedAt' => $future]);
+	}
 }

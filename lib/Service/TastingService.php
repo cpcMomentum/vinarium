@@ -48,7 +48,9 @@ class TastingService {
 
 		$tasting = new Tasting();
 		$tasting->setBottleId($bottleId);
-		$tasting->setTastedAt(new DateTime($data['tastedAt'] ?? 'now'));
+		$tastedAt = new DateTime($data['tastedAt'] ?? 'now', new \DateTimeZone('UTC'));
+		$this->assertTastedAtNotInFuture($tastedAt);
+		$tasting->setTastedAt($tastedAt);
 
 		if (isset($data['rating'])) {
 			$rating = (float)$data['rating'];
@@ -156,7 +158,9 @@ class TastingService {
 		$tasting = $this->get($id, $userId);
 
 		if (isset($data['tastedAt'])) {
-			$tasting->setTastedAt(new DateTime($data['tastedAt']));
+			$tastedAt = new DateTime($data['tastedAt'], new \DateTimeZone('UTC'));
+			$this->assertTastedAtNotInFuture($tastedAt);
+			$tasting->setTastedAt($tastedAt);
 		}
 		if (array_key_exists('rating', $data)) {
 			if ($data['rating'] !== null) {
@@ -189,5 +193,16 @@ class TastingService {
 	public function delete(int $id, string $userId): Tasting {
 		$tasting = $this->get($id, $userId);
 		return $this->tastingMapper->delete($tasting);
+	}
+
+	/**
+	 * Reject tasting dates in the future. Tolerates timezone offsets by allowing
+	 * up to the start of tomorrow (UTC) — covers any client timezone up to UTC-12.
+	 */
+	private function assertTastedAtNotInFuture(DateTime $tastedAt): void {
+		$limit = new DateTime('tomorrow 00:00:00', new \DateTimeZone('UTC'));
+		if ($tastedAt > $limit) {
+			throw new ValidationException('Tasting date cannot be in the future');
+		}
 	}
 }
