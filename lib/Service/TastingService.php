@@ -195,12 +195,17 @@ class TastingService {
 		return $this->tastingMapper->delete($tasting);
 	}
 
-	/** @return array{year: int, count_year: int, avg_rating: float|null, best_wine: array{wine_name:string,producer_name:string,year:int,rating:float}|null, with_photos_count: int} */
+	/** @return array{year: int, month: int, count_year: int, count_current_month: int, total_count: int, avg_rating: float|null, best_wine: array{wine_name:string,producer_name:string,year:int,rating:float}|null, with_photos_count: int} */
 	public function getStats(string $userId): array {
-		$year = (int)(new DateTime('now', new \DateTimeZone('UTC')))->format('Y');
+		$now = new DateTime('now', new \DateTimeZone('UTC'));
+		$year = (int)$now->format('Y');
+		$month = (int)$now->format('m');
 		return [
 			'year' => $year,
+			'month' => $month,
 			'count_year' => $this->tastingMapper->countByOwnerYear($userId, $year),
+			'count_current_month' => $this->tastingMapper->countByOwnerMonth($userId, $year, $month),
+			'total_count' => $this->tastingMapper->countAllByOwner($userId),
 			'avg_rating' => $this->tastingMapper->avgRatingByOwner($userId),
 			'best_wine' => $this->tastingMapper->findBestRatedByOwner($userId),
 			'with_photos_count' => $this->tastingMapper->countWithPhotosByOwner($userId),

@@ -131,6 +131,38 @@ class TastingMapper extends QBMapper {
 	}
 
 	public function countByOwnerYear(string $userId, int $year): int {
+		return $this->countByOwnerInRange(
+			$userId,
+			(new \DateTime($year . '-01-01 00:00:00', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s'),
+			(new \DateTime(($year + 1) . '-01-01 00:00:00', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s'),
+		);
+	}
+
+	public function countByOwnerMonth(string $userId, int $year, int $month): int {
+		$start = sprintf('%04d-%02d-01 00:00:00', $year, $month);
+		$end = $month === 12
+			? sprintf('%04d-01-01 00:00:00', $year + 1)
+			: sprintf('%04d-%02d-01 00:00:00', $year, $month + 1);
+		return $this->countByOwnerInRange($userId, $start, $end);
+	}
+
+	public function countAllByOwner(string $userId): int {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select($qb->func()->count('t.id', 'cnt'))
+			->from($this->tableName, 't')
+			->innerJoin('t', 'vinarium_bottle', 'b', 't.bottle_id = b.id')
+			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
+			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)));
+		$result = $qb->executeQuery();
+		$row = $result->fetch();
+		$result->closeCursor();
+		return (int)($row['cnt'] ?? 0);
+	}
+
+	private function countByOwnerInRange(string $userId, string $startInclusive, string $endExclusive): int {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select($qb->func()->count('t.id', 'cnt'))
 			->from($this->tableName, 't')
@@ -140,12 +172,8 @@ class TastingMapper extends QBMapper {
 			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
 			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
 			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)))
-			->andWhere($qb->expr()->gte('t.tasted_at', $qb->createNamedParameter(
-				(new \DateTime($year . '-01-01 00:00:00', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s')
-			)))
-			->andWhere($qb->expr()->lt('t.tasted_at', $qb->createNamedParameter(
-				(new \DateTime(($year + 1) . '-01-01 00:00:00', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s')
-			)));
+			->andWhere($qb->expr()->gte('t.tasted_at', $qb->createNamedParameter($startInclusive)))
+			->andWhere($qb->expr()->lt('t.tasted_at', $qb->createNamedParameter($endExclusive)));
 		$result = $qb->executeQuery();
 		$row = $result->fetch();
 		$result->closeCursor();

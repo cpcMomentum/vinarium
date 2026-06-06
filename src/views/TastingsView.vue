@@ -10,20 +10,23 @@
 			<article class="kpi">
 				<div class="kpi__label">{{ t('vinarium', 'Verkostungen {y}', { y: stats.year }) }}</div>
 				<div class="kpi__value">{{ stats.count_year }}</div>
+				<div class="kpi__sub">
+					{{ t('vinarium', 'davon {n} im {month}', { n: stats.count_current_month, month: monthName }) }}
+				</div>
 			</article>
 			<article class="kpi">
 				<div class="kpi__label">{{ t('vinarium', 'Ø Bewertung') }}</div>
 				<div class="kpi__value">
 					<template v-if="stats.avg_rating !== null">
-						{{ Number(stats.avg_rating).toFixed(1) }}
+						{{ Number(stats.avg_rating).toFixed(1) }} <small>/ 10</small>
 					</template>
 					<span v-else class="kpi__empty">—</span>
 				</div>
+				<div class="kpi__sub">{{ t('vinarium', 'über alle Verkostungen') }}</div>
 			</article>
 			<article class="kpi">
 				<div class="kpi__label">{{ t('vinarium', 'Bester Wein') }}</div>
 				<div v-if="stats.best_wine" class="kpi__best">
-					<div class="kpi__best-name">{{ stats.best_wine.wine_name }} {{ stats.best_wine.year }}</div>
 					<div class="kpi__best-meta">
 						<span class="kpi__best-producer">{{ stats.best_wine.producer_name }}</span>
 						<span class="rat">
@@ -31,19 +34,29 @@
 							<span class="rat__bar"><i :style="{ width: ratingPct(stats.best_wine.rating) + '%' }" /></span>
 						</span>
 					</div>
+					<div class="kpi__sub kpi__sub--name">{{ stats.best_wine.wine_name }} {{ stats.best_wine.year }}</div>
 				</div>
-				<div v-else class="kpi__value"><span class="kpi__empty">—</span></div>
+				<template v-else>
+					<div class="kpi__value"><span class="kpi__empty">—</span></div>
+					<div class="kpi__sub">{{ t('vinarium', 'noch keine Bewertung') }}</div>
+				</template>
 			</article>
 			<article class="kpi">
 				<div class="kpi__label">{{ t('vinarium', 'Mit Fotos') }}</div>
-				<div class="kpi__value">{{ stats.with_photos_count }}</div>
+				<div class="kpi__value">
+					{{ stats.with_photos_count }} <small>/ {{ stats.total_count }}</small>
+				</div>
+				<div class="kpi__sub">
+					{{ t('vinarium', '{p}% dokumentiert', { p: photosPercent }) }}
+				</div>
 			</article>
 		</section>
 
 		<p v-if="loading" class="muted">{{ t('vinarium', 'Laden...') }}</p>
 		<p v-else-if="loadError" class="picker-error">{{ loadError }}</p>
 		<p v-else-if="tastings.length === 0" class="empty">{{ t('vinarium', 'Noch keine Verkostungen erfasst.') }}</p>
-		<table v-else class="tastings-table">
+		<div v-else class="table-card">
+		<table class="tastings-table">
 			<thead>
 				<tr>
 					<th>{{ t('vinarium', 'Datum') }}</th>
@@ -91,6 +104,7 @@
 				</tr>
 			</tbody>
 		</table>
+		</div>
 
 		<!-- Bottle picker dialog -->
 		<NcDialog
@@ -149,7 +163,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import { formatDate } from '@/utils/date'
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -165,6 +179,23 @@ const tastings = ref<TastingListItem[]>([])
 const loading = ref(true)
 const loadError = ref<string | null>(null)
 const stats = ref<TastingStats | null>(null)
+
+const MONTHS_DE = [
+	'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+	'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember',
+]
+
+const monthName = computed(() => {
+	const m = stats.value?.month
+	if (!m || m < 1 || m > 12) return ''
+	return t('vinarium', MONTHS_DE[m - 1])
+})
+
+const photosPercent = computed(() => {
+	const s = stats.value
+	if (!s || s.total_count === 0) return 0
+	return Math.round((s.with_photos_count / s.total_count) * 100)
+})
 
 const detailModal = reactive({
 	open: false,
@@ -275,55 +306,59 @@ onMounted(async () => {
 	letter-spacing: -0.01em;
 }
 
-/* KPI-Reihe — Dashboard-Card-Pattern (stock-Hero) */
+/* KPI-Reihe nach UI-Konzept v4 */
 .kpis {
 	display: grid;
 	grid-template-columns: repeat(4, 1fr);
-	gap: 14px;
+	gap: 12px;
 	margin-bottom: 18px;
 }
 @media (max-width: 900px) {
 	.kpis { grid-template-columns: repeat(2, 1fr); }
 }
 .kpi {
-	background: var(--color-main-background);
+	background: var(--color-main-background, #fff);
 	border: 1px solid var(--color-border, #d2d4d7);
-	border-radius: 12px;
-	padding: 16px 18px;
+	border-radius: var(--border-radius, 8px);
+	padding: 16px;
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
-	min-height: 90px;
+	gap: 7px;
 }
 .kpi__label {
-	font-size: 13px;
+	font-size: 12px;
 	font-weight: 600;
 	color: var(--color-text-maxcontrast);
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
 }
 .kpi__value {
-	font-size: 28px;
+	font-size: 25px;
 	font-weight: 700;
 	line-height: 1;
 	font-variant-numeric: tabular-nums;
 	color: var(--color-main-text);
 }
+.kpi__value small {
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--color-text-maxcontrast);
+}
 .kpi__empty { color: var(--color-text-maxcontrast); font-weight: 400; }
+.kpi__sub {
+	font-size: 12.5px;
+	color: var(--color-text-maxcontrast);
+	margin-top: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.kpi__sub--name {
+	color: var(--color-main-text);
+	font-weight: 600;
+}
 .kpi__best {
 	display: flex;
 	flex-direction: column;
-	gap: 6px;
-}
-.kpi__best-name {
-	font-size: 15px;
-	font-weight: 700;
-	color: var(--color-main-text);
-	line-height: 1.25;
-	display: -webkit-box;
-	-webkit-line-clamp: 1;
-	-webkit-box-orient: vertical;
-	overflow: hidden;
+	gap: 7px;
 }
 .kpi__best-meta {
 	display: flex;
@@ -367,18 +402,37 @@ onMounted(async () => {
 	border-radius: var(--border-radius-element, 8px);
 }
 
-/* Tabelle */
-.tastings-table { width: 100%; border-collapse: collapse; }
-.tastings-table th, .tastings-table td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--color-border); }
-.tastings-table th { background: var(--color-background-hover); font-weight: 500; font-size: 0.9rem; }
-.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 0.25rem; }
+/* Tabelle in Card nach v4 */
+.table-card {
+	background: var(--color-main-background, #fff);
+	border: 1px solid var(--color-border, #d2d4d7);
+	border-radius: var(--border-radius, 8px);
+	overflow: hidden;
+}
+.tastings-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tastings-table th {
+	text-align: left;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--color-text-maxcontrast);
+	padding: 9px 10px;
+	border-bottom: 1px solid var(--color-border, #d2d4d7);
+	background: transparent;
+}
+.tastings-table td {
+	padding: 11px 10px;
+	border-bottom: 1px solid var(--color-border-light, #e2e3e5);
+	vertical-align: middle;
+}
+.tastings-table tbody tr:last-child td { border-bottom: none; }
+.tastings-table tbody tr { cursor: pointer; }
+.tastings-table tbody tr:hover { background: var(--color-background-hover); }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 0.4rem; }
 .wrap-cell { white-space: normal; word-break: break-word; }
 .producer-cell { min-width: 180px; max-width: 220px; }
 .occasion-cell { min-width: 200px; max-width: 300px; }
 .notes-cell { min-width: 280px; max-width: 470px; }
 .notes-text { white-space: normal; word-break: break-word; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.tastings-table tbody tr { cursor: pointer; }
-.tastings-table tbody tr:hover { background: var(--color-background-hover); }
 .muted { color: var(--color-text-maxcontrast); }
 .empty { color: var(--color-text-maxcontrast); font-style: italic; padding: 1rem 0; }
 

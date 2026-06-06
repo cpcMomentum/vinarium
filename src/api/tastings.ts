@@ -73,7 +73,10 @@ export interface TastingDetail {
 
 export interface TastingStats {
 	year: number
+	month: number
 	count_year: number
+	count_current_month: number
+	total_count: number
 	avg_rating: number | null
 	best_wine: {
 		wine_name: string
