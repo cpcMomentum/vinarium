@@ -52,6 +52,14 @@ class TastingController extends Controller {
 	}
 
 	#[NoAdminRequired]
+	public function stats(): DataResponse {
+		if ($this->userId === null) {
+			return new DataResponse(['error' => 'Not authenticated'], Http::STATUS_UNAUTHORIZED);
+		}
+		return new DataResponse($this->tastingService->getStats($this->userId));
+	}
+
+	#[NoAdminRequired]
 	public function byBottle(int $bottleId): DataResponse {
 		if ($this->userId === null) {
 			return new DataResponse(['error' => 'Not authenticated'], Http::STATUS_UNAUTHORIZED);

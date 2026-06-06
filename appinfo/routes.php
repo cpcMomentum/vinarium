@@ -73,6 +73,7 @@ return [
 		['name' => 'tasting#uploadPhoto', 'url' => '/api/v1/tastings/{id}/photo',            'verb' => 'POST'],
 		['name' => 'tasting#deletePhoto', 'url' => '/api/v1/tastings/{id}/photo/{fileId}',   'verb' => 'DELETE'],
 		['name' => 'tasting#details',  'url' => '/api/v1/tastings/{id}/details',     'verb' => 'GET'],
+		['name' => 'tasting#stats',    'url' => '/api/v1/tastings/stats',            'verb' => 'GET'],
 		['name' => 'tasting#all',      'url' => '/api/v1/tastings',                  'verb' => 'GET'],
 		['name' => 'tasting#byBottle', 'url' => '/api/v1/bottles/{bottleId}/tastings', 'verb' => 'GET'],
 		['name' => 'tasting#create',   'url' => '/api/v1/bottles/{bottleId}/tastings', 'verb' => 'POST'],
