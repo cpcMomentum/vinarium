@@ -41,6 +41,7 @@
 		</section>
 
 		<p v-if="loading" class="muted">{{ t('vinarium', 'Laden...') }}</p>
+		<p v-else-if="loadError" class="picker-error">{{ loadError }}</p>
 		<p v-else-if="tastings.length === 0" class="empty">{{ t('vinarium', 'Noch keine Verkostungen erfasst.') }}</p>
 		<table v-else class="tastings-table">
 			<thead>
@@ -162,6 +163,7 @@ import { cssColorFor } from '@/utils/wineColors'
 
 const tastings = ref<TastingListItem[]>([])
 const loading = ref(true)
+const loadError = ref<string | null>(null)
 const stats = ref<TastingStats | null>(null)
 
 const detailModal = reactive({
@@ -250,6 +252,8 @@ onMounted(async () => {
 			loadStats(),
 		])
 		tastings.value = list
+	} catch (e: any) {
+		loadError.value = e?.message ?? t('vinarium', 'Fehler beim Laden')
 	} finally {
 		loading.value = false
 	}
@@ -282,7 +286,7 @@ onMounted(async () => {
 	.kpis { grid-template-columns: repeat(2, 1fr); }
 }
 .kpi {
-	background: #fff;
+	background: var(--color-main-background);
 	border: 1px solid var(--color-border, #d2d4d7);
 	border-radius: 12px;
 	padding: 16px 18px;
