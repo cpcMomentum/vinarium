@@ -108,6 +108,8 @@ OC.L10N.register(
     "Parkzone": "Parking zone",
     "{label}, E{level}, H{col}": "{label}, L{level}, B{col}",
     "{label}, E{level}, V{col}": "{label}, L{level}, F{col}",
+    "Bestand-Ansicht": "Inventory view",
+    "{f} Flaschen · {w} Weine · {p} Weingüter": "{f} bottles · {w} wines · {p} producers",
     "Weingüter": "Producers",
     "Jahrgänge": "Vintages",
     "Käufe": "Purchases",

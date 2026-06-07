@@ -38,6 +38,7 @@ export const useWineStore = defineStore('wine', () => {
 	const vintages = ref<Vintage[]>([])
 	const purchases = ref<PurchaseListItem[]>([])
 	const loading = ref(false)
+	let _loadPromise: Promise<void> | null = null
 
 	const producerById = computed(() => (id: number) => producers.value.find(p => p.id === id))
 	const winesByProducer = computed(() => (producerId: number) => wines.value.filter(w => w.producerId === producerId))
@@ -151,12 +152,27 @@ export const useWineStore = defineStore('wine', () => {
 		vintages.value = vintages.value.filter(v => v.id !== id)
 	}
 
+	async function fetchAll(): Promise<void> {
+		if (_loadPromise) return _loadPromise
+		_loadPromise = (async () => {
+			await Promise.all([fetchProducers(), fetchPurchases()])
+			for (const p of producers.value) {
+				await fetchWinesByProducer(p.id)
+			}
+			for (const w of wines.value) {
+				await fetchVintagesByWine(w.id)
+			}
+		})().finally(() => { _loadPromise = null })
+		return _loadPromise
+	}
+
 	function $reset() {
 		producers.value = []
 		wines.value = []
 		vintages.value = []
 		purchases.value = []
 		loading.value = false
+		_loadPromise = null
 	}
 
 	return {
@@ -165,7 +181,7 @@ export const useWineStore = defineStore('wine', () => {
 		fetchProducers, createProducer, updateProducer, deleteProducer,
 		fetchWinesByProducer, createWine, updateWine, deleteWine,
 		fetchVintagesByWine, createVintage, updateVintage, deleteVintage,
-		fetchPurchases,
+		fetchPurchases, fetchAll,
 		$reset,
 	}
 })

@@ -51,6 +51,10 @@ export interface DashboardStats {
 	lost: number
 	parked: number
 	shelfCount: number
+	producerCount: number
+	wineCount: number
+	vintageCount: number
+	purchaseCount: number
 	colorDistribution: Record<string, number>
 	drinkSoon: DrinkSoonEntry[]
 	recentTastings: Array<{
