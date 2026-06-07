@@ -1,52 +1,50 @@
 <template>
 	<div class="inventory-view">
-		<div ref="headEl" class="inventory-head">
-			<header class="inventory-view__header">
-				<h2>{{ t('vinarium', 'Bestand') }}</h2>
-				<div class="seg" role="group" :aria-label="t('vinarium', 'Ansicht')">
-					<button
-						class="seg-btn"
-						:class="{ active: activeTab === 'bottles' }"
-						@click="setTab('bottles')"
-					>
-						{{ t('vinarium', 'Flaschen') }}
-					</button>
-					<button
-						class="seg-btn"
-						:class="{ active: activeTab === 'masterdata' }"
-						@click="setTab('masterdata')"
-					>
-						{{ t('vinarium', 'Stammdaten') }}
-					</button>
-				</div>
-				<span class="count">{{ n('vinarium', '{count} Flasche', '{count} Flaschen', store.totalCount, { count: store.totalCount }) }}</span>
-				<div class="inventory-view__sp"></div>
-				<NcButton variant="primary" @click="wizardOpen = true">{{ t('vinarium', '+ Kauf erfassen') }}</NcButton>
-			</header>
+		<header class="inventory-view__header">
+			<h2>{{ t('vinarium', 'Bestand') }}</h2>
+			<span v-if="stats" class="inventory-view__subtitle">
+				{{ headerSubtitle }}
+			</span>
+			<div class="inventory-view__sp"></div>
+			<NcButton variant="primary" @click="wizardOpen = true">{{ t('vinarium', '+ Kauf erfassen') }}</NcButton>
+		</header>
 
-			<!-- Filter nur im Bottles-Tab -->
-			<section v-if="activeTab === 'bottles'" class="filters">
-				<label>
-					{{ t('vinarium', 'Kategorie') }}
-					<select v-model="filterColor" class="input" @change="applyFilter">
-						<option value="">{{ t('vinarium', 'alle') }}</option>
-						<option v-for="c in WINE_COLORS" :key="c" :value="c">{{ t('vinarium', WINE_COLOR_LABELS[c]) }}</option>
-					</select>
-				</label>
-				<label>
-					{{ t('vinarium', 'Status') }}
-					<select v-model="filterStatus" class="input" @change="applyFilter">
-						<option value="">{{ t('vinarium', 'alle') }}</option>
-						<option v-for="(label, key) in BOTTLE_STATUS_LABELS" :key="key" :value="key">{{ t('vinarium', label) }}</option>
-					</select>
-				</label>
-				<label>
-					{{ t('vinarium', 'Jahrgang') }}
-					<input v-model.number.lazy="filterYear" type="number" class="input" :placeholder="t('vinarium', 'z. B. 2020')" @change="applyFilter" />
-				</label>
-				<button class="reset" @click="resetFilter">{{ t('vinarium', 'Filter zurücksetzen') }}</button>
-			</section>
-		</div>
+		<!-- 5 flache Sub-Tabs (v4 .subtabs) -->
+		<nav class="subtabs" role="tablist" :aria-label="t('vinarium', 'Bestand-Ansicht')">
+			<button
+				v-for="tab in subTabs"
+				:key="tab.key"
+				role="tab"
+				:aria-selected="activeTab === tab.key"
+				:class="['subtab', { 'subtab--active': activeTab === tab.key }]"
+				@click="setTab(tab.key)"
+			>
+				{{ tab.label }} <span class="subtab__count">· {{ tab.count }}</span>
+			</button>
+		</nav>
+
+		<!-- Filter nur im Flaschen-Tab -->
+		<section v-if="activeTab === 'bottles'" class="filters">
+			<label>
+				{{ t('vinarium', 'Kategorie') }}
+				<select v-model="filterColor" class="input" @change="applyFilter">
+					<option value="">{{ t('vinarium', 'alle') }}</option>
+					<option v-for="c in WINE_COLORS" :key="c" :value="c">{{ t('vinarium', WINE_COLOR_LABELS[c]) }}</option>
+				</select>
+			</label>
+			<label>
+				{{ t('vinarium', 'Status') }}
+				<select v-model="filterStatus" class="input" @change="applyFilter">
+					<option value="">{{ t('vinarium', 'alle') }}</option>
+					<option v-for="(label, key) in BOTTLE_STATUS_LABELS" :key="key" :value="key">{{ t('vinarium', label) }}</option>
+				</select>
+			</label>
+			<label>
+				{{ t('vinarium', 'Jahrgang') }}
+				<input v-model.number.lazy="filterYear" type="number" class="input" :placeholder="t('vinarium', 'z. B. 2020')" @change="applyFilter" />
+			</label>
+			<button class="reset" @click="resetFilter">{{ t('vinarium', 'Filter zurücksetzen') }}</button>
+		</section>
 
 		<!-- Bottles-Tab -->
 		<div v-show="activeTab === 'bottles'">
@@ -114,9 +112,18 @@
 			<p v-if="restoreError" class="restore-error">{{ restoreError }}</p>
 		</div>
 
-		<!-- Masterdata-Tab -->
-		<div v-show="activeTab === 'masterdata'">
-			<MasterDataPanel />
+		<!-- Stammdaten-Tabs -->
+		<div v-show="activeTab === 'producers'">
+			<MasterDataPanel entity-type="producers" />
+		</div>
+		<div v-show="activeTab === 'wines'">
+			<MasterDataPanel entity-type="wines" />
+		</div>
+		<div v-show="activeTab === 'vintages'">
+			<MasterDataPanel entity-type="vintages" />
+		</div>
+		<div v-show="activeTab === 'purchases'">
+			<MasterDataPanel entity-type="purchases" />
 		</div>
 
 		<!-- Modals -->
@@ -138,9 +145,9 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { translate as t, translatePlural as n } from '@nextcloud/l10n'
+import { translate as t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
@@ -153,9 +160,29 @@ import MasterDataPanel from '@/components/MasterDataPanel.vue'
 import { BOTTLE_STATUS_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleListItem, type BottleStatus, type WineColor } from '@/types/api'
 import { useBottleStore } from '@/stores/bottleStore'
 import { getBottlePhotoUrl } from '@/api/bottles'
+import { fetchStats, type DashboardStats } from '@/api/dashboard'
 import { cssColorFor } from '@/utils/wineColors'
 
-type SubTab = 'bottles' | 'masterdata'
+type SubTab = 'bottles' | 'producers' | 'wines' | 'vintages' | 'purchases'
+
+const TAB_QUERY: Record<SubTab, string | undefined> = {
+	bottles: undefined,
+	producers: 'weinguter',
+	wines: 'weine',
+	vintages: 'jahrgange',
+	purchases: 'kaufe',
+}
+
+const QUERY_TO_TAB: Record<string, SubTab> = {
+	flaschen: 'bottles',
+	weinguter: 'producers',
+	weine: 'wines',
+	jahrgange: 'vintages',
+	kaufe: 'purchases',
+	// Legacy redirect
+	stammdaten: 'producers',
+	masterdata: 'producers',
+}
 
 const route = useRoute()
 const router = useRouter()
@@ -171,38 +198,55 @@ const wizardOpen = ref(false)
 const filterColor = ref<WineColor | ''>('')
 const filterStatus = ref<BottleStatus | ''>('in_storage')
 const filterYear = ref<number | null>(null)
+const stats = ref<DashboardStats | null>(null)
 
-const activeTab = ref<SubTab>((route.query.tab === 'stammdaten' || route.query.tab === 'masterdata') ? 'masterdata' : 'bottles')
+const activeTab = ref<SubTab>(resolveTab(route.query.tab))
+
+function resolveTab(q: unknown): SubTab {
+	if (typeof q !== 'string') return 'bottles'
+	return QUERY_TO_TAB[q] ?? 'bottles'
+}
 
 watch(() => route.query.tab, (q) => {
-	activeTab.value = (q === 'stammdaten' || q === 'masterdata') ? 'masterdata' : 'bottles'
+	activeTab.value = resolveTab(q)
+})
+
+const subTabs = computed(() => [
+	{ key: 'bottles' as SubTab, label: t('vinarium', 'Flaschen'), count: stats.value?.inStorage ?? store.totalCount },
+	{ key: 'producers' as SubTab, label: t('vinarium', 'Weingüter'), count: stats.value?.producerCount ?? 0 },
+	{ key: 'wines' as SubTab, label: t('vinarium', 'Weine'), count: stats.value?.wineCount ?? 0 },
+	{ key: 'vintages' as SubTab, label: t('vinarium', 'Jahrgänge'), count: stats.value?.vintageCount ?? 0 },
+	{ key: 'purchases' as SubTab, label: t('vinarium', 'Käufe'), count: stats.value?.purchaseCount ?? 0 },
+])
+
+const headerSubtitle = computed(() => {
+	const s = stats.value
+	if (!s) return ''
+	return t('vinarium', '{f} Flaschen · {w} Weine · {p} Weingüter', {
+		f: s.inStorage,
+		w: s.wineCount,
+		p: s.producerCount,
+	})
 })
 
 function setTab(tab: SubTab) {
 	activeTab.value = tab
-	const target = tab === 'masterdata' ? 'stammdaten' : undefined
+	const target = TAB_QUERY[tab]
 	router.replace({ query: { ...route.query, tab: target } })
 }
 
-const headEl = ref<HTMLElement | null>(null)
-let headObserver: ResizeObserver | null = null
-
 onMounted(async () => {
 	await store.fetchBottles({ status: 'in_storage' })
-	if (headEl.value) {
-		const apply = () => {
-			const h = headEl.value?.offsetHeight ?? 0
-			headEl.value?.parentElement?.style.setProperty('--inventory-head-h', `${h}px`)
-		}
-		apply()
-		headObserver = new ResizeObserver(apply)
-		headObserver.observe(headEl.value)
-	}
+	loadStats()
 })
 
-onBeforeUnmount(() => {
-	headObserver?.disconnect()
-})
+async function loadStats() {
+	try {
+		stats.value = await fetchStats()
+	} catch (e) {
+		console.error('Inventory stats error:', e)
+	}
+}
 
 async function applyFilter() {
 	await store.fetchBottles({
@@ -226,6 +270,7 @@ function openTasting(bottleId: number) {
 
 async function onConsumed() {
 	await store.fetchBottles(store.filter)
+	loadStats()
 }
 
 function openEvent(bottleId: number, mode: 'gift' | 'lost') {
@@ -236,11 +281,13 @@ function openEvent(bottleId: number, mode: 'gift' | 'lost') {
 
 async function onEventDone() {
 	await store.fetchBottles(store.filter)
+	loadStats()
 }
 
 async function onWizardComplete(_payload: { purchaseId: number; bottleCount: number }) {
 	wizardOpen.value = false
 	await store.fetchBottles(store.filter)
+	loadStats()
 }
 
 function giftTooltip(b: BottleListItem): string {
@@ -289,57 +336,59 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 
 <style scoped>
 .inventory-view {
-	padding: 2rem 2rem 2rem 50px;
-	max-width: 1100px;
-}
-.inventory-head {
-	position: sticky;
-	top: 0;
-	z-index: 20;
-	background: var(--color-main-background);
-	padding-bottom: 1rem;
+	padding: 20px 24px;
+	max-width: 1400px;
 }
 .inventory-view__header {
 	display: flex;
-	align-items: center;
-	gap: 1rem;
-	margin-bottom: 1rem;
+	align-items: baseline;
+	gap: 12px;
+	margin-bottom: 12px;
 	flex-wrap: wrap;
 }
-.inventory-view__sp { flex: 1; }
-.count {
-	padding: 0.25rem 0.75rem;
-	border-radius: var(--border-radius);
-	background: var(--color-background-dark);
-	font-size: 0.9rem;
+.inventory-view__header h2 {
+	font-size: 24px;
+	font-weight: 600;
+	letter-spacing: -0.01em;
 }
-
-/* Segmented Toggle (Worktime-Style) */
-.seg {
-	display: inline-flex;
-	background: var(--color-background-dark);
-	border-radius: var(--border-radius-element, 8px);
-	padding: 3px;
-}
-.seg-btn {
-	font-family: inherit;
+.inventory-view__subtitle {
+	color: var(--color-text-maxcontrast);
 	font-size: 13px;
+	font-variant-numeric: tabular-nums;
+}
+.inventory-view__sp { flex: 1; }
+
+/* 5 flache Sub-Tabs nach v4 .subtabs */
+.subtabs {
+	display: flex;
+	gap: 2px;
+	border-bottom: 1px solid var(--color-border, #d2d4d7);
+	margin-bottom: 16px;
+}
+.subtab {
+	font-family: inherit;
+	font-size: 14px;
 	font-weight: 600;
 	color: var(--color-text-maxcontrast);
 	background: none;
 	border: none;
-	padding: 6px 14px;
-	border-radius: var(--border-radius-element, 8px);
+	border-bottom: 2px solid transparent;
+	padding: 10px 16px;
 	cursor: pointer;
+	margin-bottom: -1px;
 }
-.seg-btn:hover {
+.subtab:hover {
 	color: var(--color-main-text);
 }
-.seg-btn.active {
-	background: var(--color-main-background);
+.subtab--active {
 	color: var(--color-primary-element, #0082c9);
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+	border-bottom-color: var(--color-primary-element, #0082c9);
 }
+.subtab__count {
+	color: var(--color-text-maxcontrast);
+	font-weight: 400;
+}
+.subtab--active .subtab__count { color: inherit; opacity: 0.85; }
 
 .cat {
 	display: inline-flex;
@@ -467,10 +516,7 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 }
 .bottles tbody tr:last-child td { border-bottom: none; }
 .bottles th {
-	position: sticky;
-	top: var(--inventory-head-h, 0px);
-	z-index: 10;
-	background: #fff;
+	background: transparent;
 	font-weight: 600;
 	font-size: 0.78rem;
 	color: var(--color-text-maxcontrast);

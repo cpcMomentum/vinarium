@@ -113,6 +113,8 @@
         "{label}, E{level}, H{col}": "{label}, E{level}, H{col}",
         "{label}, E{level}, V{col}": "{label}, E{level}, V{col}",
         "+ Kauf erfassen": "+ Kauf erfassen",
+        "Bestand-Ansicht": "Bestand-Ansicht",
+        "{f} Flaschen · {w} Weine · {p} Weingüter": "{f} Flaschen · {w} Weine · {p} Weingüter",
         "Weingüter": "Weingüter",
         "Jahrgänge": "Jahrgänge",
         "Käufe": "Käufe",

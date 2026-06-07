@@ -28,6 +28,10 @@ class DashboardService {
 			'lost' => $this->countBottles($userId, 'lost'),
 			'parked' => $this->countParked($userId),
 			'shelfCount' => $this->countShelves($userId),
+			'producerCount' => $this->countEntities($userId, 'vinarium_producer', 'owner_user_id'),
+			'wineCount' => $this->countWines($userId),
+			'vintageCount' => $this->countVintages($userId),
+			'purchaseCount' => $this->countPurchases($userId),
 			'colorDistribution' => $this->colorDistribution($userId),
 			'drinkSoon' => $this->drinkSoon($userId),
 			'recentTastings' => $this->recentTastings($userId),
@@ -35,6 +39,56 @@ class DashboardService {
 			'topRated' => $this->ratedWines($userId, 'desc', 5),
 			'flopRated' => $this->ratedWines($userId, 'asc', 5),
 		];
+	}
+
+	private function countEntities(string $userId, string $table, string $ownerColumn): int {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select($qb->func()->count('id'))
+			->from($table)
+			->where($qb->expr()->eq($ownerColumn, $qb->createNamedParameter($userId)));
+		$result = $qb->executeQuery();
+		$count = (int)$result->fetchOne();
+		$result->closeCursor();
+		return $count;
+	}
+
+	private function countWines(string $userId): int {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select($qb->func()->count('w.id'))
+			->from('vinarium_wine', 'w')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)));
+		$result = $qb->executeQuery();
+		$count = (int)$result->fetchOne();
+		$result->closeCursor();
+		return $count;
+	}
+
+	private function countVintages(string $userId): int {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select($qb->func()->count('v.id'))
+			->from('vinarium_vintage', 'v')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)));
+		$result = $qb->executeQuery();
+		$count = (int)$result->fetchOne();
+		$result->closeCursor();
+		return $count;
+	}
+
+	private function countPurchases(string $userId): int {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select($qb->func()->count('pu.id'))
+			->from('vinarium_purchase', 'pu')
+			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)));
+		$result = $qb->executeQuery();
+		$count = (int)$result->fetchOne();
+		$result->closeCursor();
+		return $count;
 	}
 
 	/**

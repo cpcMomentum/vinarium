@@ -1,11 +1,11 @@
 <template>
 	<div class="master-data">
-		<div class="master-data__tabs">
+		<div v-if="!entityType" class="master-data__tabs">
 			<button
 				v-for="tab in tabs"
 				:key="tab.key"
 				:class="['master-data__tab', { 'master-data__tab--active': activeTab === tab.key }]"
-				@click="activeTab = tab.key"
+				@click="internalTab = tab.key"
 			>
 				{{ tab.label }} <span class="master-data__count">({{ tab.count }})</span>
 			</button>
@@ -128,9 +128,13 @@ import { BOTTLE_SIZE_LABELS, WINE_COLOR_LABELS, type BottleSizeMl } from '@/type
 import { useWineStore } from '@/stores/wineStore'
 
 type EntityType = 'producer' | 'wine' | 'vintage'
+type PanelTab = 'producers' | 'wines' | 'vintages' | 'purchases'
+
+const props = defineProps<{ entityType?: PanelTab }>()
 
 const store = useWineStore()
-const activeTab = ref<'producers' | 'wines' | 'vintages' | 'purchases'>('producers')
+const internalTab = ref<PanelTab>('producers')
+const activeTab = computed<PanelTab>(() => props.entityType ?? internalTab.value)
 const deleteError = ref<string | null>(null)
 
 const editOpen = ref(false)
