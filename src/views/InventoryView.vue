@@ -373,12 +373,22 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 	background: none;
 	border: none;
 	border-bottom: 2px solid transparent;
+	border-radius: 0;
+	box-shadow: none;
 	padding: 10px 16px;
 	cursor: pointer;
 	margin-bottom: -1px;
+	outline: none;
+	min-height: 0;
+	min-width: 0;
 }
 .subtab:hover {
+	background: transparent;
 	color: var(--color-main-text);
+	box-shadow: none;
+}
+.subtab:focus-visible {
+	box-shadow: inset 0 0 0 2px var(--color-primary-element, #0082c9);
 }
 .subtab--active {
 	color: var(--color-primary-element, #0082c9);
