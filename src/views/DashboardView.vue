@@ -232,10 +232,8 @@ function ratingPct(rating: number | null): number {
 	return Math.round((rating / 10) * 100)
 }
 
-function tastingsLabel(n: number): string {
-	return n === 1
-		? t('vinarium', '({n} Verkostung)', { n })
-		: t('vinarium', '({n} Verkostungen)', { n })
+function tastingsLabel(count: number): string {
+	return n('vinarium', '({n} Verkostung)', '({n} Verkostungen)', count, { n: count })
 }
 
 function chipLabel(type: ActivityType): string {
