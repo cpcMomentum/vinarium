@@ -231,7 +231,7 @@ class CellarService {
 
 			$comp = new Compartment();
 			$comp->setShelfId($shelfId);
-			$comp->setLabel($label !== null && $label !== '' ? $label : 'Fach ' . ($sortOrder + 1));
+			$comp->setLabel($label !== null && $label !== '' ? $label : $this->nextDefaultLabel($existing));
 			$comp->setSortOrder($sortOrder);
 			$comp = $this->compartmentMapper->insert($comp);
 
@@ -277,14 +277,60 @@ class CellarService {
 			}
 			$this->assertCompartmentOwnership($comp, $userId);
 
+			$shelfId = $comp->getShelfId();
 			$movedBottles = $this->wipeCompartment($compartmentId);
 			$this->compartmentMapper->delete($comp);
+			$this->renumberDefaultLabels($shelfId);
 
 			$this->db->commit();
 			return $movedBottles;
 		} catch (Throwable $e) {
 			$this->db->rollBack();
 			throw $e;
+		}
+	}
+
+	/**
+	 * Returns the next default label "Fach N" — N is the highest existing default + 1,
+	 * fallback to (count + 1) when no default-labeled compartment exists yet.
+	 *
+	 * @param Compartment[] $existing
+	 */
+	private function nextDefaultLabel(array $existing): string {
+		$maxN = 0;
+		foreach ($existing as $comp) {
+			$label = $comp->getLabel();
+			if ($label !== null && preg_match('/^Fach (\d+)$/', $label, $m) === 1) {
+				$n = (int)$m[1];
+				if ($n > $maxN) {
+					$maxN = $n;
+				}
+			}
+		}
+		return 'Fach ' . ($maxN > 0 ? $maxN + 1 : count($existing) + 1);
+	}
+
+	/**
+	 * Renumbers default-labeled compartments (labels matching `^Fach \d+$`) of a shelf
+	 * sequentially based on their sort_order ASC. Custom labels are left untouched but
+	 * their position counts toward the index so the visible sequence stays consistent.
+	 *
+	 * Must be called inside an open transaction.
+	 */
+	private function renumberDefaultLabels(int $shelfId): void {
+		$compartments = $this->compartmentMapper->findByShelf($shelfId);
+		// findByShelf already orders by sort_order ASC
+		$defaultIndex = 0;
+		foreach ($compartments as $comp) {
+			$defaultIndex++;
+			$label = $comp->getLabel();
+			if ($label !== null && preg_match('/^Fach \d+$/', $label) === 1) {
+				$desired = 'Fach ' . $defaultIndex;
+				if ($label !== $desired) {
+					$comp->setLabel($desired);
+					$this->compartmentMapper->update($comp);
+				}
+			}
 		}
 	}
 
