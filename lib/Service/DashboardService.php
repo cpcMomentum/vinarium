@@ -32,7 +32,51 @@ class DashboardService {
 			'drinkSoon' => $this->drinkSoon($userId),
 			'recentTastings' => $this->recentTastings($userId),
 			'recentActivity' => $this->recentActivity($userId, 5),
+			'topRated' => $this->ratedWines($userId, 'desc', 5),
+			'flopRated' => $this->ratedWines($userId, 'asc', 5),
 		];
+	}
+
+	/**
+	 * Aggregates AVG(rating) per (wine, vintage) over all tastings of the owner.
+	 * Returns the top or bottom N by avg, with ties broken by tasting_count DESC.
+	 * @return list<array{wine_id:int, wine_name:string, wine_color:string, vintage_id:int, year:int, producer_name:string, avg_rating:float, tasting_count:int}>
+	 */
+	private function ratedWines(string $userId, string $order, int $limit): array {
+		$orderDir = strtolower($order) === 'asc' ? 'ASC' : 'DESC';
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('w.id AS wine_id', 'w.name AS wine_name', 'w.color AS wine_color',
+				'v.id AS vintage_id', 'v.year', 'p.name AS producer_name')
+			->selectAlias($qb->createFunction('AVG(t.rating)'), 'avg_rating')
+			->selectAlias($qb->func()->count('t.id'), 'tasting_count')
+			->from('vinarium_tasting', 't')
+			->innerJoin('t', 'vinarium_bottle', 'b', 't.bottle_id = b.id')
+			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
+			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->isNotNull('t.rating'))
+			->groupBy('w.id', 'w.name', 'w.color', 'v.id', 'v.year', 'p.name')
+			->orderBy($qb->createFunction('AVG(t.rating)'), $orderDir)
+			->addOrderBy($qb->createFunction('COUNT(t.id)'), 'DESC')
+			->setMaxResults($limit);
+		$result = $qb->executeQuery();
+		$rows = [];
+		while ($row = $result->fetch()) {
+			$rows[] = [
+				'wine_id' => (int)$row['wine_id'],
+				'wine_name' => (string)$row['wine_name'],
+				'wine_color' => (string)$row['wine_color'],
+				'vintage_id' => (int)$row['vintage_id'],
+				'year' => (int)$row['year'],
+				'producer_name' => (string)$row['producer_name'],
+				'avg_rating' => (float)$row['avg_rating'],
+				'tasting_count' => (int)$row['tasting_count'],
+			];
+		}
+		$result->closeCursor();
+		return $rows;
 	}
 
 	private function countShelves(string $userId): int {

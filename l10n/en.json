@@ -64,15 +64,21 @@
         "Gesamt": "Total",
         "Farb-Verteilung": "Color Distribution",
         "Bald trinken": "Drink Soon",
+        "Top & Flop": "Top & Flop",
+        "Top": "Top",
+        "Flop": "Flop",
+        "Ø Bewertung pro Wein × Jahrgang": "Ø rating per wine × vintage",
+        "Noch keine Bewertungen.": "No ratings yet.",
+        "({n} Verkostung)": [
+            "({n} tasting)",
+            "({n} tastings)"
+        ],
         "Aktivität": "Activity",
         "Flaschen": "bottles",
         "Weine, Weingüter, Jahrgänge suchen…": "Search wines, producers, vintages…",
         "Suche folgt in einem späteren Update": "Search will be added in a future update",
         "+ Kauf erfassen": "+ Record purchase",
         "+ Kauf": "+ Purchase",
-        "Getrunken": "Consumed",
-        "Verschenkt": "Gifted",
-        "Verloren": "Lost",
         "verteilt auf {n} Regal": [
             "spread across {n} shelf",
             "spread across {n} shelves"

@@ -64,6 +64,15 @@
         "Gesamt": "Gesamt",
         "Farb-Verteilung": "Farb-Verteilung",
         "Bald trinken": "Bald trinken",
+        "Top & Flop": "Top & Flop",
+        "Top": "Top",
+        "Flop": "Flop",
+        "Ø Bewertung pro Wein × Jahrgang": "Ø Bewertung pro Wein × Jahrgang",
+        "Noch keine Bewertungen.": "Noch keine Bewertungen.",
+        "({n} Verkostung)": [
+            "({n} Verkostung)",
+            "({n} Verkostungen)"
+        ],
         "Aktivität": "Aktivität",
         "Flaschen": "Flaschen",
         "Weine, Weingüter, Jahrgänge suchen…": "Weine, Weingüter, Jahrgänge suchen…",
