@@ -117,4 +117,18 @@ class PurchaseControllerTest extends TestCase {
 		$response = $this->controller(null)->createFromWizard();
 		$this->assertSame(Http::STATUS_UNAUTHORIZED, $response->getStatus());
 	}
+
+	public function testVendorsReturnsVendorList(): void {
+		$this->purchaseService->expects($this->once())->method('listVendors')
+			->with('alice')
+			->willReturn(['Cave de l\'Étoile', 'Weingut Müller']);
+		$response = $this->controller()->vendors();
+		$this->assertSame(Http::STATUS_OK, $response->getStatus());
+		$this->assertSame(['Cave de l\'Étoile', 'Weingut Müller'], $response->getData());
+	}
+
+	public function testVendorsUnauthenticated(): void {
+		$response = $this->controller(null)->vendors();
+		$this->assertSame(Http::STATUS_UNAUTHORIZED, $response->getStatus());
+	}
 }

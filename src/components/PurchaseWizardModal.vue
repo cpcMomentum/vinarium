@@ -100,7 +100,12 @@
 								<option v-for="size in BOTTLE_SIZES" :key="size" :value="size">{{ t('vinarium', BOTTLE_SIZE_LABELS[size]) }}</option>
 							</select>
 						</label>
-						<label class="field"><span>{{ t('vinarium', 'Händler') }}</span><input v-model="form4.vendor" class="input" :placeholder="t('vinarium', 'z. B. Weinhandlung Müller')" /></label>
+						<label class="field"><span>{{ t('vinarium', 'Händler') }}</span>
+							<input v-model="form4.vendor" class="input" list="vinarium-vendor-list" :placeholder="t('vinarium', 'z. B. Weinhandlung Müller')" />
+							<datalist id="vinarium-vendor-list">
+								<option v-for="v in knownVendors" :key="v" :value="v" />
+							</datalist>
+						</label>
 					</div>
 					<div class="field-row">
 						<label class="field"><span>{{ t('vinarium', 'Stückpreis') }}</span><input v-model.number="form4.unitPrice" type="number" step="0.01" class="input" /></label>
@@ -140,7 +145,7 @@ import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { BOTTLE_SIZES, BOTTLE_SIZE_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleSizeMl, type WineColor } from '@/types/api'
 import { useWineStore } from '@/stores/wineStore'
-import { createPurchaseViaWizard } from '@/api/purchases'
+import { createPurchaseViaWizard, listVendors } from '@/api/purchases'
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{
@@ -211,6 +216,8 @@ const isValidPurchase = computed(() =>
 
 // --- watchers: populate form from picked entity, clear on deselect ---
 
+const knownVendors = ref<string[]>([])
+
 watch(() => props.open, async (isOpen) => {
 	if (isOpen) {
 		step.value = 1
@@ -222,6 +229,12 @@ watch(() => props.open, async (isOpen) => {
 		resetForm2()
 		resetForm3()
 		await store.fetchProducers()
+		try {
+			knownVendors.value = await listVendors()
+		} catch (e) {
+			console.error('Vendor list error:', e)
+			knownVendors.value = []
+		}
 	}
 }, { immediate: true })
 

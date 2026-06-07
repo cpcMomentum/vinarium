@@ -62,4 +62,28 @@ class PurchaseMapper extends QBMapper {
 			->orderBy('purchased_at', 'DESC');
 		return $this->findEntities($qb);
 	}
+
+	/**
+	 * Returns the sorted, unique list of non-empty vendor names used by the owner.
+	 * @return list<string>
+	 */
+	public function findDistinctVendorsByOwner(string $userId): array {
+		$qb = $this->db->getQueryBuilder();
+		$qb->selectDistinct('pu.vendor')
+			->from($this->tableName, 'pu')
+			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->isNotNull('pu.vendor'))
+			->andWhere($qb->expr()->neq('pu.vendor', $qb->createNamedParameter('')))
+			->orderBy('pu.vendor', 'ASC');
+		$result = $qb->executeQuery();
+		$vendors = [];
+		while ($row = $result->fetch()) {
+			$vendors[] = (string)$row['vendor'];
+		}
+		$result->closeCursor();
+		return $vendors;
+	}
 }

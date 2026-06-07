@@ -11,6 +11,10 @@ import { nextTick } from 'vue'
 vi.mock('@/api/producers')
 vi.mock('@/api/wines')
 vi.mock('@/api/vintages')
+vi.mock('@/api/purchases', () => ({
+	listVendors: vi.fn().mockResolvedValue(['Weingut A', 'Weingut B']),
+	createPurchaseViaWizard: vi.fn(),
+}))
 vi.mock('@nextcloud/vue/components/NcModal', () => ({
 	default: { name: 'NcModal', template: '<div class="nc-modal"><slot /></div>' },
 }))
@@ -19,6 +23,7 @@ vi.mock('@nextcloud/vue/components/NcButton', () => ({
 }))
 
 import * as producersApi from '@/api/producers'
+import * as purchasesApi from '@/api/purchases'
 import PurchaseWizardModal from '@/components/PurchaseWizardModal.vue'
 import { useWineStore } from '@/stores/wineStore'
 
@@ -63,5 +68,12 @@ describe('PurchaseWizardModal', () => {
 		const wrapper = mount(PurchaseWizardModal, { props: { open: true } })
 		await nextTick()
 		expect(wrapper.findAll('.step')).toHaveLength(4)
+	})
+
+	it('calls listVendors on open', async () => {
+		mount(PurchaseWizardModal, { props: { open: true } })
+		await nextTick()
+		await nextTick()
+		expect(purchasesApi.listVendors).toHaveBeenCalled()
 	})
 })
