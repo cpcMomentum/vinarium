@@ -609,7 +609,6 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 	color: var(--color-text-maxcontrast);
 	padding: 9px 10px;
 	border-bottom: 1px solid var(--color-border, #d2d4d7);
-	border-bottom: 1px solid var(--color-border, #d2d4d7);
 }
 .empty {
 	color: var(--color-text-maxcontrast);
