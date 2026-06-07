@@ -94,6 +94,12 @@ class PurchaseService {
 
 	public function delete(int $id, string $userId): Purchase {
 		$purchase = $this->get($id, $userId);
+		$bottleCount = $this->purchaseMapper->countBottlesForPurchase($id);
+		if ($bottleCount > 0) {
+			throw new ValidationException(
+				"{$bottleCount} Flasche(n) sind diesem Kauf zugeordnet. Erst die Flaschen entsorgen, verschenken oder trinken, bevor der Kauf gelöscht wird."
+			);
+		}
 		return $this->purchaseMapper->delete($purchase);
 	}
 

@@ -144,6 +144,8 @@ class PurchaseController extends Controller {
 			return new DataResponse(null, Http::STATUS_NO_CONTENT);
 		} catch (NotFoundException $e) {
 			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
+		} catch (ValidationException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_CONFLICT);
 		}
 	}
 

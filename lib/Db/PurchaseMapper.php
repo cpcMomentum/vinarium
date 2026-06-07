@@ -63,6 +63,17 @@ class PurchaseMapper extends QBMapper {
 		return $this->findEntities($qb);
 	}
 
+	public function countBottlesForPurchase(int $purchaseId): int {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select($qb->func()->count('id'))
+			->from('vinarium_bottle')
+			->where($qb->expr()->eq('purchase_id', $qb->createNamedParameter($purchaseId, IQueryBuilder::PARAM_INT)));
+		$result = $qb->executeQuery();
+		$count = (int)$result->fetchOne();
+		$result->closeCursor();
+		return $count;
+	}
+
 	/**
 	 * Returns the sorted, unique list of non-empty vendor names used by the owner.
 	 * @return list<string>
