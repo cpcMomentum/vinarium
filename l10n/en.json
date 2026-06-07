@@ -69,8 +69,10 @@
         "Flop": "Flop",
         "Ø Bewertung pro Wein × Jahrgang": "Ø rating per wine × vintage",
         "Noch keine Bewertungen.": "No ratings yet.",
-        "({n} Verkostung)": "({n} tasting)",
-        "({n} Verkostungen)": "({n} tastings)",
+        "({n} Verkostung)": [
+            "({n} tasting)",
+            "({n} tastings)"
+        ],
         "Aktivität": "Activity",
         "Flaschen": "bottles",
         "Weine, Weingüter, Jahrgänge suchen…": "Search wines, producers, vintages…",
