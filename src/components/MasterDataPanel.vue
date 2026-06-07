@@ -299,6 +299,13 @@ async function performDelete() {
 	font-weight: 500;
 	font-size: 0.9rem;
 }
+.master-data__row-actions {
+	white-space: nowrap;
+	text-align: right;
+}
+.master-data__row-actions :deep(.button-vue) {
+	display: inline-flex;
+}
 .master-data__error {
 	margin: 1rem 0 0;
 	padding: 0.5rem 0.75rem;
