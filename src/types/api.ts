@@ -184,6 +184,9 @@ export interface BottleListItem {
 	status: BottleStatus
 	photo_file_id: number | null
 	notes: string | null
+	wine_id: number
+	vintage_id: number
+	producer_id: number
 	year: number
 	wine_name: string
 	wine_color: WineColor
@@ -196,11 +199,13 @@ export interface BottleListItem {
 	event_date: string | null
 	event_recipient: string | null
 	event_note: string | null
+	avg_rating: number | null
 }
 
 export interface BottleFilter {
 	status?: BottleStatus
 	color?: WineColor
 	year?: number
+	producerId?: number
 	drinkUntilYearBefore?: number
 }

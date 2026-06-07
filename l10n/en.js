@@ -128,6 +128,7 @@ OC.L10N.register(
     "Laden...": "Loading...",
     "Noch keine Verkostungen erfasst.": "No tastings recorded yet.",
     "Bewertung": "Rating",
+    "Aktionen": "Actions",
     "Anlass": "Occasion",
     "Notizen": "Notes",
     "+ Neues Regal": "+ New shelf",

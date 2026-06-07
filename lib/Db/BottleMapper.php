@@ -95,9 +95,9 @@ class BottleMapper extends QBMapper {
 		$qb->select(
 			'b.id', 'b.purchase_id', 'b.slot_id', 'b.status', 'b.photo_file_id', 'b.notes',
 			'b.event_date', 'b.event_recipient', 'b.event_note',
-			'v.year',
-			'w.name AS wine_name', 'w.color AS wine_color',
-			'p.name AS producer_name',
+			'v.id AS vintage_id', 'v.year',
+			'w.id AS wine_id', 'w.name AS wine_name', 'w.color AS wine_color',
+			'p.id AS producer_id', 'p.name AS producer_name',
 			'v.drink_until_year',
 			'sl.level AS slot_level', 'sl.row AS slot_row', 'sl.column AS slot_column',
 			'co.label AS compartment_label',
@@ -120,6 +120,9 @@ class BottleMapper extends QBMapper {
 		if (isset($filter['year'])) {
 			$qb->andWhere($qb->expr()->eq('v.year', $qb->createNamedParameter((int)$filter['year'], IQueryBuilder::PARAM_INT)));
 		}
+		if (isset($filter['producerId'])) {
+			$qb->andWhere($qb->expr()->eq('p.id', $qb->createNamedParameter((int)$filter['producerId'], IQueryBuilder::PARAM_INT)));
+		}
 		if (isset($filter['drinkUntilYearBefore'])) {
 			$qb->andWhere($qb->expr()->lte('v.drink_until_year', $qb->createNamedParameter((int)$filter['drinkUntilYearBefore'], IQueryBuilder::PARAM_INT)));
 		}
@@ -130,6 +133,33 @@ class BottleMapper extends QBMapper {
 		$rows = $result->fetchAll();
 		$result->closeCursor();
 		return $rows;
+	}
+
+	/**
+	 * Average rating per vintage_id for an owner — supplies the bottle list with
+	 * an avg_rating per (wine × vintage) without N+1 queries.
+	 * @return array<int, float> map vintage_id => avg_rating
+	 */
+	public function avgRatingByVintageForOwner(string $userId): array {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('v.id')
+			->selectAlias($qb->createFunction('AVG(t.rating)'), 'avg_rating')
+			->from('vinarium_tasting', 't')
+			->innerJoin('t', 'vinarium_bottle', 'b', 't.bottle_id = b.id')
+			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
+			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->isNotNull('t.rating'))
+			->groupBy('v.id');
+		$result = $qb->executeQuery();
+		$map = [];
+		while ($row = $result->fetch()) {
+			$map[(int)$row['id']] = (float)$row['avg_rating'];
+		}
+		$result->closeCursor();
+		return $map;
 	}
 
 	/** @return array<string, mixed>|null Fully denormalized bottle row with wine/vintage/producer/purchase/slot info */

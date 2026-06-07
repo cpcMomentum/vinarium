@@ -35,7 +35,7 @@ class BottleController extends Controller {
 	}
 
 	#[NoAdminRequired]
-	public function index(?string $status = null, ?string $color = null, ?int $year = null, ?int $drinkUntilYearBefore = null): DataResponse {
+	public function index(?string $status = null, ?string $color = null, ?int $year = null, ?int $producerId = null, ?int $drinkUntilYearBefore = null): DataResponse {
 		if ($this->userId === null) {
 			return $this->unauthorized();
 		}
@@ -43,6 +43,7 @@ class BottleController extends Controller {
 			'status' => $status,
 			'color' => $color,
 			'year' => $year,
+			'producerId' => $producerId,
 			'drinkUntilYearBefore' => $drinkUntilYearBefore,
 		], static fn ($v): bool => $v !== null && $v !== '');
 		return new DataResponse($this->bottleService->getFilteredBottles($this->userId, $filter));
