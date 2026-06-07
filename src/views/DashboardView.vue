@@ -89,6 +89,50 @@
 				</div>
 			</section>
 
+			<!-- Top & Flop — aggregiert pro Wine×Vintage -->
+			<section v-if="hasRatedWines" class="topflop">
+				<header class="topflop__head">
+					<h3>{{ t('vinarium', 'Top & Flop') }}</h3>
+					<span class="topflop__sub">— {{ t('vinarium', 'Ø Bewertung pro Wein × Jahrgang') }}</span>
+				</header>
+				<div class="topflop__grid">
+					<div class="topflop__col">
+						<div class="topflop__label topflop__label--top">{{ t('vinarium', 'Top') }}</div>
+						<ul v-if="stats.topRated.length > 0" class="lst">
+							<li v-for="r in stats.topRated" :key="'top-' + r.wine_id + '-' + r.vintage_id">
+								<span class="dot" :style="{ background: cssColorFor(r.wine_color) }"></span>
+								<strong>{{ r.wine_name }} {{ r.year }}</strong>
+								<span class="lst__count">{{ tastingsLabel(r.tasting_count) }}</span>
+								<div class="lst__meta">
+									<span class="rat">
+										<span class="rat__val">{{ r.avg_rating.toFixed(1) }}</span>
+										<span class="rat__bar"><i :style="{ width: ratingPct(r.avg_rating) + '%' }"></i></span>
+									</span>
+								</div>
+							</li>
+						</ul>
+						<p v-else class="muted">{{ t('vinarium', 'Noch keine Bewertungen.') }}</p>
+					</div>
+					<div class="topflop__col">
+						<div class="topflop__label topflop__label--flop">{{ t('vinarium', 'Flop') }}</div>
+						<ul v-if="stats.flopRated.length > 0" class="lst">
+							<li v-for="r in stats.flopRated" :key="'flop-' + r.wine_id + '-' + r.vintage_id">
+								<span class="dot" :style="{ background: cssColorFor(r.wine_color) }"></span>
+								<strong>{{ r.wine_name }} {{ r.year }}</strong>
+								<span class="lst__count">{{ tastingsLabel(r.tasting_count) }}</span>
+								<div class="lst__meta">
+									<span class="rat">
+										<span class="rat__val">{{ r.avg_rating.toFixed(1) }}</span>
+										<span class="rat__bar"><i :style="{ width: ratingPct(r.avg_rating) + '%' }"></i></span>
+									</span>
+								</div>
+							</li>
+						</ul>
+						<p v-else class="muted">{{ t('vinarium', 'Noch keine Bewertungen.') }}</p>
+					</div>
+				</div>
+			</section>
+
 			<!-- 2 Spalten: Letzte Verkostungen | Aktivität -->
 			<div class="row-2">
 				<section class="dash-card">
@@ -177,9 +221,21 @@ const categorySegments = computed(() => {
 
 const topDrinkSoon = computed(() => stats.value?.drinkSoon.slice(0, 4) ?? [])
 
+const hasRatedWines = computed(() => {
+	const s = stats.value
+	if (!s) return false
+	return (s.topRated?.length ?? 0) > 0 || (s.flopRated?.length ?? 0) > 0
+})
+
 function ratingPct(rating: number | null): number {
 	if (rating === null) return 0
 	return Math.round((rating / 10) * 100)
+}
+
+function tastingsLabel(n: number): string {
+	return n === 1
+		? t('vinarium', '({n} Verkostung)', { n })
+		: t('vinarium', '({n} Verkostungen)', { n })
 }
 
 function chipLabel(type: ActivityType): string {
@@ -440,6 +496,54 @@ function goToActivity() {
 }
 .hcard__meta { font-size: 12px; color: var(--color-text-maxcontrast); }
 .hcard__meta--urgent { color: #b03b33; font-weight: 600; }
+
+/* Top & Flop */
+.topflop {
+	background: var(--color-main-background, #fff);
+	border: 1px solid var(--color-border, #d2d4d7);
+	border-radius: var(--border-radius, 8px);
+	padding: 16px 18px;
+	margin-bottom: 14px;
+}
+.topflop__head {
+	display: flex;
+	align-items: baseline;
+	gap: 10px;
+	margin-bottom: 12px;
+}
+.topflop__head h3 {
+	font-size: 15px;
+	font-weight: 600;
+}
+.topflop__sub { color: var(--color-text-maxcontrast); font-size: 13px; }
+.topflop__grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 22px;
+}
+@media (max-width: 700px) {
+	.topflop__grid { grid-template-columns: 1fr; }
+}
+.topflop__label {
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	margin-bottom: 6px;
+}
+.topflop__label--top { color: var(--color-primary-element, #0082c9); }
+.topflop__label--flop { color: #b03b33; }
+.topflop .lst li {
+	display: grid;
+	grid-template-columns: auto 1fr auto auto;
+	gap: 8px;
+	align-items: center;
+}
+.lst__count {
+	font-size: 12px;
+	color: var(--color-text-maxcontrast);
+	font-variant-numeric: tabular-nums;
+}
 
 /* 2-Spalten unten */
 .row-2 {
