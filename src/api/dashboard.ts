@@ -32,6 +32,17 @@ export interface DrinkSoonEntry {
 	slot_label: string | null
 }
 
+export interface RatedWineEntry {
+	wine_id: number
+	wine_name: string
+	wine_color: WineColor
+	vintage_id: number
+	year: number
+	producer_name: string
+	avg_rating: number
+	tasting_count: number
+}
+
 export interface DashboardStats {
 	totalBottles: number
 	inStorage: number
@@ -52,6 +63,8 @@ export interface DashboardStats {
 		wine_color?: WineColor
 	}>
 	recentActivity: ActivityEvent[]
+	topRated: RatedWineEntry[]
+	flopRated: RatedWineEntry[]
 }
 
 export const fetchStats = (): Promise<DashboardStats> =>
