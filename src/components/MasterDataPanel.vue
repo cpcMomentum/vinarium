@@ -148,15 +148,7 @@ const tabs = computed(() => [
 	{ key: 'purchases' as const, label: t('vinarium', 'Käufe'), count: store.purchases.length },
 ])
 
-onMounted(async () => {
-	await Promise.all([store.fetchProducers(), store.fetchPurchases()])
-	for (const p of store.producers) {
-		await store.fetchWinesByProducer(p.id)
-	}
-	for (const w of store.wines) {
-		await store.fetchVintagesByWine(w.id)
-	}
-})
+onMounted(() => store.fetchAll())
 
 function openCreate(type: EntityType) {
 	editType.value = type
