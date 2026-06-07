@@ -71,8 +71,27 @@ export interface TastingDetail {
 	related_same_producer: TastingRelated[]
 }
 
+export interface TastingStats {
+	year: number
+	month: number
+	count_year: number
+	count_current_month: number
+	total_count: number
+	avg_rating: number | null
+	best_wine: {
+		wine_name: string
+		producer_name: string
+		year: number
+		rating: number
+	} | null
+	with_photos_count: number
+}
+
 export const listAllTastings = (): Promise<TastingListItem[]> =>
 	apiGet<TastingListItem[]>('/tastings')
+
+export const fetchTastingStats = (): Promise<TastingStats> =>
+	apiGet<TastingStats>('/tastings/stats')
 
 export const listTastingsByBottle = (bottleId: number): Promise<Tasting[]> =>
 	apiGet<Tasting[]>(`/bottles/${bottleId}/tastings`)

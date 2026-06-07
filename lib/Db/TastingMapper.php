@@ -129,4 +129,124 @@ class TastingMapper extends QBMapper {
 		$result->closeCursor();
 		return $rows;
 	}
+
+	public function countByOwnerYear(string $userId, int $year): int {
+		return $this->countByOwnerInRange(
+			$userId,
+			(new \DateTime($year . '-01-01 00:00:00', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s'),
+			(new \DateTime(($year + 1) . '-01-01 00:00:00', new \DateTimeZone('UTC')))->format('Y-m-d H:i:s'),
+		);
+	}
+
+	public function countByOwnerMonth(string $userId, int $year, int $month): int {
+		$start = sprintf('%04d-%02d-01 00:00:00', $year, $month);
+		$end = $month === 12
+			? sprintf('%04d-01-01 00:00:00', $year + 1)
+			: sprintf('%04d-%02d-01 00:00:00', $year, $month + 1);
+		return $this->countByOwnerInRange($userId, $start, $end);
+	}
+
+	public function countAllByOwner(string $userId): int {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select($qb->func()->count('t.id', 'cnt'))
+			->from($this->tableName, 't')
+			->innerJoin('t', 'vinarium_bottle', 'b', 't.bottle_id = b.id')
+			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
+			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)));
+		$result = $qb->executeQuery();
+		$row = $result->fetch();
+		$result->closeCursor();
+		return (int)($row['cnt'] ?? 0);
+	}
+
+	private function countByOwnerInRange(string $userId, string $startInclusive, string $endExclusive): int {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select($qb->func()->count('t.id', 'cnt'))
+			->from($this->tableName, 't')
+			->innerJoin('t', 'vinarium_bottle', 'b', 't.bottle_id = b.id')
+			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
+			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->gte('t.tasted_at', $qb->createNamedParameter($startInclusive)))
+			->andWhere($qb->expr()->lt('t.tasted_at', $qb->createNamedParameter($endExclusive)));
+		$result = $qb->executeQuery();
+		$row = $result->fetch();
+		$result->closeCursor();
+		return (int)($row['cnt'] ?? 0);
+	}
+
+	public function avgRatingByOwner(string $userId): ?float {
+		// NC's FunctionBuilder lacks avg() in some backends (PgSQL); use a raw AVG via createFunction.
+		// SUM/COUNT alias parameters are also not supported by base FunctionBuilder::sum(), so we
+		// rely on createFunction with explicit aliases, parameterizing only the user id.
+		$qb = $this->db->getQueryBuilder();
+		$userIdParam = $qb->createNamedParameter($userId);
+		$qb->select($qb->createFunction('AVG(t.rating) AS avg_rating'))
+			->from($this->tableName, 't')
+			->innerJoin('t', 'vinarium_bottle', 'b', 't.bottle_id = b.id')
+			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
+			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('p.owner_user_id', $userIdParam))
+			->andWhere($qb->expr()->isNotNull('t.rating'));
+		$result = $qb->executeQuery();
+		$row = $result->fetch();
+		$result->closeCursor();
+		$avg = $row['avg_rating'] ?? null;
+		return $avg !== null ? (float)$avg : null;
+	}
+
+	/** @return array{wine_name: string, year: int, producer_name: string, rating: float}|null */
+	public function findBestRatedByOwner(string $userId): ?array {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('w.name AS wine_name', 'v.year', 'p.name AS producer_name', 't.rating')
+			->from($this->tableName, 't')
+			->innerJoin('t', 'vinarium_bottle', 'b', 't.bottle_id = b.id')
+			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
+			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->isNotNull('t.rating'))
+			->orderBy('t.rating', 'DESC')
+			->addOrderBy('t.tasted_at', 'DESC')
+			->setMaxResults(1);
+		$result = $qb->executeQuery();
+		$row = $result->fetch();
+		$result->closeCursor();
+		if (!$row) {
+			return null;
+		}
+		return [
+			'wine_name' => (string)$row['wine_name'],
+			'year' => (int)$row['year'],
+			'producer_name' => (string)$row['producer_name'],
+			'rating' => (float)$row['rating'],
+		];
+	}
+
+	public function countWithPhotosByOwner(string $userId): int {
+		// photo_file_ids is JSON-typed; PgSQL has no text equality for json.
+		// Tastings without photos store NULL (see TastingController::deletePhoto), so IS NOT NULL is sufficient.
+		$qb = $this->db->getQueryBuilder();
+		$qb->select($qb->func()->count('t.id', 'cnt'))
+			->from($this->tableName, 't')
+			->innerJoin('t', 'vinarium_bottle', 'b', 't.bottle_id = b.id')
+			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
+			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->isNotNull('t.photo_file_ids'));
+		$result = $qb->executeQuery();
+		$row = $result->fetch();
+		$result->closeCursor();
+		return (int)($row['cnt'] ?? 0);
+	}
 }
