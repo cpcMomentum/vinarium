@@ -43,6 +43,13 @@
 				{{ t('vinarium', 'Jahrgang') }}
 				<input v-model.number.lazy="filterYear" type="number" class="input" :placeholder="t('vinarium', 'z. B. 2020')" @change="applyFilter" />
 			</label>
+			<label>
+				{{ t('vinarium', 'Weingut') }}
+				<select v-model.number="filterProducerId" class="input" @change="applyFilter">
+					<option :value="null">{{ t('vinarium', 'alle') }}</option>
+					<option v-for="p in wineStore.producers" :key="p.id" :value="p.id">{{ p.name }}</option>
+				</select>
+			</label>
 			<button class="reset" @click="resetFilter">{{ t('vinarium', 'Filter zurücksetzen') }}</button>
 		</section>
 
@@ -56,10 +63,11 @@
 							<th>{{ t('vinarium', 'Weingut') }}</th>
 							<th>{{ t('vinarium', 'Wein') }}</th>
 							<th>{{ t('vinarium', 'Jahrgang') }}</th>
-							<th>{{ t('vinarium', 'Kategorie') }}</th>
+							<th>{{ t('vinarium', 'Farbe') }}</th>
 							<th>{{ t('vinarium', 'Status') }}</th>
 							<th>{{ t('vinarium', 'Slot') }}</th>
-							<th></th>
+							<th class="rating-col">{{ t('vinarium', 'Bewertung') }}</th>
+							<th class="actions-col"></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -88,21 +96,41 @@
 								<span v-else-if="b.status === 'lost' && b.event_note" class="event-info">({{ b.event_note }})</span>
 							</td>
 							<td>{{ formatSlotLabel(b) }}</td>
-							<td>
-								<div v-if="b.status === 'in_storage'" class="actions-cell">
-									<NcButton variant="secondary" @click="openTasting(b.id)">{{ t('vinarium', 'Entkorken') }}</NcButton>
-									<NcActions :aria-label="t('vinarium', 'Weitere Aktionen')">
-										<NcActionButton @click="openEvent(b.id, 'gift')">
-											<template #icon><Gift :size="20" /></template>
-											{{ t('vinarium', 'Verschenken') }}
-										</NcActionButton>
-										<NcActionButton @click="openEvent(b.id, 'lost')">
-											<template #icon><CloseCircleOutline :size="20" /></template>
-											{{ t('vinarium', 'Verloren') }}
-										</NcActionButton>
-									</NcActions>
-								</div>
-								<NcButton v-else-if="b.status === 'gifted' || b.status === 'lost'" variant="tertiary" @click="doRestore(b.id)">{{ t('vinarium', 'Zurück in Bestand') }}</NcButton>
+							<td class="rating-col">
+								<span v-if="b.avg_rating !== null" class="rat">
+									<span class="rat__val">{{ Number(b.avg_rating).toFixed(1) }}</span>
+									<span class="rat__bar"><i :style="{ width: ratingPct(b.avg_rating) + '%' }"></i></span>
+								</span>
+								<span v-else class="muted">—</span>
+							</td>
+							<td class="actions-col">
+								<NcActions
+									v-if="b.status === 'in_storage'"
+									:aria-label="t('vinarium', 'Aktionen')"
+									:force-name="false"
+								>
+									<NcActionButton @click="openTasting(b.id)">
+										<template #icon><GlassCorkIcon :size="20" /></template>
+										{{ t('vinarium', 'Entkorken') }}
+									</NcActionButton>
+									<NcActionButton @click="openEvent(b.id, 'gift')">
+										<template #icon><Gift :size="20" /></template>
+										{{ t('vinarium', 'Verschenken') }}
+									</NcActionButton>
+									<NcActionButton @click="openEvent(b.id, 'lost')">
+										<template #icon><CloseCircleOutline :size="20" /></template>
+										{{ t('vinarium', 'Verloren') }}
+									</NcActionButton>
+								</NcActions>
+								<NcActions
+									v-else-if="b.status === 'gifted' || b.status === 'lost'"
+									:aria-label="t('vinarium', 'Aktionen')"
+								>
+									<NcActionButton @click="doRestore(b.id)">
+										<template #icon><Restore :size="20" /></template>
+										{{ t('vinarium', 'Zurück in Bestand') }}
+									</NcActionButton>
+								</NcActions>
 							</td>
 						</tr>
 					</tbody>
@@ -153,12 +181,15 @@ import NcActions from '@nextcloud/vue/components/NcActions'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import Gift from 'vue-material-design-icons/Gift.vue'
 import CloseCircleOutline from 'vue-material-design-icons/CloseCircleOutline.vue'
+import GlassCorkIcon from 'vue-material-design-icons/BottleWine.vue'
+import Restore from 'vue-material-design-icons/Restore.vue'
 import TastingDialog from '@/components/TastingDialog.vue'
 import BottleEventDialog from '@/components/BottleEventDialog.vue'
 import PurchaseWizardModal from '@/components/PurchaseWizardModal.vue'
 import MasterDataPanel from '@/components/MasterDataPanel.vue'
 import { BOTTLE_STATUS_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleListItem, type BottleStatus, type WineColor } from '@/types/api'
 import { useBottleStore } from '@/stores/bottleStore'
+import { useWineStore } from '@/stores/wineStore'
 import { getBottlePhotoUrl } from '@/api/bottles'
 import { fetchStats, type DashboardStats } from '@/api/dashboard'
 import { cssColorFor } from '@/utils/wineColors'
@@ -187,6 +218,7 @@ const QUERY_TO_TAB: Record<string, SubTab> = {
 const route = useRoute()
 const router = useRouter()
 const store = useBottleStore()
+const wineStore = useWineStore()
 
 const tastingOpen = ref(false)
 const tastingBottleId = ref<number | null>(null)
@@ -198,6 +230,7 @@ const wizardOpen = ref(false)
 const filterColor = ref<WineColor | ''>('')
 const filterStatus = ref<BottleStatus | ''>('in_storage')
 const filterYear = ref<number | null>(null)
+const filterProducerId = ref<number | null>(null)
 const stats = ref<DashboardStats | null>(null)
 
 const activeTab = ref<SubTab>(resolveTab(route.query.tab))
@@ -236,9 +269,17 @@ function setTab(tab: SubTab) {
 }
 
 onMounted(async () => {
-	await store.fetchBottles({ status: 'in_storage' })
+	await Promise.all([
+		store.fetchBottles({ status: 'in_storage' }),
+		wineStore.fetchAll(),
+	])
 	loadStats()
 })
+
+function ratingPct(rating: number | null): number {
+	if (rating === null) return 0
+	return Math.round((rating / 10) * 100)
+}
 
 async function loadStats() {
 	try {
@@ -253,6 +294,7 @@ async function applyFilter() {
 		color: filterColor.value || undefined,
 		status: filterStatus.value || undefined,
 		year: filterYear.value ?? undefined,
+		producerId: filterProducerId.value ?? undefined,
 	})
 }
 
@@ -260,6 +302,7 @@ async function resetFilter() {
 	filterColor.value = ''
 	filterStatus.value = ''
 	filterYear.value = null
+	filterProducerId.value = null
 	await store.fetchBottles({})
 }
 
@@ -452,20 +495,52 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 }
 .reset:hover { color: var(--color-main-text); }
 
-/* Tabelle in Card-Wrapper */
+/* Tabelle in Card-Wrapper (v4) */
 .bottles-card {
-	background: #fff;
+	background: var(--color-main-background, #fff);
 	border: 1px solid var(--color-border, #d2d4d7);
-	border-radius: var(--border-radius);
+	border-radius: var(--border-radius, 8px);
 	overflow: hidden;
 }
 .bottles {
 	width: 100%;
 	border-collapse: collapse;
+	font-size: 14px;
 }
 .bottles tbody tr:hover {
 	background: var(--color-background-hover);
 }
+.bottles .rating-col { width: 110px; }
+.bottles .actions-col { width: 56px; text-align: right; }
+
+/* Bewertungs-Bar (analog DashboardView .rat) */
+.rat {
+	display: inline-flex;
+	align-items: center;
+	gap: 7px;
+	font-variant-numeric: tabular-nums;
+}
+.rat__val {
+	font-weight: 700;
+	color: var(--color-primary-element, #0082c9);
+	font-size: 14px;
+	min-width: 30px;
+	text-align: right;
+}
+.rat__bar {
+	width: 70px;
+	height: 7px;
+	background: var(--color-background-dark, #e9eaec);
+	border-radius: var(--border-radius-element, 8px);
+	overflow: hidden;
+}
+.rat__bar > i {
+	display: block;
+	height: 100%;
+	background: var(--color-primary-element, #0082c9);
+	border-radius: var(--border-radius-element, 8px);
+}
+.muted { color: var(--color-text-maxcontrast); }
 
 /* Status-Chips (analog Dashboard) */
 .chip {
@@ -520,18 +595,19 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 }
 .bottles th, .bottles td {
 	text-align: left;
-	padding: 0.6rem 0.75rem;
-	border-bottom: 1px solid var(--color-border-light, #e2e3e5);
+	padding: 11px 10px;
 	vertical-align: middle;
+}
+.bottles td {
+	border-bottom: 1px solid var(--color-border-light, #e2e3e5);
 }
 .bottles tbody tr:last-child td { border-bottom: none; }
 .bottles th {
 	background: transparent;
 	font-weight: 600;
-	font-size: 0.78rem;
+	font-size: 12px;
 	color: var(--color-text-maxcontrast);
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
+	padding: 9px 10px;
 	border-bottom: 1px solid var(--color-border, #d2d4d7);
 }
 .empty {

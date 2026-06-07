@@ -176,7 +176,16 @@ class BottleService {
 
 	/** @return array<int, array<string, mixed>> */
 	public function getFilteredBottles(string $userId, array $filter = []): array {
-		return $this->bottleMapper->findFilteredByOwner($userId, $filter);
+		$rows = $this->bottleMapper->findFilteredByOwner($userId, $filter);
+		$ratings = $this->bottleMapper->avgRatingByVintageForOwner($userId);
+		foreach ($rows as &$row) {
+			$vintageId = isset($row['vintage_id']) ? (int)$row['vintage_id'] : null;
+			$row['avg_rating'] = ($vintageId !== null && isset($ratings[$vintageId]))
+				? (float)$ratings[$vintageId]
+				: null;
+		}
+		unset($row);
+		return $rows;
 	}
 
 	/** @return array<string, mixed> Fully denormalized bottle detail */
