@@ -27,6 +27,9 @@ export interface PurchaseWithBottlesResult {
 export const listAllPurchases = (): Promise<PurchaseListItem[]> =>
 	apiGet<PurchaseListItem[]>('/purchases/all')
 
+export const listVendors = (): Promise<string[]> =>
+	apiGet<string[]>('/purchases/vendors')
+
 export const listPurchasesByVintage = (vintageId: number): Promise<Purchase[]> =>
 	apiGet<Purchase[]>(`/purchases?vintageId=${vintageId}`)
 

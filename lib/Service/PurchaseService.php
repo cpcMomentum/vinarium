@@ -31,6 +31,11 @@ class PurchaseService {
 		return $this->purchaseMapper->findAllByOwner($userId);
 	}
 
+	/** @return list<string> */
+	public function listVendors(string $userId): array {
+		return $this->purchaseMapper->findDistinctVendorsByOwner($userId);
+	}
+
 	/** @return Purchase[] */
 	public function listByVintage(int $vintageId, string $userId): array {
 		$this->vintageService->get($vintageId, $userId);
