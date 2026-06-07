@@ -79,6 +79,14 @@ class PurchaseControllerTest extends TestCase {
 		$this->assertSame(Http::STATUS_NO_CONTENT, $response->getStatus());
 	}
 
+	public function testDestroyConflictWhenBottlesExist(): void {
+		$this->purchaseService->method('delete')
+			->willThrowException(new ValidationException('3 Flasche(n) sind diesem Kauf zugeordnet.'));
+		$response = $this->controller()->destroy(5);
+		$this->assertSame(Http::STATUS_CONFLICT, $response->getStatus());
+		$this->assertArrayHasKey('error', $response->getData());
+	}
+
 	public function testCreateFromWizardSuccess(): void {
 		$purchase = new Purchase();
 		$purchase->setId(10);
