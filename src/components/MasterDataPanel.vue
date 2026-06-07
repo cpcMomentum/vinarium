@@ -1,34 +1,30 @@
 <template>
-	<div class="wines-view">
-		<header class="wines-view__header">
-			<h2>{{ t('vinarium', 'Weine') }}</h2>
-			<NcButton variant="primary" @click="wizardOpen = true">{{ t('vinarium', '+ Kauf erfassen') }}</NcButton>
-		</header>
-
-		<div class="tabs">
+	<div class="master-data">
+		<div class="master-data__tabs">
 			<button
 				v-for="tab in tabs"
 				:key="tab.key"
-				:class="['tab', { active: activeTab === tab.key }]"
+				:class="['master-data__tab', { 'master-data__tab--active': activeTab === tab.key }]"
 				@click="activeTab = tab.key"
 			>
-				{{ tab.label }} ({{ tab.count }})
+				{{ tab.label }} <span class="master-data__count">({{ tab.count }})</span>
 			</button>
 		</div>
 
-		<section v-if="activeTab === 'producers'" class="tab-panel">
-			<div class="tab-panel__actions">
+		<!-- Producers -->
+		<section v-if="activeTab === 'producers'" class="master-data__panel">
+			<div class="master-data__actions">
 				<NcButton variant="primary" @click="openCreate('producer')">{{ t('vinarium', '+ Weingut') }}</NcButton>
 			</div>
-			<p v-if="store.producers.length === 0" class="empty">{{ t('vinarium', 'Noch keine Weingüter erfasst.') }}</p>
-			<ul v-else class="list">
-				<li v-for="p in store.producers" :key="p.id" class="list-item">
-					<div class="list-item__main">
+			<p v-if="store.producers.length === 0" class="master-data__empty">{{ t('vinarium', 'Noch keine Weingüter erfasst.') }}</p>
+			<ul v-else class="master-data__list">
+				<li v-for="p in store.producers" :key="p.id" class="master-data__item">
+					<div class="master-data__item-main">
 						<strong>{{ p.name }}</strong>
 						<span v-if="p.region" class="muted"> · {{ p.region }}</span>
 						<span v-if="p.country" class="muted"> · {{ p.country }}</span>
 					</div>
-					<div class="list-item__actions">
+					<div class="master-data__item-actions">
 						<NcButton @click="editEntity('producer', p.id)">{{ t('vinarium', 'Bearbeiten') }}</NcButton>
 						<NcButton variant="tertiary" @click="deleteEntity('producer', p.id)">{{ t('vinarium', 'Löschen') }}</NcButton>
 					</div>
@@ -36,16 +32,17 @@
 			</ul>
 		</section>
 
-		<section v-else-if="activeTab === 'wines'" class="tab-panel">
-			<p v-if="store.wines.length === 0" class="empty">{{ t('vinarium', 'Noch keine Weine erfasst.') }}</p>
-			<ul v-else class="list">
-				<li v-for="w in store.wines" :key="w.id" class="list-item">
-					<div class="list-item__main">
+		<!-- Wines -->
+		<section v-else-if="activeTab === 'wines'" class="master-data__panel">
+			<p v-if="store.wines.length === 0" class="master-data__empty">{{ t('vinarium', 'Noch keine Weine erfasst.') }}</p>
+			<ul v-else class="master-data__list">
+				<li v-for="w in store.wines" :key="w.id" class="master-data__item">
+					<div class="master-data__item-main">
 						<strong>{{ w.name }}</strong>
 						<span class="muted"> · {{ t('vinarium', WINE_COLOR_LABELS[w.color]) }}</span>
 						<span v-if="store.producerById(w.producerId)" class="muted"> · {{ store.producerById(w.producerId)?.name }}</span>
 					</div>
-					<div class="list-item__actions">
+					<div class="master-data__item-actions">
 						<NcButton @click="editEntity('wine', w.id)">{{ t('vinarium', 'Bearbeiten') }}</NcButton>
 						<NcButton variant="tertiary" @click="deleteEntity('wine', w.id)">{{ t('vinarium', 'Löschen') }}</NcButton>
 					</div>
@@ -53,15 +50,16 @@
 			</ul>
 		</section>
 
-		<section v-else-if="activeTab === 'vintages'" class="tab-panel">
-			<p v-if="store.vintages.length === 0" class="empty">{{ t('vinarium', 'Noch keine Jahrgänge erfasst.') }}</p>
-			<ul v-else class="list">
-				<li v-for="v in store.vintages" :key="v.id" class="list-item">
-					<div class="list-item__main">
+		<!-- Vintages -->
+		<section v-else-if="activeTab === 'vintages'" class="master-data__panel">
+			<p v-if="store.vintages.length === 0" class="master-data__empty">{{ t('vinarium', 'Noch keine Jahrgänge erfasst.') }}</p>
+			<ul v-else class="master-data__list">
+				<li v-for="v in store.vintages" :key="v.id" class="master-data__item">
+					<div class="master-data__item-main">
 						<strong>{{ v.year }}</strong>
 						<span v-if="v.alcoholPercent" class="muted"> · {{ v.alcoholPercent }}%</span>
 					</div>
-					<div class="list-item__actions">
+					<div class="master-data__item-actions">
 						<NcButton @click="editEntity('vintage', v.id)">{{ t('vinarium', 'Bearbeiten') }}</NcButton>
 						<NcButton variant="tertiary" @click="deleteEntity('vintage', v.id)">{{ t('vinarium', 'Löschen') }}</NcButton>
 					</div>
@@ -69,9 +67,10 @@
 			</ul>
 		</section>
 
-		<section v-else-if="activeTab === 'purchases'" class="tab-panel">
-			<p v-if="store.purchases.length === 0" class="empty">{{ t('vinarium', 'Noch keine Käufe erfasst.') }}</p>
-			<table v-else class="purchases-table">
+		<!-- Purchases -->
+		<section v-else-if="activeTab === 'purchases'" class="master-data__panel">
+			<p v-if="store.purchases.length === 0" class="master-data__empty">{{ t('vinarium', 'Noch keine Käufe erfasst.') }}</p>
+			<table v-else class="master-data__table">
 				<thead>
 					<tr>
 						<th>{{ t('vinarium', 'Datum') }}</th>
@@ -99,7 +98,6 @@
 			</table>
 		</section>
 
-		<PurchaseWizardModal :open="wizardOpen" @close="wizardOpen = false" @complete="onComplete" />
 		<EntityEditModal
 			:open="editOpen"
 			:type="editType"
@@ -115,6 +113,7 @@
 			@close="deleteConfirmOpen = false"
 			@confirm="performDelete"
 		/>
+		<p v-if="deleteError" class="master-data__error">{{ deleteError }}</p>
 	</div>
 </template>
 
@@ -123,7 +122,6 @@ import { computed, onMounted, ref } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import { formatDate } from '@/utils/date'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import PurchaseWizardModal from '@/components/PurchaseWizardModal.vue'
 import EntityEditModal from '@/components/EntityEditModal.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { BOTTLE_SIZE_LABELS, WINE_COLOR_LABELS, type BottleSizeMl } from '@/types/api'
@@ -132,8 +130,8 @@ import { useWineStore } from '@/stores/wineStore'
 type EntityType = 'producer' | 'wine' | 'vintage'
 
 const store = useWineStore()
-const wizardOpen = ref(false)
 const activeTab = ref<'producers' | 'wines' | 'vintages' | 'purchases'>('producers')
+const deleteError = ref<string | null>(null)
 
 const editOpen = ref(false)
 const editType = ref<EntityType>('producer')
@@ -155,17 +153,6 @@ onMounted(async () => {
 		await store.fetchVintagesByWine(w.id)
 	}
 })
-
-async function onComplete(_payload: { purchaseId: number; bottleCount: number }) {
-	wizardOpen.value = false
-	await Promise.all([store.fetchProducers(), store.fetchPurchases()])
-	for (const p of store.producers) {
-		await store.fetchWinesByProducer(p.id)
-	}
-	for (const w of store.wines) {
-		await store.fetchVintagesByWine(w.id)
-	}
-}
 
 function openCreate(type: EntityType) {
 	editType.value = type
@@ -217,88 +204,108 @@ async function performDelete() {
 	const id = deletePendingId.value
 	if (id === null) return
 	const type = deletePendingType.value
-	if (type === 'producer') await store.deleteProducer(id)
-	else if (type === 'wine') await store.deleteWine(id)
-	else await store.deleteVintage(id)
-	deletePendingId.value = null
+	deleteError.value = null
+	try {
+		if (type === 'producer') await store.deleteProducer(id)
+		else if (type === 'wine') await store.deleteWine(id)
+		else await store.deleteVintage(id)
+		deletePendingId.value = null
+	} catch (e: any) {
+		deleteError.value = e?.message ?? t('vinarium', 'Löschen fehlgeschlagen')
+	}
 }
 </script>
 
 <style scoped>
-.wines-view {
-	padding: 2rem 2rem 2rem 50px;
-	max-width: 900px;
+.master-data__tabs {
+	display: inline-flex;
+	background: var(--color-background-dark, #e9eaec);
+	border-radius: var(--border-radius-element, 8px);
+	padding: 3px;
+	margin-bottom: 14px;
 }
-.wines-view__header {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 1.5rem;
-}
-.tabs {
-	display: flex;
-	gap: 0.25rem;
-	border-bottom: 2px solid var(--color-border);
-	margin-bottom: 1rem;
-}
-.tab {
-	padding: 0.5rem 1rem;
+.master-data__tab {
+	font-family: inherit;
+	font-size: 13px;
+	font-weight: 600;
+	color: #555;
 	background: none;
 	border: none;
-	border-bottom: 2px solid transparent;
-	margin-bottom: -2px;
+	padding: 6px 14px;
+	border-radius: var(--border-radius-element, 8px);
 	cursor: pointer;
+}
+.master-data__tab--active {
+	background: #fff;
+	color: var(--color-primary-element, #0082c9);
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+.master-data__count {
+	font-weight: 400;
 	color: var(--color-text-maxcontrast);
-	font-weight: 500;
 }
-.tab.active {
-	border-bottom-color: var(--color-primary-element);
-	color: var(--color-main-text);
+.master-data__tab--active .master-data__count {
+	color: var(--color-primary-element, #0082c9);
 }
-.tab-panel__actions {
+
+.master-data__actions {
 	display: flex;
 	justify-content: flex-end;
 	margin-bottom: 0.75rem;
 }
-.list {
+.master-data__list {
 	list-style: none;
 	padding: 0;
+	margin: 0;
 }
-.list-item {
+.master-data__item {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	padding: 0.75rem;
-	border-bottom: 1px solid var(--color-border);
+	border-bottom: 1px solid var(--color-border-light, #e2e3e5);
 	gap: 1rem;
 }
-.list-item__main {
+.master-data__item:last-child {
+	border-bottom: none;
+}
+.master-data__item-main {
 	flex: 1;
 }
-.list-item__actions {
+.master-data__item-actions {
 	display: flex;
 	gap: 0.5rem;
 }
 .muted {
 	color: var(--color-text-maxcontrast);
 }
-.empty {
+.master-data__empty {
 	color: var(--color-text-maxcontrast);
 	font-style: italic;
 	padding: 1rem;
 }
-.purchases-table {
+.master-data__table {
 	width: 100%;
 	border-collapse: collapse;
 }
-.purchases-table th, .purchases-table td {
+.master-data__table th,
+.master-data__table td {
 	text-align: left;
 	padding: 0.5rem 0.75rem;
-	border-bottom: 1px solid var(--color-border);
+	border-bottom: 1px solid var(--color-border-light, #e2e3e5);
 }
-.purchases-table th {
+.master-data__table th {
 	background: var(--color-background-hover);
 	font-weight: 500;
+	font-size: 0.9rem;
+}
+.master-data__error {
+	margin: 1rem 0 0;
+	padding: 0.5rem 0.75rem;
+	background: rgba(198, 40, 40, 0.1);
+	border-left: 3px solid #c62828;
+	border-radius: var(--border-radius);
+	color: #c62828;
 	font-size: 0.9rem;
 }
 </style>
