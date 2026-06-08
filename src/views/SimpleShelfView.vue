@@ -144,7 +144,7 @@
 										v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'back')"
 										:key="slot.id"
 										:class="['slot', slotClasses(slot.id)]"
-										:style="bottleInSlot(slot.id) ? { background: cssSlotGradient(bottleInSlot(slot.id)!.wine_color) } : {}"
+										:style="slotBgStyle(bottleInSlot(slot.id))"
 										:title="slotTooltip(slot)"
 										@dragover.prevent="onDragOver(slot.id, $event)"
 										@dragleave="onDragLeave($event)"
@@ -171,7 +171,7 @@
 										v-for="slot in slotsFor(compData.compartment.id, level.levelNumber, 'front')"
 										:key="slot.id"
 										:class="['slot', slotClasses(slot.id)]"
-										:style="bottleInSlot(slot.id) ? { background: cssSlotGradient(bottleInSlot(slot.id)!.wine_color) } : {}"
+										:style="slotBgStyle(bottleInSlot(slot.id))"
 										:title="slotTooltip(slot)"
 										@dragover.prevent="onDragOver(slot.id, $event)"
 										@dragleave="onDragLeave($event)"
@@ -282,6 +282,7 @@ import type { CellarResponse } from '@/api/cellar'
 import { addCompartment, destroyCompartment, destroyShelf, fetchCellar, fetchSlots, updateCompartment, updateShelf } from '@/api/cellar'
 import { useBottleStore } from '@/stores/bottleStore'
 import { cssColorFor, cssSlotGradient } from '@/utils/wineColors'
+import { getBottlePhotoUrl } from '@/api/bottles'
 
 const store = useBottleStore()
 
@@ -327,6 +328,19 @@ const bottleBySlotId = computed(() => {
 function bottleInSlot(slotId: number): BottleListItem | undefined {
 	return bottleBySlotId.value.get(slotId)
 }
+
+function slotBgStyle(b: BottleListItem | undefined): Record<string, string> {
+	if (!b) return {}
+	if (b.photo_file_id !== null) {
+		return {
+			backgroundImage: `url('${getBottlePhotoUrl(b.id)}')`,
+			backgroundSize: 'cover',
+			backgroundPosition: 'center',
+		}
+	}
+	return { background: cssSlotGradient(b.wine_color) }
+}
+
 function bottleFullName(slotId: number): string {
 	return bottleBySlotId.value.get(slotId)?.wine_name ?? ''
 }
@@ -1136,6 +1150,8 @@ async function loadAllSlots() {
 	height: 100%;
 	line-height: 1.2;
 	gap: 1px;
+	text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+	color: #fff;
 }
 .slot__name {
 	display: -webkit-box;
