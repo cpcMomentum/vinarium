@@ -46,6 +46,8 @@ class BottleService {
 	public function createBottlesForPurchase(int $purchaseId, string $userId): array {
 		$purchase = $this->purchaseService->get($purchaseId, $userId);
 		$count = $purchase->getQuantity();
+		// If this wine × vintage already has a photo, inherit it for the new bottles.
+		$inheritedPhotoId = $this->bottleMapper->findExistingPhotoForVintage($purchase->getVintageId(), $userId);
 
 		$this->db->beginTransaction();
 		try {
@@ -54,6 +56,9 @@ class BottleService {
 				$bottle = new Bottle();
 				$bottle->setPurchaseId($purchase->getId());
 				$bottle->setStatus(Bottle::STATUS_IN_STORAGE);
+				if ($inheritedPhotoId !== null) {
+					$bottle->setPhotoFileId($inheritedPhotoId);
+				}
 				$bottles[] = $this->bottleMapper->insert($bottle);
 			}
 			$this->db->commit();
@@ -172,6 +177,27 @@ class BottleService {
 	/** @return Bottle[] */
 	public function getParkedBottles(string $userId): array {
 		return $this->bottleMapper->findByOwnerParked($userId);
+	}
+
+	/**
+	 * After a photo has been saved for a single bottle, set every other bottle of the same
+	 * wine × vintage to the same file id ("ein Foto teilen sich alle Flaschen der Vintage").
+	 * Returns the number of siblings updated and the list of photo_file_ids that were
+	 * displaced (the caller uses these for orphan-cleanup).
+	 *
+	 * @return array{updated: int, displaced_file_ids: list<int>}
+	 */
+	public function propagatePhotoToSiblings(int $sourceBottleId, string $userId, int $newFileId): array {
+		$vintageId = $this->bottleMapper->findVintageIdForOwner($sourceBottleId, $userId);
+		if ($vintageId === null) {
+			return ['updated' => 0, 'displaced_file_ids' => []];
+		}
+		return $this->bottleMapper->propagatePhotoToVintageSiblings($sourceBottleId, $vintageId, $userId, $newFileId);
+	}
+
+	/** Number of bottles of the owner still referencing the given photo file id. */
+	public function countPhotoReferences(int $fileId, string $userId): int {
+		return $this->bottleMapper->countBottlesReferencingPhoto($fileId, $userId);
 	}
 
 	/** @return array<int, array<string, mixed>> */

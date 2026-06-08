@@ -63,7 +63,6 @@
 							<th>{{ t('vinarium', 'Weingut') }}</th>
 							<th>{{ t('vinarium', 'Wein') }}</th>
 							<th>{{ t('vinarium', 'Jahrgang') }}</th>
-							<th>{{ t('vinarium', 'Farbe') }}</th>
 							<th>{{ t('vinarium', 'Status') }}</th>
 							<th>{{ t('vinarium', 'Slot') }}</th>
 							<th class="rating-col">{{ t('vinarium', 'Bewertung') }}</th>
@@ -78,23 +77,19 @@
 							@click="openDetail(b.id)"
 						>
 							<td class="photo-cell">
-								<img
-									v-if="b.photo_file_id !== null"
-									:src="bottlePhotoUrl(b.id)"
-									class="bottle-thumb"
-									:alt="b.wine_name"
-								/>
-								<span v-else class="bottle-tile" :class="'bottle-tile--' + b.wine_color" :title="t('vinarium', WINE_COLOR_LABELS[b.wine_color])"></span>
+								<span class="bottle-tile" :class="'bottle-tile--' + b.wine_color" :title="t('vinarium', WINE_COLOR_LABELS[b.wine_color])">
+									<span
+										v-if="b.photo_file_id !== null"
+										class="bottle-tile__photo-indicator"
+										:title="t('vinarium', 'Foto hinterlegt')"
+									>
+										<CameraIcon :size="10" />
+									</span>
+								</span>
 							</td>
 							<td>{{ b.producer_name }}</td>
 							<td>{{ b.wine_name }}</td>
 							<td>{{ b.year }}</td>
-							<td>
-								<span class="cat">
-									<span class="dot" :style="{ background: cssColorFor(b.wine_color) }"></span>
-									{{ t('vinarium', WINE_COLOR_LABELS[b.wine_color]) }}
-								</span>
-							</td>
 							<td>
 								<span class="chip" :class="chipClass(b.status)">{{ t('vinarium', BOTTLE_STATUS_LABELS[b.status]) }}</span>
 								<span v-if="b.status === 'gifted' && b.event_recipient" class="event-info" :title="giftTooltip(b)">→ {{ b.event_recipient }}</span>
@@ -169,6 +164,7 @@
 				@uncork="onDetailUncork"
 				@gift="onDetailGift"
 				@lose="onDetailLose"
+				@photo-changed="onPhotoChanged"
 			/>
 		</aside>
 
@@ -191,7 +187,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { translate as t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -201,6 +197,7 @@ import Gift from 'vue-material-design-icons/Gift.vue'
 import CloseCircleOutline from 'vue-material-design-icons/CloseCircleOutline.vue'
 import GlassCorkIcon from 'vue-material-design-icons/BottleWine.vue'
 import Restore from 'vue-material-design-icons/Restore.vue'
+import CameraIcon from 'vue-material-design-icons/Camera.vue'
 import TastingDialog from '@/components/TastingDialog.vue'
 import BottleEventDialog from '@/components/BottleEventDialog.vue'
 import PurchaseWizardModal from '@/components/PurchaseWizardModal.vue'
@@ -307,6 +304,14 @@ function openDetail(id: number) {
 function closeDetail() {
 	detailBottleId.value = null
 }
+
+function onKeydown(e: KeyboardEvent) {
+	if (e.key === 'Escape' && detailBottleId.value !== null) {
+		closeDetail()
+	}
+}
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 function onDetailUncork(id: number) {
 	closeDetail()
 	openTasting(id)
@@ -364,6 +369,10 @@ function openEvent(bottleId: number, mode: 'gift' | 'lost') {
 async function onEventDone() {
 	await store.fetchBottles(store.filter)
 	loadStats()
+}
+
+async function onPhotoChanged() {
+	await store.fetchBottles(store.filter)
 }
 
 async function onWizardComplete(_payload: { purchaseId: number; bottleCount: number }) {
@@ -566,7 +575,7 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 	top: var(--header-height, 50px);
 	right: 0;
 	bottom: 0;
-	width: min(480px, 100vw);
+	width: min(560px, 100vw);
 	background: var(--color-main-background, #fff);
 	border-left: 1px solid var(--color-border, #d2d4d7);
 	box-shadow: -4px 0 20px rgba(0, 0, 0, 0.18);
@@ -638,11 +647,30 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 
 /* Fallback-Tile, wenn keine Foto-URL existiert */
 .bottle-tile {
+	position: relative;
 	display: inline-block;
 	width: 40px;
 	height: 40px;
 	border-radius: 4px;
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+.bottle-tile__photo-indicator {
+	position: absolute;
+	right: 2px;
+	bottom: 2px;
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	background: rgba(0, 0, 0, 0.55);
+	color: #fff;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	line-height: 0;
+}
+.bottle-tile__photo-indicator :deep(.material-design-icon__svg) {
+	width: 10px;
+	height: 10px;
 }
 .bottle-tile--red { background: linear-gradient(135deg, #efd9d8, #7a2a28); }
 .bottle-tile--white { background: linear-gradient(135deg, #f7f1d4, #c9b85a); }
