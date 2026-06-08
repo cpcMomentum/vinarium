@@ -238,6 +238,7 @@ async function onRemovePhoto() {
 }
 .bottle-detail__year {
 	font-size: 0.9rem;
+	margin-left: 0.35em;
 }
 .bottle-detail__producer {
 	font-size: 0.85rem;
