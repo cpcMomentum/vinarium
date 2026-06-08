@@ -22,7 +22,7 @@ import {
 	type WineCreate,
 	type WineUpdate,
 } from '@/api/wines'
-import { listAllPurchases as apiListPurchases } from '@/api/purchases'
+import { listAllPurchases as apiListPurchases, updatePurchase as apiUpdatePurchase, deletePurchase as apiDeletePurchase, type PurchaseUpdate } from '@/api/purchases'
 import {
 	createVintage as apiCreateVintage,
 	deleteVintage as apiDeleteVintage,
@@ -124,6 +124,17 @@ export const useWineStore = defineStore('wine', () => {
 		}
 	}
 
+	async function updatePurchase(id: number, data: PurchaseUpdate): Promise<void> {
+		await apiUpdatePurchase(id, data)
+		// PurchaseListItem is denormalised; cheapest sync is a refetch
+		await fetchPurchases()
+	}
+
+	async function deletePurchase(id: number): Promise<void> {
+		await apiDeletePurchase(id)
+		purchases.value = purchases.value.filter(p => p.id !== id)
+	}
+
 	async function fetchVintagesByWine(wineId: number): Promise<void> {
 		loading.value = true
 		try {
@@ -181,7 +192,7 @@ export const useWineStore = defineStore('wine', () => {
 		fetchProducers, createProducer, updateProducer, deleteProducer,
 		fetchWinesByProducer, createWine, updateWine, deleteWine,
 		fetchVintagesByWine, createVintage, updateVintage, deleteVintage,
-		fetchPurchases, fetchAll,
+		fetchPurchases, updatePurchase, deletePurchase, fetchAll,
 		$reset,
 	}
 })

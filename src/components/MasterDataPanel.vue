@@ -81,6 +81,7 @@
 						<th>{{ t('vinarium', 'Größe') }}</th>
 						<th>{{ t('vinarium', 'Preis') }}</th>
 						<th>{{ t('vinarium', 'Händler') }}</th>
+						<th></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -93,6 +94,10 @@
 						<td>{{ t('vinarium', BOTTLE_SIZE_LABELS[pu.bottle_size_ml as BottleSizeMl] ?? pu.bottle_size_ml + ' ml') }}</td>
 						<td>{{ pu.unit_price !== null ? pu.unit_price.toFixed(2) + ' ' + (pu.currency ?? '€') : '—' }}</td>
 						<td>{{ pu.vendor ?? '—' }}</td>
+						<td class="master-data__row-actions">
+							<NcButton @click="editEntity('purchase', pu.id)">{{ t('vinarium', 'Bearbeiten') }}</NcButton>
+							<NcButton variant="tertiary" @click="deleteEntity('purchase', pu.id)">{{ t('vinarium', 'Löschen') }}</NcButton>
+						</td>
 					</tr>
 				</tbody>
 			</table>
@@ -127,7 +132,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { BOTTLE_SIZE_LABELS, WINE_COLOR_LABELS, type BottleSizeMl } from '@/types/api'
 import { useWineStore } from '@/stores/wineStore'
 
-type EntityType = 'producer' | 'wine' | 'vintage'
+type EntityType = 'producer' | 'wine' | 'vintage' | 'purchase'
 type PanelTab = 'producers' | 'wines' | 'vintages' | 'purchases'
 
 const props = defineProps<{ entityType?: PanelTab }>()
@@ -171,22 +176,20 @@ const deleteConfirmOpen = ref(false)
 const deletePendingType = ref<EntityType>('producer')
 const deletePendingId = ref<number | null>(null)
 
-const deleteConfirmTitle = computed(() => {
-	const label = deletePendingType.value === 'producer'
-		? t('vinarium', 'Weingut')
-		: deletePendingType.value === 'wine'
-			? t('vinarium', 'Wein')
-			: t('vinarium', 'Jahrgang')
-	return t('vinarium', '{entity} löschen', { entity: label })
-})
+function labelForType(type: EntityType): string {
+	if (type === 'producer') return t('vinarium', 'Weingut')
+	if (type === 'wine') return t('vinarium', 'Wein')
+	if (type === 'vintage') return t('vinarium', 'Jahrgang')
+	return t('vinarium', 'Kauf')
+}
+
+const deleteConfirmTitle = computed(() => t('vinarium', '{entity} löschen', { entity: labelForType(deletePendingType.value) }))
 
 const deleteConfirmMessage = computed(() => {
-	const label = deletePendingType.value === 'producer'
-		? t('vinarium', 'Weingut')
-		: deletePendingType.value === 'wine'
-			? t('vinarium', 'Wein')
-			: t('vinarium', 'Jahrgang')
-	return t('vinarium', '{entity} wirklich löschen? Alle zugehörigen Einträge bleiben erhalten bis du sie separat löschst.', { entity: label })
+	if (deletePendingType.value === 'purchase') {
+		return t('vinarium', 'Diesen Kauf wirklich löschen? Funktioniert nur, wenn dem Kauf keine Flaschen mehr zugeordnet sind.')
+	}
+	return t('vinarium', '{entity} wirklich löschen? Alle zugehörigen Einträge bleiben erhalten bis du sie separat löschst.', { entity: labelForType(deletePendingType.value) })
 })
 
 function deleteEntity(type: EntityType, id: number) {
@@ -204,7 +207,8 @@ async function performDelete() {
 	try {
 		if (type === 'producer') await store.deleteProducer(id)
 		else if (type === 'wine') await store.deleteWine(id)
-		else await store.deleteVintage(id)
+		else if (type === 'vintage') await store.deleteVintage(id)
+		else if (type === 'purchase') await store.deletePurchase(id)
 		deletePendingId.value = null
 	} catch (e: any) {
 		deleteError.value = e?.message ?? t('vinarium', 'Löschen fehlgeschlagen')
@@ -294,6 +298,13 @@ async function performDelete() {
 	background: var(--color-background-hover);
 	font-weight: 500;
 	font-size: 0.9rem;
+}
+.master-data__row-actions {
+	white-space: nowrap;
+	text-align: right;
+}
+.master-data__row-actions :deep(.button-vue) {
+	display: inline-flex;
 }
 .master-data__error {
 	margin: 1rem 0 0;

@@ -23,6 +23,38 @@
 				<label class="field"><span>{{ t('vinarium', 'Notizen zur Cuvée') }}</span><textarea v-model.lazy="wineNotes" class="input" rows="3" /></label>
 			</template>
 
+			<template v-else-if="type === 'purchase' && purchase">
+				<label class="field">
+					<span>{{ t('vinarium', 'Kaufdatum *') }}</span>
+					<input v-model="purchaseDate" type="date" class="input" />
+				</label>
+				<div class="field-row">
+					<label class="field"><span>{{ t('vinarium', 'Stückpreis') }}</span>
+						<input v-model.number="purchaseUnitPrice" type="number" step="0.01" class="input" />
+					</label>
+					<label class="field"><span>{{ t('vinarium', 'Währung') }}</span>
+						<select v-model="purchaseCurrency" class="input">
+							<option value="EUR">EUR</option>
+							<option value="USD">USD</option>
+							<option value="CHF">CHF</option>
+							<option value="GBP">GBP</option>
+						</select>
+					</label>
+				</div>
+				<label class="field"><span>{{ t('vinarium', 'Händler') }}</span>
+					<input v-model="purchaseVendor" class="input" list="vinarium-vendor-list" />
+					<datalist id="vinarium-vendor-list">
+						<option v-for="v in knownVendors" :key="v" :value="v" />
+					</datalist>
+				</label>
+				<label class="field"><span>{{ t('vinarium', 'Notizen') }}</span>
+					<textarea v-model="purchaseNotes" class="input" rows="2" />
+				</label>
+				<p class="hint">
+					{{ t('vinarium', 'Anzahl ({n}) und Flaschengröße ({size} ml) sind nach Anlegen nicht änderbar — Kauf neu anlegen.', { n: purchase.quantity, size: purchase.bottle_size_ml }) }}
+				</p>
+			</template>
+
 			<template v-else-if="type === 'vintage' && vintage">
 				<label class="field"><span>{{ t('vinarium', 'Jahr *') }}</span><input v-model.number="vintage.year" type="number" class="input" /></label>
 				<label class="field"><span>{{ t('vinarium', 'Alkohol %') }}</span><input v-model.number="vintageAlcohol" type="number" step="0.1" class="input" /></label>
@@ -55,10 +87,11 @@ import { computed, ref, watch } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import { WINE_COLORS, WINE_COLOR_LABELS, type Producer, type Vintage, type Wine } from '@/types/api'
+import { WINE_COLORS, WINE_COLOR_LABELS, type Producer, type PurchaseListItem, type Vintage, type Wine } from '@/types/api'
 import { useWineStore } from '@/stores/wineStore'
+import { listVendors } from '@/api/purchases'
 
-type EntityType = 'producer' | 'wine' | 'vintage'
+type EntityType = 'producer' | 'wine' | 'vintage' | 'purchase'
 
 const props = defineProps<{
 	open: boolean
@@ -72,6 +105,29 @@ const saving = ref(false)
 const producer = ref<Producer | null>(null)
 const wine = ref<Wine | null>(null)
 const vintage = ref<Vintage | null>(null)
+const purchase = ref<PurchaseListItem | null>(null)
+const knownVendors = ref<string[]>([])
+
+const purchaseDate = computed({
+	get: () => purchase.value?.purchased_at?.slice(0, 10) ?? '',
+	set: (v: string) => { if (purchase.value) purchase.value.purchased_at = v },
+})
+const purchaseUnitPrice = computed({
+	get: () => purchase.value?.unit_price ?? null,
+	set: (v: number | null) => { if (purchase.value) purchase.value.unit_price = v },
+})
+const purchaseCurrency = computed({
+	get: () => purchase.value?.currency ?? 'EUR',
+	set: (v: string) => { if (purchase.value) purchase.value.currency = v },
+})
+const purchaseVendor = computed({
+	get: () => purchase.value?.vendor ?? '',
+	set: (v: string) => { if (purchase.value) purchase.value.vendor = v || null },
+})
+const purchaseNotes = computed({
+	get: () => purchase.value?.notes ?? '',
+	set: (v: string) => { if (purchase.value) purchase.value.notes = v || null },
+})
 
 const producerCountry = computed({
 	get: () => producer.value?.country ?? '',
@@ -138,6 +194,7 @@ const title = computed(() => {
 	const isCreate = props.entityId === null
 	if (props.type === 'producer') return isCreate ? t('vinarium', 'Weingut erfassen') : t('vinarium', 'Weingut bearbeiten')
 	if (props.type === 'wine') return isCreate ? t('vinarium', 'Wein erfassen') : t('vinarium', 'Wein bearbeiten')
+	if (props.type === 'purchase') return t('vinarium', 'Kauf bearbeiten')
 	return isCreate ? t('vinarium', 'Jahrgang erfassen') : t('vinarium', 'Jahrgang bearbeiten')
 })
 
@@ -148,10 +205,11 @@ const isValid = computed(() => {
 		const y = vintage.value?.year ?? 0
 		return y >= 1900 && y <= new Date().getFullYear() + 2
 	}
+	if (props.type === 'purchase') return !!purchase.value?.purchased_at
 	return false
 })
 
-watch([() => props.open, () => props.entityId, () => props.type], () => {
+watch([() => props.open, () => props.entityId, () => props.type], async () => {
 	if (!props.open) return
 	if (props.entityId === null) {
 		if (props.type === 'producer') {
@@ -165,9 +223,17 @@ watch([() => props.open, () => props.entityId, () => props.type], () => {
 	} else if (props.type === 'wine') {
 		const found = store.wines.find(w => w.id === props.entityId)
 		wine.value = found ? { ...found } : null
-	} else {
+	} else if (props.type === 'vintage') {
 		const found = store.vintages.find(v => v.id === props.entityId)
 		vintage.value = found ? { ...found } : null
+	} else if (props.type === 'purchase') {
+		const found = store.purchases.find(p => p.id === props.entityId)
+		purchase.value = found ? { ...found } : null
+		try {
+			knownVendors.value = await listVendors()
+		} catch {
+			knownVendors.value = []
+		}
 	}
 }, { immediate: true })
 
@@ -202,6 +268,14 @@ async function save() {
 					notes: wine.value.notes,
 				},
 			})
+		} else if (props.type === 'purchase' && purchase.value) {
+			await store.updatePurchase(purchase.value.id, {
+				purchasedAt: purchase.value.purchased_at,
+				unitPrice: purchase.value.unit_price,
+				currency: purchase.value.currency,
+				vendor: purchase.value.vendor,
+				notes: purchase.value.notes,
+			})
 		} else if (props.type === 'vintage' && vintage.value) {
 			await store.updateVintage(vintage.value.id, {
 				year: vintage.value.year,
@@ -228,6 +302,20 @@ async function save() {
 .edit-modal {
 	padding: 2rem;
 	min-width: 420px;
+}
+.field-row {
+	display: flex;
+	gap: 12px;
+}
+.field-row .field { flex: 1; }
+.hint {
+	font-size: 12.5px;
+	color: var(--color-text-maxcontrast);
+	margin: 6px 0 12px;
+	padding: 8px 10px;
+	background: var(--color-background-hover);
+	border-left: 3px solid var(--color-border);
+	border-radius: 4px;
 }
 .edit-modal h2 {
 	margin-bottom: 1.5rem;
