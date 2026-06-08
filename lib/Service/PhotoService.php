@@ -14,7 +14,6 @@ use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException as FilesNotFoundException;
-use OCP\IURLGenerator;
 
 class PhotoService {
 
@@ -25,7 +24,6 @@ class PhotoService {
 
 	public function __construct(
 		private readonly IRootFolder $rootFolder,
-		private readonly IURLGenerator $urlGenerator,
 	) {
 	}
 
@@ -82,24 +80,6 @@ class PhotoService {
 		}
 		$file->delete();
 		return true;
-	}
-
-	/**
-	 * Return a direct download URL for the bottle photo, or null if none exists.
-	 */
-	public function getPhotoUrl(string $userId, int $bottleId, ?int $fileId): ?string {
-		if ($fileId === null) {
-			return null;
-		}
-		try {
-			$this->getBottlePhotoFile($userId, $fileId);
-		} catch (NotFoundException) {
-			return null;
-		}
-		return $this->urlGenerator->linkToRoute(
-			'vinarium.bottle.getPhoto',
-			['id' => $bottleId],
-		);
 	}
 
 	// --- Tasting photos (multiple per tasting, stored in Vinarium/tastings/{tastingId}/) ---
