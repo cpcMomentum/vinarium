@@ -17,90 +17,163 @@
 				<NcButton variant="primary" @click="openCreate('producer')">{{ t('vinarium', '+ Weingut') }}</NcButton>
 			</div>
 			<p v-if="store.producers.length === 0" class="master-data__empty">{{ t('vinarium', 'Noch keine Weingüter erfasst.') }}</p>
-			<ul v-else class="master-data__list">
-				<li v-for="p in store.producers" :key="p.id" class="master-data__item">
-					<div class="master-data__item-main">
-						<strong>{{ p.name }}</strong>
-						<span v-if="p.region" class="muted"> · {{ p.region }}</span>
-						<span v-if="p.country" class="muted"> · {{ p.country }}</span>
-					</div>
-					<div class="master-data__item-actions">
-						<NcButton @click="editEntity('producer', p.id)">{{ t('vinarium', 'Bearbeiten') }}</NcButton>
-						<NcButton variant="tertiary" @click="deleteEntity('producer', p.id)">{{ t('vinarium', 'Löschen') }}</NcButton>
-					</div>
-				</li>
-			</ul>
+			<div v-else class="md-card">
+				<table class="md-tbl">
+					<thead>
+						<tr>
+							<th>{{ t('vinarium', 'Weingut') }}</th>
+							<th>{{ t('vinarium', 'Region') }}</th>
+							<th>{{ t('vinarium', 'Land') }}</th>
+							<th class="r">{{ t('vinarium', 'Weine') }}</th>
+							<th class="r"></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="p in store.producers" :key="p.id">
+							<td><strong>{{ p.name }}</strong></td>
+							<td>{{ p.region ?? '—' }}</td>
+							<td>{{ p.country ?? '—' }}</td>
+							<td class="r">{{ store.winesByProducer(p.id).length }}</td>
+							<td class="r">
+								<NcActions :aria-label="t('vinarium', 'Aktionen')">
+									<NcActionButton @click="editEntity('producer', p.id)">
+										<template #icon><Pencil :size="20" /></template>
+										{{ t('vinarium', 'Bearbeiten') }}
+									</NcActionButton>
+									<NcActionButton @click="deleteEntity('producer', p.id)">
+										<template #icon><Delete :size="20" /></template>
+										{{ t('vinarium', 'Löschen') }}
+									</NcActionButton>
+								</NcActions>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 		</section>
 
 		<!-- Wines -->
 		<section v-else-if="activeTab === 'wines'" class="master-data__panel">
 			<p v-if="store.wines.length === 0" class="master-data__empty">{{ t('vinarium', 'Noch keine Weine erfasst.') }}</p>
-			<ul v-else class="master-data__list">
-				<li v-for="w in store.wines" :key="w.id" class="master-data__item">
-					<div class="master-data__item-main">
-						<strong>{{ w.name }}</strong>
-						<span class="muted"> · {{ t('vinarium', WINE_COLOR_LABELS[w.color]) }}</span>
-						<span v-if="store.producerById(w.producerId)" class="muted"> · {{ store.producerById(w.producerId)?.name }}</span>
-					</div>
-					<div class="master-data__item-actions">
-						<NcButton @click="editEntity('wine', w.id)">{{ t('vinarium', 'Bearbeiten') }}</NcButton>
-						<NcButton variant="tertiary" @click="deleteEntity('wine', w.id)">{{ t('vinarium', 'Löschen') }}</NcButton>
-					</div>
-				</li>
-			</ul>
+			<div v-else class="md-card">
+				<table class="md-tbl">
+					<thead>
+						<tr>
+							<th>{{ t('vinarium', 'Wein') }}</th>
+							<th>{{ t('vinarium', 'Weingut') }}</th>
+							<th>{{ t('vinarium', 'Farbe') }}</th>
+							<th class="r">{{ t('vinarium', 'Jahrgänge') }}</th>
+							<th class="r"></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="w in store.wines" :key="w.id">
+							<td><strong>{{ w.name }}</strong></td>
+							<td>{{ store.producerById(w.producerId)?.name ?? '—' }}</td>
+							<td>{{ t('vinarium', WINE_COLOR_LABELS[w.color]) }}</td>
+							<td class="r">{{ store.vintagesByWine(w.id).length }}</td>
+							<td class="r">
+								<NcActions :aria-label="t('vinarium', 'Aktionen')">
+									<NcActionButton @click="editEntity('wine', w.id)">
+										<template #icon><Pencil :size="20" /></template>
+										{{ t('vinarium', 'Bearbeiten') }}
+									</NcActionButton>
+									<NcActionButton @click="deleteEntity('wine', w.id)">
+										<template #icon><Delete :size="20" /></template>
+										{{ t('vinarium', 'Löschen') }}
+									</NcActionButton>
+								</NcActions>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 		</section>
 
 		<!-- Vintages -->
 		<section v-else-if="activeTab === 'vintages'" class="master-data__panel">
 			<p v-if="store.vintages.length === 0" class="master-data__empty">{{ t('vinarium', 'Noch keine Jahrgänge erfasst.') }}</p>
-			<ul v-else class="master-data__list">
-				<li v-for="v in store.vintages" :key="v.id" class="master-data__item">
-					<div class="master-data__item-main">
-						<strong>{{ v.year }}</strong>
-						<span v-if="v.alcoholPercent" class="muted"> · {{ v.alcoholPercent }}%</span>
-					</div>
-					<div class="master-data__item-actions">
-						<NcButton @click="editEntity('vintage', v.id)">{{ t('vinarium', 'Bearbeiten') }}</NcButton>
-						<NcButton variant="tertiary" @click="deleteEntity('vintage', v.id)">{{ t('vinarium', 'Löschen') }}</NcButton>
-					</div>
-				</li>
-			</ul>
+			<div v-else class="md-card">
+				<table class="md-tbl">
+					<thead>
+						<tr>
+							<th>{{ t('vinarium', 'Wein') }}</th>
+							<th>{{ t('vinarium', 'Jahrgang') }}</th>
+							<th>{{ t('vinarium', 'Trinken bis') }}</th>
+							<th class="r">{{ t('vinarium', 'Externe Bewertung') }}</th>
+							<th class="r">{{ t('vinarium', 'Käufe') }}</th>
+							<th class="r"></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="v in store.vintages" :key="v.id">
+							<td><strong>{{ wineNameForVintage(v.wineId) }}</strong></td>
+							<td>{{ v.year }}</td>
+							<td>{{ v.drinkUntilYear ?? '—' }}</td>
+							<td class="r">{{ v.externalRating ?? '—' }}</td>
+							<td class="r">{{ purchaseCountForVintage(v.id) }}</td>
+							<td class="r">
+								<NcActions :aria-label="t('vinarium', 'Aktionen')">
+									<NcActionButton @click="editEntity('vintage', v.id)">
+										<template #icon><Pencil :size="20" /></template>
+										{{ t('vinarium', 'Bearbeiten') }}
+									</NcActionButton>
+									<NcActionButton @click="deleteEntity('vintage', v.id)">
+										<template #icon><Delete :size="20" /></template>
+										{{ t('vinarium', 'Löschen') }}
+									</NcActionButton>
+								</NcActions>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 		</section>
 
 		<!-- Purchases -->
 		<section v-else-if="activeTab === 'purchases'" class="master-data__panel">
 			<p v-if="store.purchases.length === 0" class="master-data__empty">{{ t('vinarium', 'Noch keine Käufe erfasst.') }}</p>
-			<table v-else class="master-data__table">
-				<thead>
-					<tr>
-						<th>{{ t('vinarium', 'Datum') }}</th>
-						<th>{{ t('vinarium', 'Weingut') }}</th>
-						<th>{{ t('vinarium', 'Wein') }}</th>
-						<th>{{ t('vinarium', 'Jahrgang') }}</th>
-						<th>{{ t('vinarium', 'Menge') }}</th>
-						<th>{{ t('vinarium', 'Größe') }}</th>
-						<th>{{ t('vinarium', 'Preis') }}</th>
-						<th>{{ t('vinarium', 'Händler') }}</th>
-						<th></th>
-					</tr>
-				</thead>
-				<tbody>
-					<tr v-for="pu in store.purchases" :key="pu.id">
-						<td>{{ formatDate(pu.purchased_at) }}</td>
-						<td>{{ pu.producer_name }}</td>
-						<td>{{ pu.wine_name }}</td>
-						<td>{{ pu.year }}</td>
-						<td>{{ pu.quantity }}×</td>
-						<td>{{ t('vinarium', BOTTLE_SIZE_LABELS[pu.bottle_size_ml as BottleSizeMl] ?? pu.bottle_size_ml + ' ml') }}</td>
-						<td>{{ pu.unit_price !== null ? pu.unit_price.toFixed(2) + ' ' + (pu.currency ?? '€') : '—' }}</td>
-						<td>{{ pu.vendor ?? '—' }}</td>
-						<td class="master-data__row-actions">
-							<NcButton @click="editEntity('purchase', pu.id)">{{ t('vinarium', 'Bearbeiten') }}</NcButton>
-							<NcButton variant="tertiary" @click="deleteEntity('purchase', pu.id)">{{ t('vinarium', 'Löschen') }}</NcButton>
-						</td>
-					</tr>
-				</tbody>
-			</table>
+			<div v-else class="md-card">
+				<table class="md-tbl">
+					<thead>
+						<tr>
+							<th>{{ t('vinarium', 'Datum') }}</th>
+							<th>{{ t('vinarium', 'Weingut') }}</th>
+							<th>{{ t('vinarium', 'Wein') }}</th>
+							<th>{{ t('vinarium', 'Jahrgang') }}</th>
+							<th class="r">{{ t('vinarium', 'Menge') }}</th>
+							<th>{{ t('vinarium', 'Größe') }}</th>
+							<th class="r">{{ t('vinarium', 'Preis') }}</th>
+							<th>{{ t('vinarium', 'Händler') }}</th>
+							<th class="r"></th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="pu in store.purchases" :key="pu.id">
+							<td>{{ formatDate(pu.purchased_at) }}</td>
+							<td>{{ pu.producer_name }}</td>
+							<td><strong>{{ pu.wine_name }}</strong></td>
+							<td>{{ pu.year }}</td>
+							<td class="r">{{ pu.quantity }}×</td>
+							<td>{{ t('vinarium', BOTTLE_SIZE_LABELS[pu.bottle_size_ml as BottleSizeMl] ?? pu.bottle_size_ml + ' ml') }}</td>
+							<td class="r">{{ pu.unit_price !== null ? pu.unit_price.toFixed(2) + ' ' + (pu.currency ?? '€') : '—' }}</td>
+							<td>{{ pu.vendor ?? '—' }}</td>
+							<td class="r">
+								<NcActions :aria-label="t('vinarium', 'Aktionen')">
+									<NcActionButton @click="editEntity('purchase', pu.id)">
+										<template #icon><Pencil :size="20" /></template>
+										{{ t('vinarium', 'Bearbeiten') }}
+									</NcActionButton>
+									<NcActionButton @click="deleteEntity('purchase', pu.id)">
+										<template #icon><Delete :size="20" /></template>
+										{{ t('vinarium', 'Löschen') }}
+									</NcActionButton>
+								</NcActions>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 		</section>
 
 		<EntityEditModal
@@ -127,6 +200,10 @@ import { computed, onMounted, ref } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import { formatDate } from '@/utils/date'
 import NcButton from '@nextcloud/vue/components/NcButton'
+import NcActions from '@nextcloud/vue/components/NcActions'
+import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+import Pencil from 'vue-material-design-icons/Pencil.vue'
+import Delete from 'vue-material-design-icons/Delete.vue'
 import EntityEditModal from '@/components/EntityEditModal.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { BOTTLE_SIZE_LABELS, WINE_COLOR_LABELS, type BottleSizeMl } from '@/types/api'
@@ -154,6 +231,14 @@ const tabs = computed(() => [
 ])
 
 onMounted(() => store.fetchAll())
+
+function wineNameForVintage(wineId: number): string {
+	return store.wines.find(w => w.id === wineId)?.name ?? '—'
+}
+
+function purchaseCountForVintage(vintageId: number): number {
+	return store.purchases.filter(pu => pu.vintage_id === vintageId).length
+}
 
 function openCreate(type: EntityType) {
 	editType.value = type
@@ -217,6 +302,36 @@ async function performDelete() {
 </script>
 
 <style scoped>
+/* v4 Stammdaten-Tabellen Pattern (analog Bestand-Flaschen) */
+.md-card {
+	background: var(--color-main-background, #fff);
+	border: 1px solid var(--color-border, #d2d4d7);
+	border-radius: var(--border-radius, 8px);
+	overflow: hidden;
+}
+.md-tbl {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 14px;
+}
+.md-tbl th {
+	text-align: left;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--color-text-maxcontrast);
+	padding: 9px 10px;
+	border-bottom: 1px solid var(--color-border, #d2d4d7);
+	background: transparent;
+}
+.md-tbl td {
+	padding: 11px 10px;
+	border-bottom: 1px solid var(--color-border-light, #e2e3e5);
+	vertical-align: middle;
+}
+.md-tbl tbody tr:last-child td { border-bottom: none; }
+.md-tbl tbody tr:hover { background: var(--color-background-hover); }
+.md-tbl .r { text-align: right; }
+
 .master-data__tabs {
 	display: inline-flex;
 	background: var(--color-background-dark, #e9eaec);
@@ -253,58 +368,10 @@ async function performDelete() {
 	justify-content: flex-end;
 	margin-bottom: 0.75rem;
 }
-.master-data__list {
-	list-style: none;
-	padding: 0;
-	margin: 0;
-}
-.master-data__item {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 0.75rem;
-	border-bottom: 1px solid var(--color-border-light, #e2e3e5);
-	gap: 1rem;
-}
-.master-data__item:last-child {
-	border-bottom: none;
-}
-.master-data__item-main {
-	flex: 1;
-}
-.master-data__item-actions {
-	display: flex;
-	gap: 0.5rem;
-}
-.muted {
-	color: var(--color-text-maxcontrast);
-}
 .master-data__empty {
 	color: var(--color-text-maxcontrast);
 	font-style: italic;
 	padding: 1rem;
-}
-.master-data__table {
-	width: 100%;
-	border-collapse: collapse;
-}
-.master-data__table th,
-.master-data__table td {
-	text-align: left;
-	padding: 0.5rem 0.75rem;
-	border-bottom: 1px solid var(--color-border-light, #e2e3e5);
-}
-.master-data__table th {
-	background: var(--color-background-hover);
-	font-weight: 500;
-	font-size: 0.9rem;
-}
-.master-data__row-actions {
-	white-space: nowrap;
-	text-align: right;
-}
-.master-data__row-actions :deep(.button-vue) {
-	display: inline-flex;
 }
 .master-data__error {
 	margin: 1rem 0 0;

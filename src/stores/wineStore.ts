@@ -167,12 +167,8 @@ export const useWineStore = defineStore('wine', () => {
 		if (_loadPromise) return _loadPromise
 		_loadPromise = (async () => {
 			await Promise.all([fetchProducers(), fetchPurchases()])
-			for (const p of producers.value) {
-				await fetchWinesByProducer(p.id)
-			}
-			for (const w of wines.value) {
-				await fetchVintagesByWine(w.id)
-			}
+			await Promise.all(producers.value.map(p => fetchWinesByProducer(p.id)))
+			await Promise.all(wines.value.map(w => fetchVintagesByWine(w.id)))
 		})().finally(() => { _loadPromise = null })
 		return _loadPromise
 	}
