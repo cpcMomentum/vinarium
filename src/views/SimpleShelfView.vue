@@ -984,7 +984,7 @@ async function loadAllSlots() {
 	align-items: center;
 	gap: 18px;
 	padding: 14px 18px;
-	background: linear-gradient(180deg, #f4f4f4 0%, #fdfdfd 100%);
+	background: var(--color-main-background, #fff);
 	border-bottom: 1px solid var(--color-border, #d2d4d7);
 	border-radius: 12px 12px 0 0;
 }
