@@ -229,8 +229,6 @@ async function onRemovePhoto() {
 		photoError.value = e?.message ?? t('vinarium', 'Entfernen fehlgeschlagen')
 	}
 }
-
-
 </script>
 
 <style scoped>

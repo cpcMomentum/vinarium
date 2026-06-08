@@ -206,7 +206,6 @@ import BottleDetailPanel from '@/components/BottleDetailPanel.vue'
 import { BOTTLE_STATUS_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleListItem, type BottleStatus, type WineColor } from '@/types/api'
 import { useBottleStore } from '@/stores/bottleStore'
 import { useWineStore } from '@/stores/wineStore'
-import { getBottlePhotoUrl } from '@/api/bottles'
 import { fetchStats, type DashboardStats } from '@/api/dashboard'
 import { cssColorFor } from '@/utils/wineColors'
 
@@ -396,10 +395,6 @@ async function doRestore(id: number) {
 	} catch (e: any) {
 		restoreError.value = e?.message ?? t('vinarium', 'Zurücksetzen fehlgeschlagen')
 	}
-}
-
-function bottlePhotoUrl(id: number): string {
-	return getBottlePhotoUrl(id)
 }
 
 function chipClass(status: BottleStatus): string {
@@ -726,12 +721,5 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 .photo-cell {
 	padding: 0.25rem 0.5rem;
 	width: 48px;
-}
-.bottle-thumb {
-	width: 40px;
-	height: 40px;
-	object-fit: cover;
-	border-radius: 4px;
-	display: block;
 }
 </style>
