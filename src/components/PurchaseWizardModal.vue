@@ -119,6 +119,31 @@
 						</label>
 					</div>
 					<label class="field"><span>{{ t('vinarium', 'Notizen') }}</span><textarea v-model="form4.notes" class="input" rows="2" /></label>
+
+					<!-- Optionales Etiketten-Foto für alle Flaschen dieses Kaufs -->
+					<div class="photo-capture">
+						<div class="photo-capture__head">
+							<span class="photo-capture__label">{{ t('vinarium', 'Etiketten-Foto') }}</span>
+							<span class="photo-capture__hint">{{ t('vinarium', 'optional — wird allen Flaschen dieses Kaufs zugeordnet') }}</span>
+						</div>
+						<div class="photo-capture__body">
+							<img v-if="photoPreviewUrl" :src="photoPreviewUrl" class="photo-capture__preview" alt="" />
+							<label class="photo-capture__btn">
+								<input
+									type="file"
+									accept="image/*"
+									capture="environment"
+									class="photo-capture__input"
+									@change="onPhotoSelected"
+								/>
+								<CameraIcon :size="18" />
+								<span>{{ photoFile ? t('vinarium', 'Foto ersetzen') : t('vinarium', '📷 Foto aufnehmen') }}</span>
+							</label>
+							<NcButton v-if="photoFile" variant="tertiary" @click="clearPhoto">
+								{{ t('vinarium', 'Entfernen') }}
+							</NcButton>
+						</div>
+					</div>
 				</fieldset>
 			</section>
 
@@ -146,6 +171,8 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import { BOTTLE_SIZES, BOTTLE_SIZE_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleSizeMl, type WineColor } from '@/types/api'
 import { useWineStore } from '@/stores/wineStore'
 import { createPurchaseViaWizard, listVendors } from '@/api/purchases'
+import { uploadBottlePhoto } from '@/api/bottles'
+import CameraIcon from 'vue-material-design-icons/Camera.vue'
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{
@@ -157,6 +184,24 @@ const store = useWineStore()
 const step = ref(1)
 const saving = ref(false)
 const errorMsg = ref('')
+
+const photoFile = ref<File | null>(null)
+const photoPreviewUrl = ref<string | null>(null)
+
+function onPhotoSelected(event: Event) {
+	const target = event.target as HTMLInputElement
+	const file = target.files?.[0]
+	if (!file) return
+	photoFile.value = file
+	if (photoPreviewUrl.value) URL.revokeObjectURL(photoPreviewUrl.value)
+	photoPreviewUrl.value = URL.createObjectURL(file)
+}
+
+function clearPhoto() {
+	if (photoPreviewUrl.value) URL.revokeObjectURL(photoPreviewUrl.value)
+	photoPreviewUrl.value = null
+	photoFile.value = null
+}
 
 const producerId = ref<number | null>(null)
 const wineId = ref<number | null>(null)
@@ -225,6 +270,7 @@ watch(() => props.open, async (isOpen) => {
 		wineId.value = null
 		vintageId.value = null
 		errorMsg.value = ''
+		clearPhoto()
 		resetForm1()
 		resetForm2()
 		resetForm3()
@@ -346,7 +392,20 @@ async function complete() {
 				notes: form4.value.notes || null,
 			},
 		})
+		// Optionales Etiketten-Foto: für jede neu angelegte Flasche hochladen.
+		// Best-effort — Upload-Fehler dürfen den Wizard nicht blockieren, aber wir loggen sie.
+		if (photoFile.value && result.bottles.length > 0) {
+			try {
+				await Promise.all(
+					result.bottles.map(b => uploadBottlePhoto(b.id, photoFile.value as File))
+				)
+			} catch (uploadErr) {
+				console.error('Photo upload failed for some bottles:', uploadErr)
+			}
+		}
+
 		emit('complete', { purchaseId: result.purchase.id, bottleCount: result.bottles.length })
+		clearPhoto()
 		emit('close')
 	} catch (e: any) {
 		errorMsg.value = e?.message ?? t('vinarium', 'Kauf konnte nicht erfasst werden')
@@ -357,6 +416,60 @@ async function complete() {
 </script>
 
 <style scoped>
+/* Foto-Capture-Block in Step 4 */
+.photo-capture {
+	margin-top: 14px;
+	padding: 12px;
+	background: var(--color-background-hover);
+	border-radius: var(--border-radius, 8px);
+}
+.photo-capture__head {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	margin-bottom: 10px;
+}
+.photo-capture__label {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--color-main-text);
+}
+.photo-capture__hint {
+	font-size: 12px;
+	color: var(--color-text-maxcontrast);
+}
+.photo-capture__body {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+.photo-capture__preview {
+	width: 80px;
+	height: 80px;
+	object-fit: cover;
+	border-radius: 6px;
+	border: 1px solid var(--color-border);
+}
+.photo-capture__btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 14px;
+	background: var(--color-primary-element, #0082c9);
+	color: #fff;
+	font-size: 13px;
+	font-weight: 600;
+	border-radius: var(--border-radius-element, 8px);
+	cursor: pointer;
+}
+.photo-capture__btn:hover {
+	background: var(--color-primary-element-hover, #006aa3);
+}
+.photo-capture__input {
+	display: none;
+}
+
 .wizard {
 	padding: 2rem;
 	min-width: 520px;
