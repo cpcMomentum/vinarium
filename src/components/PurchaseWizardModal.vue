@@ -395,12 +395,12 @@ async function complete() {
 		// Optionales Etiketten-Foto: für jede neu angelegte Flasche hochladen.
 		// Best-effort — Upload-Fehler dürfen den Wizard nicht blockieren, aber wir loggen sie.
 		if (photoFile.value && result.bottles.length > 0) {
-			try {
-				await Promise.all(
-					result.bottles.map(b => uploadBottlePhoto(b.id, photoFile.value as File))
-				)
-			} catch (uploadErr) {
-				console.error('Photo upload failed for some bottles:', uploadErr)
+			const results = await Promise.allSettled(
+				result.bottles.map(b => uploadBottlePhoto(b.id, photoFile.value as File))
+			)
+			const failed = results.filter(r => r.status === 'rejected')
+			if (failed.length > 0) {
+				console.error(`Photo upload failed for ${failed.length}/${result.bottles.length} bottles:`, failed)
 			}
 		}
 
