@@ -340,6 +340,7 @@ function slotBgStyle(b: BottleListItem | undefined): Record<string, string> {
 	}
 	return { background: cssSlotGradient(b.wine_color) }
 }
+
 function bottleFullName(slotId: number): string {
 	return bottleBySlotId.value.get(slotId)?.wine_name ?? ''
 }
