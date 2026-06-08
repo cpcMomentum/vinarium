@@ -191,7 +191,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { translate as t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -288,12 +288,21 @@ function setTab(tab: SubTab) {
 	router.replace({ query: { ...route.query, tab: target } })
 }
 
+function onKeyDown(e: KeyboardEvent) {
+	if (e.key === 'Escape' && detailBottleId.value !== null) closeDetail()
+}
+
 onMounted(async () => {
+	window.addEventListener('keydown', onKeyDown)
 	await Promise.all([
 		store.fetchBottles({ status: 'in_storage' }),
 		wineStore.fetchAll(),
 	])
 	loadStats()
+})
+
+onUnmounted(() => {
+	window.removeEventListener('keydown', onKeyDown)
 })
 
 function ratingPct(rating: number | null): number {
@@ -584,6 +593,21 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 	z-index: 2;
 }
 .detail-slide__close:hover { background: var(--color-background-dark); }
+/* BottleDetailPanel has sidebar styles (width:300px, border, sticky, inner scroll)
+   that must be neutralised when used inside the fixed slide-over. */
+.detail-slide :deep(.bottle-detail) {
+	width: 100%;
+	position: static;
+	border: none;
+	border-radius: 0;
+	max-height: none;
+	overflow-y: visible;
+	box-shadow: none;
+}
+/* The panel has its own ✕ header button; the slide-over provides one too. Hide the duplicate. */
+.detail-slide :deep(.bottle-detail__close) {
+	display: none;
+}
 .bottles .rating-col { width: 110px; }
 .bottles .actions-col { width: 56px; text-align: right; }
 
@@ -660,12 +684,6 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 	border-radius: var(--border-radius);
 	color: #c62828;
 	font-size: 0.9rem;
-}
-.actions-cell {
-	display: flex;
-	flex-wrap: nowrap;
-	align-items: center;
-	gap: 0.25rem;
 }
 .bottles th, .bottles td {
 	text-align: left;
