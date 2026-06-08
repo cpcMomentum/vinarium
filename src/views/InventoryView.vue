@@ -186,7 +186,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { translate as t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -206,7 +206,6 @@ import { BOTTLE_STATUS_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleListIt
 import { useBottleStore } from '@/stores/bottleStore'
 import { useWineStore } from '@/stores/wineStore'
 import { fetchStats, type DashboardStats } from '@/api/dashboard'
-import { cssColorFor } from '@/utils/wineColors'
 
 type SubTab = 'bottles' | 'producers' | 'wines' | 'vintages' | 'purchases'
 
@@ -307,13 +306,6 @@ function closeDetail() {
 	detailBottleId.value = null
 }
 
-function onKeydown(e: KeyboardEvent) {
-	if (e.key === 'Escape' && detailBottleId.value !== null) {
-		closeDetail()
-	}
-}
-onMounted(() => window.addEventListener('keydown', onKeydown))
-onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 function onDetailUncork(id: number) {
 	closeDetail()
 	openTasting(id)
