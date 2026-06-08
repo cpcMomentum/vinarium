@@ -99,15 +99,26 @@ class BottleController extends Controller {
 		}
 		try {
 			$bottle = $this->bottleService->get($id, $this->userId);
+			$oldFileId = $bottle->getPhotoFileId();
 			$content = file_get_contents($file['tmp_name']);
 			if ($content === false) {
 				return new DataResponse(['error' => 'Datei konnte nicht gelesen werden'], Http::STATUS_INTERNAL_SERVER_ERROR);
 			}
 			$mimeType = mime_content_type($file['tmp_name']) ?: 'application/octet-stream';
-			$fileId = $this->photoService->saveBottlePhoto($this->userId, $id, $content, $mimeType);
-			$bottle->setPhotoFileId($fileId);
-			$this->bottleService->update($bottle);
-			return new DataResponse(['photo_file_id' => $fileId]);
+			$newFileId = $this->photoService->saveBottlePhoto($this->userId, $id, $content, $mimeType);
+			$result = $this->bottleService->setPhotoAndPropagate($bottle, $this->userId, $newFileId);
+			// Orphan-cleanup: every file that was displaced by the propagation, plus the
+			// source bottle's own previous file, may now be unreferenced and removable.
+			$candidates = $result['displaced_file_ids'];
+			if ($oldFileId !== null && $oldFileId !== $newFileId && !in_array($oldFileId, $candidates, true)) {
+				$candidates[] = $oldFileId;
+			}
+			foreach ($candidates as $fid) {
+				if ($this->bottleService->countPhotoReferences($fid, $this->userId) === 0) {
+					$this->photoService->deletePhotoFile($this->userId, $fid);
+				}
+			}
+			return new DataResponse(['photo_file_id' => $newFileId, 'propagated_to' => $result['updated']]);
 		} catch (NotFoundException $e) {
 			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
 		} catch (\InvalidArgumentException $e) {
@@ -122,9 +133,13 @@ class BottleController extends Controller {
 		}
 		try {
 			$bottle = $this->bottleService->get($id, $this->userId);
-			$this->photoService->deleteBottlePhoto($this->userId, $id);
+			$oldFileId = $bottle->getPhotoFileId();
 			$bottle->setPhotoFileId(null);
 			$this->bottleService->update($bottle);
+			if ($oldFileId !== null
+				&& $this->bottleService->countPhotoReferences($oldFileId, $this->userId) === 0) {
+				$this->photoService->deletePhotoFile($this->userId, $oldFileId);
+			}
 			return new DataResponse(null, Http::STATUS_NO_CONTENT);
 		} catch (NotFoundException $e) {
 			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
@@ -138,8 +153,12 @@ class BottleController extends Controller {
 			return $this->unauthorized();
 		}
 		try {
-			$this->bottleService->get($id, $this->userId);
-			$photo = $this->photoService->serveBottlePhoto($this->userId, $id);
+			$bottle = $this->bottleService->get($id, $this->userId);
+			$fileId = $bottle->getPhotoFileId();
+			if ($fileId === null) {
+				return new DataResponse(['error' => 'Kein Foto vorhanden'], Http::STATUS_NOT_FOUND);
+			}
+			$photo = $this->photoService->serveBottlePhotoByFileId($this->userId, $fileId);
 			$response = new DataDisplayResponse($photo['content'], Http::STATUS_OK, ['Content-Type' => $photo['mimeType']]);
 			$response->cacheFor(3600);
 			return $response;
@@ -253,8 +272,13 @@ class BottleController extends Controller {
 			return $this->unauthorized();
 		}
 		try {
+			$bottle = $this->bottleService->get($id, $this->userId);
+			$oldFileId = $bottle->getPhotoFileId();
 			$this->bottleService->delete($id, $this->userId);
-			$this->photoService->deleteBottlePhoto($this->userId, $id);
+			if ($oldFileId !== null
+				&& $this->bottleService->countPhotoReferences($oldFileId, $this->userId) === 0) {
+				$this->photoService->deletePhotoFile($this->userId, $oldFileId);
+			}
 			return new DataResponse(null, Http::STATUS_NO_CONTENT);
 		} catch (NotFoundException $e) {
 			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);

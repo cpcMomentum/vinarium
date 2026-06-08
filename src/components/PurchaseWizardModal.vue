@@ -149,6 +149,13 @@
 
 			<p v-if="errorMsg" class="error">{{ errorMsg }}</p>
 
+			<PhotoCropDialog
+				:open="cropOpen"
+				:file="cropSourceFile"
+				@close="onCropCancel"
+				@confirm="onCropConfirm"
+			/>
+
 			<div class="wizard__actions">
 				<NcButton @click="cancel">{{ t('vinarium', 'Abbrechen') }}</NcButton>
 				<NcButton v-if="step > 1" @click="step--">{{ t('vinarium', 'Zurück') }}</NcButton>
@@ -173,6 +180,7 @@ import { useWineStore } from '@/stores/wineStore'
 import { createPurchaseViaWizard, listVendors } from '@/api/purchases'
 import { uploadBottlePhoto } from '@/api/bottles'
 import CameraIcon from 'vue-material-design-icons/Camera.vue'
+import PhotoCropDialog from '@/components/PhotoCropDialog.vue'
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{
@@ -187,11 +195,26 @@ const errorMsg = ref('')
 
 const photoFile = ref<File | null>(null)
 const photoPreviewUrl = ref<string | null>(null)
+const cropOpen = ref(false)
+const cropSourceFile = ref<File | null>(null)
 
 function onPhotoSelected(event: Event) {
 	const target = event.target as HTMLInputElement
 	const file = target.files?.[0]
 	if (!file) return
+	cropSourceFile.value = file
+	cropOpen.value = true
+	target.value = ''
+}
+
+function onCropCancel() {
+	cropOpen.value = false
+	cropSourceFile.value = null
+}
+
+function onCropConfirm(file: File) {
+	cropOpen.value = false
+	cropSourceFile.value = null
 	photoFile.value = file
 	if (photoPreviewUrl.value) URL.revokeObjectURL(photoPreviewUrl.value)
 	photoPreviewUrl.value = URL.createObjectURL(file)

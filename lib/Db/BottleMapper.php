@@ -162,6 +162,117 @@ class BottleMapper extends QBMapper {
 		return $map;
 	}
 
+	/**
+	 * Returns the vintage_id of the bottle if it belongs to the user, else null.
+	 * Used as the lookup key for propagating photos to all bottles of the same wine × vintage.
+	 */
+	public function findVintageIdForOwner(int $bottleId, string $userId): ?int {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('pu.vintage_id')
+			->from($this->tableName, 'b')
+			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
+			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('b.id', $qb->createNamedParameter($bottleId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)));
+		$result = $qb->executeQuery();
+		$row = $result->fetch();
+		$result->closeCursor();
+		return $row ? (int)$row['vintage_id'] : null;
+	}
+
+	/**
+	 * Returns one existing photo_file_id for a vintage of the owner, or null if none.
+	 * Used when a new purchase is created to inherit the photo of pre-existing siblings.
+	 */
+	public function findExistingPhotoForVintage(int $vintageId, string $userId): ?int {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('b.photo_file_id')
+			->from($this->tableName, 'b')
+			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
+			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('pu.vintage_id', $qb->createNamedParameter($vintageId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->isNotNull('b.photo_file_id'))
+			->setMaxResults(1);
+		$result = $qb->executeQuery();
+		$row = $result->fetch();
+		$result->closeCursor();
+		return $row ? (int)$row['photo_file_id'] : null;
+	}
+
+	/**
+	 * Sets photo_file_id on every bottle of the given vintage (and owner) — except the
+	 * source bottle — to $newFileId. Per design ("ein Foto teilen sich alle Flaschen
+	 * dieser Vintage"), an upload on any bottle wins for the whole vintage. The source
+	 * bottle is already updated by the controller before this method is called.
+	 *
+	 * Also returns the list of distinct previous photo_file_ids that were displaced,
+	 * so the caller can decide which physical files are now orphaned.
+	 *
+	 * @return array{updated: int, displaced_file_ids: list<int>}
+	 */
+	public function propagatePhotoToVintageSiblings(int $sourceBottleId, int $vintageId, string $userId, int $newFileId): array {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('b.id', 'b.photo_file_id')
+			->from($this->tableName, 'b')
+			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
+			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('pu.vintage_id', $qb->createNamedParameter($vintageId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->neq('b.id', $qb->createNamedParameter($sourceBottleId, IQueryBuilder::PARAM_INT)));
+
+		$result = $qb->executeQuery();
+		$ids = [];
+		$displacedFileIds = [];
+		while ($row = $result->fetch()) {
+			$bottleId = (int)$row['id'];
+			$ids[] = $bottleId;
+			if ($row['photo_file_id'] !== null) {
+				$prev = (int)$row['photo_file_id'];
+				if ($prev !== $newFileId && !in_array($prev, $displacedFileIds, true)) {
+					$displacedFileIds[] = $prev;
+				}
+			}
+		}
+		$result->closeCursor();
+		if ($ids === []) {
+			return ['updated' => 0, 'displaced_file_ids' => []];
+		}
+
+		$update = $this->db->getQueryBuilder();
+		$update->update($this->tableName)
+			->set('photo_file_id', $update->createNamedParameter($newFileId, IQueryBuilder::PARAM_INT))
+			->where($update->expr()->in('id', $update->createNamedParameter($ids, IQueryBuilder::PARAM_INT_ARRAY)));
+		$updated = (int)$update->executeStatement();
+		return ['updated' => $updated, 'displaced_file_ids' => $displacedFileIds];
+	}
+
+	/**
+	 * Counts how many bottles of $userId still reference $fileId. Used to decide whether
+	 * a photo file in storage is now orphaned and may be physically deleted.
+	 */
+	public function countBottlesReferencingPhoto(int $fileId, string $userId): int {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select($qb->func()->count('b.id'))
+			->from($this->tableName, 'b')
+			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
+			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('b.photo_file_id', $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT)))
+			->andWhere($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)));
+		$result = $qb->executeQuery();
+		$count = (int)$result->fetchOne();
+		$result->closeCursor();
+		return $count;
+	}
+
 	/** @return array<string, mixed>|null Fully denormalized bottle row with wine/vintage/producer/purchase/slot info */
 	public function findDetails(int $id, string $userId): ?array {
 		$qb = $this->db->getQueryBuilder();

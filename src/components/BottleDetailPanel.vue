@@ -108,6 +108,13 @@
 				</p>
 			</section>
 
+			<PhotoCropDialog
+				:open="cropOpen"
+				:file="cropSourceFile"
+				@close="onCropCancel"
+				@confirm="onCropConfirm"
+			/>
+
 			<div v-if="detail.status === 'in_storage'" class="bottle-detail__actions">
 				<NcButton variant="primary" @click="$emit('uncork', detail.id)">
 					{{ t('vinarium', 'Entkorken') }}
@@ -135,6 +142,7 @@
 import { computed, ref, watch } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
+import PhotoCropDialog from '@/components/PhotoCropDialog.vue'
 import { getBottleDetails, getBottlePhotoUrl, uploadBottlePhoto, deleteBottlePhoto, type BottleDetail } from '@/api/bottles'
 import { BOTTLE_SIZE_LABELS, type BottleSizeMl, type WineColor } from '@/types/api'
 import { cssColorFor } from '@/utils/wineColors'
@@ -146,17 +154,22 @@ const emit = defineEmits<{
 	(e: 'uncork', bottleId: number): void
 	(e: 'gift', bottleId: number): void
 	(e: 'lose', bottleId: number): void
+	(e: 'photo-changed'): void
 }>()
 
 const detail = ref<BottleDetail | null>(null)
 const loading = ref(false)
 const error = ref<string | null>(null)
 const photoError = ref<string | null>(null)
-const photoKey = ref(0)
+const cropOpen = ref(false)
+const cropSourceFile = ref<File | null>(null)
 
+// Cache-bust the <img> URL with the current photo_file_id so the browser
+// reloads the image whenever the underlying file changes (incl. replace
+// triggered from a sibling bottle).
 const photoUrl = computed(() =>
 	detail.value?.photo_file_id !== null && detail.value !== null
-		? `${getBottlePhotoUrl(detail.value.id)}?v=${photoKey.value}`
+		? `${getBottlePhotoUrl(detail.value.id)}?v=${detail.value.photo_file_id}`
 		: null,
 )
 
@@ -175,19 +188,33 @@ watch(() => props.bottleId, async (id) => {
 	}
 }, { immediate: true })
 
-async function onPhotoSelected(event: Event) {
+function onPhotoSelected(event: Event) {
 	const input = event.target as HTMLInputElement
 	const file = input.files?.[0]
 	if (!file || !detail.value) return
 	photoError.value = null
+	cropSourceFile.value = file
+	cropOpen.value = true
+	input.value = ''
+}
+
+function onCropCancel() {
+	cropOpen.value = false
+	cropSourceFile.value = null
+}
+
+async function onCropConfirm(file: File) {
+	cropOpen.value = false
+	cropSourceFile.value = null
+	if (!detail.value) return
 	try {
 		const result = await uploadBottlePhoto(detail.value.id, file)
 		detail.value = { ...detail.value, photo_file_id: result.photo_file_id }
-		photoKey.value++
+		// Signal to parent: a photo upload propagated to sibling bottles, so the
+		// inventory list should refresh to pick up changed photo_file_ids elsewhere.
+		emit('photo-changed')
 	} catch (e: any) {
 		photoError.value = e?.message ?? t('vinarium', 'Upload fehlgeschlagen')
-	} finally {
-		input.value = ''
 	}
 }
 
@@ -197,12 +224,11 @@ async function onRemovePhoto() {
 	try {
 		await deleteBottlePhoto(detail.value.id)
 		detail.value = { ...detail.value, photo_file_id: null }
+		emit('photo-changed')
 	} catch (e: any) {
 		photoError.value = e?.message ?? t('vinarium', 'Entfernen fehlgeschlagen')
 	}
 }
-
-
 </script>
 
 <style scoped>
@@ -260,16 +286,17 @@ async function onRemovePhoto() {
 }
 .bottle-detail__photo-wrap {
 	width: 100%;
-	aspect-ratio: 4 / 3;
+	max-width: 280px;
+	margin: 0 auto 0.5rem;
+	aspect-ratio: 3 / 4;
 	border-radius: var(--border-radius);
 	overflow: hidden;
 	background: var(--color-background-dark);
-	margin-bottom: 0.5rem;
 }
 .bottle-detail__photo {
 	width: 100%;
 	height: 100%;
-	object-fit: cover;
+	object-fit: contain;
 }
 .bottle-detail__photo-placeholder {
 	width: 100%;
@@ -349,8 +376,10 @@ async function onRemovePhoto() {
 	border-top: 1px solid var(--color-border);
 	padding-top: 1rem;
 	display: flex;
-	justify-content: flex-end;
+	flex-direction: column;
+	gap: 8px;
 }
+.bottle-detail__actions :deep(.button-vue) { width: 100%; }
 .dot {
 	display: inline-block;
 	width: 14px;

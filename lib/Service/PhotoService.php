@@ -14,7 +14,6 @@ use OCP\Files\File;
 use OCP\Files\Folder;
 use OCP\Files\IRootFolder;
 use OCP\Files\NotFoundException as FilesNotFoundException;
-use OCP\IURLGenerator;
 
 class PhotoService {
 
@@ -25,12 +24,17 @@ class PhotoService {
 
 	public function __construct(
 		private readonly IRootFolder $rootFolder,
-		private readonly IURLGenerator $urlGenerator,
 	) {
 	}
 
 	/**
 	 * Store an uploaded bottle photo and return its file ID.
+	 *
+	 * Files are written with a unique name; the authoritative reference is
+	 * `vinarium_bottle.photo_file_id`. Lifecycle is decided by the caller
+	 * (controller) which compares old vs new file id and calls
+	 * {@see deletePhotoFileIfOrphan} when no bottle references the old file
+	 * anymore.
 	 *
 	 * @throws \InvalidArgumentException on invalid file type/size
 	 */
@@ -44,65 +48,38 @@ class PhotoService {
 
 		$ext = $this->extensionForMime($mimeType);
 		$dir = $this->getOrCreateDir($userId);
-		$filename = $bottleId . '.' . $ext;
-
-		// Remove any existing photo for this bottle
-		$this->removeExistingPhotos($dir, $bottleId);
-
+		$filename = 'b' . $bottleId . '_' . time() . '_' . substr(bin2hex(random_bytes(3)), 0, 6) . '.' . $ext;
 		$file = $dir->newFile($filename, $content);
 		return $file->getId();
 	}
 
 	/**
-	 * Delete the photo stored for a bottle (by iterating known extensions).
-	 */
-	public function deleteBottlePhoto(string $userId, int $bottleId): void {
-		try {
-			$dir = $this->getDir($userId);
-		} catch (NotFoundException) {
-			return;
-		}
-		$this->removeExistingPhotos($dir, $bottleId);
-	}
-
-	/**
-	 * Return a direct download URL for the bottle photo, or null if none exists.
-	 */
-	public function getPhotoUrl(string $userId, int $bottleId): ?string {
-		try {
-			$dir = $this->getDir($userId);
-		} catch (NotFoundException) {
-			return null;
-		}
-		$file = $this->findPhoto($dir, $bottleId);
-		if ($file === null) {
-			return null;
-		}
-		return $this->urlGenerator->linkToRoute(
-			'vinarium.bottle.getPhoto',
-			['id' => $bottleId],
-		);
-	}
-
-	/**
-	 * Return the raw file content and MIME type for serving.
+	 * Return the raw file content + mime for a given NC file id, restricted to
+	 * files stored inside the user's Vinarium/bottles directory.
 	 *
 	 * @return array{content: string, mimeType: string}
+	 * @throws NotFoundException
 	 */
-	public function serveBottlePhoto(string $userId, int $bottleId): array {
-		try {
-			$dir = $this->getDir($userId);
-		} catch (NotFoundException) {
-			throw new NotFoundException('Kein Foto vorhanden');
-		}
-		$file = $this->findPhoto($dir, $bottleId);
-		if ($file === null) {
-			throw new NotFoundException('Kein Foto vorhanden');
-		}
+	public function serveBottlePhotoByFileId(string $userId, int $fileId): array {
+		$file = $this->getBottlePhotoFile($userId, $fileId);
 		return [
 			'content' => $file->getContent(),
 			'mimeType' => $file->getMimeType(),
 		];
+	}
+
+	/**
+	 * Delete the physical file iff the caller already cleared all DB references.
+	 * Returns true when the file was deleted.
+	 */
+	public function deletePhotoFile(string $userId, int $fileId): bool {
+		try {
+			$file = $this->getBottlePhotoFile($userId, $fileId);
+		} catch (NotFoundException) {
+			return false;
+		}
+		$file->delete();
+		return true;
 	}
 
 	// --- Tasting photos (multiple per tasting, stored in Vinarium/tastings/{tastingId}/) ---
@@ -164,6 +141,28 @@ class PhotoService {
 
 	// --- Helpers ---
 
+	/**
+	 * Resolve and validate that $fileId points to a file inside the user's bottles folder.
+	 *
+	 * @throws NotFoundException
+	 */
+	private function getBottlePhotoFile(string $userId, int $fileId): File {
+		$userFolder = $this->rootFolder->getUserFolder($userId);
+		$nodes = $userFolder->getById($fileId);
+		if (empty($nodes)) {
+			throw new NotFoundException('Foto nicht gefunden');
+		}
+		$node = $nodes[0];
+		if (!$node instanceof File) {
+			throw new NotFoundException('Foto nicht gefunden');
+		}
+		$expectedPrefix = $userFolder->getPath() . '/' . self::BASE_DIR . '/';
+		if (!str_starts_with($node->getPath() . '/', $expectedPrefix)) {
+			throw new NotFoundException('Foto liegt nicht im erwarteten Verzeichnis');
+		}
+		return $node;
+	}
+
 	private function getOrCreateTastingDir(string $userId, int $tastingId): Folder {
 		$userFolder = $this->rootFolder->getUserFolder($userId);
 		$path = self::TASTINGS_DIR . '/' . $tastingId;
@@ -190,43 +189,6 @@ class PhotoService {
 			// create below
 		}
 		return $userFolder->newFolder($path);
-	}
-
-	private function getDir(string $userId): Folder {
-		$userFolder = $this->rootFolder->getUserFolder($userId);
-		try {
-			$node = $userFolder->get(self::BASE_DIR);
-			if ($node instanceof Folder) {
-				return $node;
-			}
-		} catch (FilesNotFoundException) {
-		}
-		throw new NotFoundException('Foto-Verzeichnis nicht gefunden');
-	}
-
-	private function findPhoto(Folder $dir, int $bottleId): ?File {
-		foreach (['jpg', 'jpeg', 'png', 'webp', 'gif'] as $ext) {
-			try {
-				$node = $dir->get($bottleId . '.' . $ext);
-				if ($node instanceof File) {
-					return $node;
-				}
-			} catch (FilesNotFoundException) {
-				// try next
-			}
-		}
-		return null;
-	}
-
-	private function removeExistingPhotos(Folder $dir, int $bottleId): void {
-		foreach (['jpg', 'jpeg', 'png', 'webp', 'gif'] as $ext) {
-			try {
-				$node = $dir->get($bottleId . '.' . $ext);
-				$node->delete();
-			} catch (FilesNotFoundException) {
-				// nothing to remove
-			}
-		}
 	}
 
 	private function extensionForMime(string $mime): string {
