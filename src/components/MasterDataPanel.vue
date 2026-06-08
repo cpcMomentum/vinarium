@@ -368,58 +368,10 @@ async function performDelete() {
 	justify-content: flex-end;
 	margin-bottom: 0.75rem;
 }
-.master-data__list {
-	list-style: none;
-	padding: 0;
-	margin: 0;
-}
-.master-data__item {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	padding: 0.75rem;
-	border-bottom: 1px solid var(--color-border-light, #e2e3e5);
-	gap: 1rem;
-}
-.master-data__item:last-child {
-	border-bottom: none;
-}
-.master-data__item-main {
-	flex: 1;
-}
-.master-data__item-actions {
-	display: flex;
-	gap: 0.5rem;
-}
-.muted {
-	color: var(--color-text-maxcontrast);
-}
 .master-data__empty {
 	color: var(--color-text-maxcontrast);
 	font-style: italic;
 	padding: 1rem;
-}
-.master-data__table {
-	width: 100%;
-	border-collapse: collapse;
-}
-.master-data__table th,
-.master-data__table td {
-	text-align: left;
-	padding: 0.5rem 0.75rem;
-	border-bottom: 1px solid var(--color-border-light, #e2e3e5);
-}
-.master-data__table th {
-	background: var(--color-background-hover);
-	font-weight: 500;
-	font-size: 0.9rem;
-}
-.master-data__row-actions {
-	white-space: nowrap;
-	text-align: right;
-}
-.master-data__row-actions :deep(.button-vue) {
-	display: inline-flex;
 }
 .master-data__error {
 	margin: 1rem 0 0;
