@@ -154,19 +154,18 @@
 			<MasterDataPanel entity-type="purchases" />
 		</div>
 
-		<!-- Detail-Slide-Over rechts -->
-		<div v-if="detailBottleId !== null" class="detail-backdrop" @click="closeDetail"></div>
-		<aside v-if="detailBottleId !== null" class="detail-slide">
-			<button class="detail-slide__close" :aria-label="t('vinarium', 'Schließen')" @click="closeDetail">✕</button>
-			<BottleDetailPanel
-				:bottle-id="detailBottleId"
-				@close="closeDetail"
-				@uncork="onDetailUncork"
-				@gift="onDetailGift"
-				@lose="onDetailLose"
-				@photo-changed="onPhotoChanged"
-			/>
-		</aside>
+		<!-- Detail-Modal mit Reitern + Prev/Next-Navigation -->
+		<BottleDetailPanel
+			:bottle-id="detailBottleId"
+			:bottle-ids="bottleIdsInOrder"
+			@close="closeDetail"
+			@uncork="onDetailUncork"
+			@gift="onDetailGift"
+			@lose="onDetailLose"
+			@photo-changed="onPhotoChanged"
+			@data-changed="onPhotoChanged"
+			@navigate="detailBottleId = $event"
+		/>
 
 		<!-- Modals -->
 		<TastingDialog
@@ -248,6 +247,10 @@ const filterYear = ref<number | null>(null)
 const filterProducerId = ref<number | null>(null)
 const stats = ref<DashboardStats | null>(null)
 const detailBottleId = ref<number | null>(null)
+
+// Order of bottle ids in the current filtered view — used by the detail modal
+// for prev/next navigation through the same list the user sees in the table.
+const bottleIdsInOrder = computed(() => store.bottles.map(b => b.id))
 
 const activeTab = ref<SubTab>(resolveTab(route.query.tab))
 
@@ -555,43 +558,6 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 }
 .bottle-row { cursor: pointer; }
 
-/* Detail-Slide-Over rechts (unter dem NC-App-Header) */
-.detail-backdrop {
-	position: fixed;
-	top: var(--header-height, 50px);
-	right: 0;
-	bottom: 0;
-	left: 0;
-	background: rgba(0, 0, 0, 0.35);
-	z-index: 999;
-}
-.detail-slide {
-	position: fixed;
-	top: var(--header-height, 50px);
-	right: 0;
-	bottom: 0;
-	width: min(560px, 100vw);
-	background: var(--color-main-background, #fff);
-	border-left: 1px solid var(--color-border, #d2d4d7);
-	box-shadow: -4px 0 20px rgba(0, 0, 0, 0.18);
-	z-index: 1000;
-	overflow-y: auto;
-}
-.detail-slide__close {
-	position: absolute;
-	top: 12px;
-	right: 12px;
-	width: 32px;
-	height: 32px;
-	border-radius: 50%;
-	border: none;
-	background: var(--color-background-hover);
-	color: var(--color-main-text);
-	font-size: 18px;
-	cursor: pointer;
-	z-index: 2;
-}
-.detail-slide__close:hover { background: var(--color-background-dark); }
 .bottles .rating-col { width: 110px; }
 .bottles .actions-col { width: 56px; text-align: right; }
 

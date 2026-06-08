@@ -56,7 +56,14 @@ class VintageService {
 			$this->assertValidYear($year);
 			$vintage->setYear($year);
 		}
-		$this->applyOptionalFields($vintage, $data);
+		// Accept both flat and nested ({ data: { ... } }) payloads — the frontend
+		// VintageCreate/Update type carries optional fields inside a `data` object,
+		// while existing internal callers pass them flat.
+		$fields = $data;
+		if (isset($data['data']) && is_array($data['data'])) {
+			$fields = $data['data'] + $fields;
+		}
+		$this->applyOptionalFields($vintage, $fields);
 		return $this->vintageMapper->update($vintage);
 	}
 
