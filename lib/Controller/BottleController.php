@@ -106,9 +106,7 @@ class BottleController extends Controller {
 			}
 			$mimeType = mime_content_type($file['tmp_name']) ?: 'application/octet-stream';
 			$newFileId = $this->photoService->saveBottlePhoto($this->userId, $id, $content, $mimeType);
-			$bottle->setPhotoFileId($newFileId);
-			$this->bottleService->update($bottle);
-			$result = $this->bottleService->propagatePhotoToSiblings($id, $this->userId, $newFileId);
+			$result = $this->bottleService->setPhotoAndPropagate($bottle, $this->userId, $newFileId);
 			// Orphan-cleanup: every file that was displaced by the propagation, plus the
 			// source bottle's own previous file, may now be unreferenced and removable.
 			$candidates = $result['displaced_file_ids'];

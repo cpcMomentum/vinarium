@@ -180,19 +180,29 @@ class BottleService {
 	}
 
 	/**
-	 * After a photo has been saved for a single bottle, set every other bottle of the same
-	 * wine × vintage to the same file id ("ein Foto teilen sich alle Flaschen der Vintage").
-	 * Returns the number of siblings updated and the list of photo_file_ids that were
-	 * displaced (the caller uses these for orphan-cleanup).
+	 * Atomically set $newFileId on the source bottle and on every sibling of the same
+	 * wine × vintage. The two DB updates (source UPDATE + siblings UPDATE) run inside
+	 * a single transaction; on any failure both are rolled back, so a vintage never
+	 * ends up split between an old and a new file id.
 	 *
 	 * @return array{updated: int, displaced_file_ids: list<int>}
 	 */
-	public function propagatePhotoToSiblings(int $sourceBottleId, string $userId, int $newFileId): array {
-		$vintageId = $this->bottleMapper->findVintageIdForOwner($sourceBottleId, $userId);
-		if ($vintageId === null) {
-			return ['updated' => 0, 'displaced_file_ids' => []];
+	public function setPhotoAndPropagate(Bottle $bottle, string $userId, int $newFileId): array {
+		$vintageId = $this->bottleMapper->findVintageIdForOwner($bottle->getId(), $userId);
+
+		$this->db->beginTransaction();
+		try {
+			$bottle->setPhotoFileId($newFileId);
+			$this->bottleMapper->update($bottle);
+			$result = $vintageId === null
+				? ['updated' => 0, 'displaced_file_ids' => []]
+				: $this->bottleMapper->propagatePhotoToVintageSiblings($bottle->getId(), $vintageId, $userId, $newFileId);
+			$this->db->commit();
+			return $result;
+		} catch (Throwable $e) {
+			$this->db->rollBack();
+			throw $e;
 		}
-		return $this->bottleMapper->propagatePhotoToVintageSiblings($sourceBottleId, $vintageId, $userId, $newFileId);
 	}
 
 	/** Number of bottles of the owner still referencing the given photo file id. */
