@@ -9,7 +9,7 @@
 				<span class="dot" :style="{ background: cssColorFor(detail.wine_color) }"></span>
 				<div>
 					<strong class="bottle-detail__wine">{{ detail.wine_name }}</strong>
-					<span class="bottle-detail__year muted"> {{ detail.year }}</span>
+					<span class="bottle-detail__year muted">{{ detail.year }}</span>
 					<div class="bottle-detail__producer muted">{{ detail.producer_name }}</div>
 				</div>
 				<button class="bottle-detail__close" @click="$emit('close')">✕</button>
