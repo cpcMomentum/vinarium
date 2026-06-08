@@ -551,20 +551,24 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 }
 .bottle-row { cursor: pointer; }
 
-/* Detail-Slide-Over rechts */
+/* Detail-Slide-Over rechts (unter dem NC-App-Header) */
 .detail-backdrop {
 	position: fixed;
-	inset: 0;
+	top: var(--header-height, 50px);
+	right: 0;
+	bottom: 0;
+	left: 0;
 	background: rgba(0, 0, 0, 0.35);
 	z-index: 999;
 }
 .detail-slide {
 	position: fixed;
-	top: 0;
+	top: var(--header-height, 50px);
 	right: 0;
 	bottom: 0;
 	width: min(480px, 100vw);
 	background: var(--color-main-background, #fff);
+	border-left: 1px solid var(--color-border, #d2d4d7);
 	box-shadow: -4px 0 20px rgba(0, 0, 0, 0.18);
 	z-index: 1000;
 	overflow-y: auto;

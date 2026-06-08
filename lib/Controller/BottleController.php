@@ -19,6 +19,7 @@ use OCA\Vinarium\Service\PhotoService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
+use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\AppFramework\Http\DataDisplayResponse;
 use OCP\AppFramework\Http\DataResponse;
 use OCP\IRequest;
@@ -131,6 +132,7 @@ class BottleController extends Controller {
 	}
 
 	#[NoAdminRequired]
+	#[NoCSRFRequired]
 	public function getPhoto(int $id): DataResponse|DataDisplayResponse {
 		if ($this->userId === null) {
 			return $this->unauthorized();
