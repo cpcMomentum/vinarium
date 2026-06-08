@@ -71,7 +71,12 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr v-for="b in store.bottles" :key="b.id">
+						<tr
+							v-for="b in store.bottles"
+							:key="b.id"
+							class="bottle-row"
+							@click="openDetail(b.id)"
+						>
 							<td class="photo-cell">
 								<img
 									v-if="b.photo_file_id !== null"
@@ -103,7 +108,7 @@
 								</span>
 								<span v-else class="muted">—</span>
 							</td>
-							<td class="actions-col">
+							<td class="actions-col" @click.stop>
 								<NcActions
 									v-if="b.status === 'in_storage'"
 									:aria-label="t('vinarium', 'Aktionen')"
@@ -154,6 +159,19 @@
 			<MasterDataPanel entity-type="purchases" />
 		</div>
 
+		<!-- Detail-Slide-Over rechts -->
+		<div v-if="detailBottleId !== null" class="detail-backdrop" @click="closeDetail"></div>
+		<aside v-if="detailBottleId !== null" class="detail-slide">
+			<button class="detail-slide__close" :aria-label="t('vinarium', 'Schließen')" @click="closeDetail">✕</button>
+			<BottleDetailPanel
+				:bottle-id="detailBottleId"
+				@close="closeDetail"
+				@uncork="onDetailUncork"
+				@gift="onDetailGift"
+				@lose="onDetailLose"
+			/>
+		</aside>
+
 		<!-- Modals -->
 		<TastingDialog
 			:open="tastingOpen"
@@ -187,6 +205,7 @@ import TastingDialog from '@/components/TastingDialog.vue'
 import BottleEventDialog from '@/components/BottleEventDialog.vue'
 import PurchaseWizardModal from '@/components/PurchaseWizardModal.vue'
 import MasterDataPanel from '@/components/MasterDataPanel.vue'
+import BottleDetailPanel from '@/components/BottleDetailPanel.vue'
 import { BOTTLE_STATUS_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleListItem, type BottleStatus, type WineColor } from '@/types/api'
 import { useBottleStore } from '@/stores/bottleStore'
 import { useWineStore } from '@/stores/wineStore'
@@ -232,6 +251,7 @@ const filterStatus = ref<BottleStatus | ''>('in_storage')
 const filterYear = ref<number | null>(null)
 const filterProducerId = ref<number | null>(null)
 const stats = ref<DashboardStats | null>(null)
+const detailBottleId = ref<number | null>(null)
 
 const activeTab = ref<SubTab>(resolveTab(route.query.tab))
 
@@ -279,6 +299,25 @@ onMounted(async () => {
 function ratingPct(rating: number | null): number {
 	if (rating === null) return 0
 	return Math.round((rating / 10) * 100)
+}
+
+function openDetail(id: number) {
+	detailBottleId.value = id
+}
+function closeDetail() {
+	detailBottleId.value = null
+}
+function onDetailUncork(id: number) {
+	closeDetail()
+	openTasting(id)
+}
+function onDetailGift(id: number) {
+	closeDetail()
+	openEvent(id, 'gift')
+}
+function onDetailLose(id: number) {
+	closeDetail()
+	openEvent(id, 'lost')
 }
 
 async function loadStats() {
@@ -510,6 +549,41 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 .bottles tbody tr:hover {
 	background: var(--color-background-hover);
 }
+.bottle-row { cursor: pointer; }
+
+/* Detail-Slide-Over rechts */
+.detail-backdrop {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.35);
+	z-index: 999;
+}
+.detail-slide {
+	position: fixed;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	width: min(480px, 100vw);
+	background: var(--color-main-background, #fff);
+	box-shadow: -4px 0 20px rgba(0, 0, 0, 0.18);
+	z-index: 1000;
+	overflow-y: auto;
+}
+.detail-slide__close {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	border: none;
+	background: var(--color-background-hover);
+	color: var(--color-main-text);
+	font-size: 18px;
+	cursor: pointer;
+	z-index: 2;
+}
+.detail-slide__close:hover { background: var(--color-background-dark); }
 .bottles .rating-col { width: 110px; }
 .bottles .actions-col { width: 56px; text-align: right; }
 
