@@ -43,8 +43,11 @@
 					<button
 						v-for="tab in tabs"
 						:key="tab.key"
+						:id="`bd-tab-${tab.key}`"
 						role="tab"
 						:aria-selected="activeTab === tab.key"
+						:aria-controls="`bd-panel-${tab.key}`"
+						:tabindex="activeTab === tab.key ? 0 : -1"
 						:class="['bd-subtab', { 'bd-subtab--active': activeTab === tab.key }]"
 						@click="activeTab = tab.key"
 					>
@@ -53,7 +56,7 @@
 				</nav>
 
 				<!-- Tab: Flasche (Übersicht, read-only) -->
-				<div v-if="activeTab === 'bottle'" class="bd-panel">
+				<div v-if="activeTab === 'bottle'" id="bd-panel-bottle" role="tabpanel" aria-labelledby="bd-tab-bottle" class="bd-panel">
 					<div class="bd-bottle-grid">
 						<div class="bd-photo-col">
 							<div class="bd-photo-wrap">
@@ -145,7 +148,7 @@
 				</div>
 
 				<!-- Tab: Weingut -->
-				<form v-if="activeTab === 'producer'" class="bd-panel bd-form" @submit.prevent="saveSection">
+				<form v-if="activeTab === 'producer'" id="bd-panel-producer" role="tabpanel" aria-labelledby="bd-tab-producer" class="bd-panel bd-form" @submit.prevent="saveSection">
 					<p class="bd-scope">{{ t('vinarium', 'Wirkt auf alle Flaschen dieses Weinguts.') }}</p>
 					<div class="bd-form-grid">
 						<label><span>{{ t('vinarium', 'Name') }}</span><input v-model="form.producer_name" required /></label>
@@ -157,7 +160,7 @@
 				</form>
 
 				<!-- Tab: Wein -->
-				<form v-if="activeTab === 'wine'" class="bd-panel bd-form" @submit.prevent="saveSection">
+				<form v-if="activeTab === 'wine'" id="bd-panel-wine" role="tabpanel" aria-labelledby="bd-tab-wine" class="bd-panel bd-form" @submit.prevent="saveSection">
 					<p class="bd-scope">{{ t('vinarium', 'Wirkt auf alle Flaschen dieses Weins.') }}</p>
 					<div class="bd-form-grid">
 						<label><span>{{ t('vinarium', 'Wein-Name') }}</span><input v-model="form.wine_name" required /></label>
@@ -172,7 +175,7 @@
 				</form>
 
 				<!-- Tab: Jahrgang -->
-				<form v-if="activeTab === 'vintage'" class="bd-panel bd-form" @submit.prevent="saveSection">
+				<form v-if="activeTab === 'vintage'" id="bd-panel-vintage" role="tabpanel" aria-labelledby="bd-tab-vintage" class="bd-panel bd-form" @submit.prevent="saveSection">
 					<p class="bd-scope">{{ t('vinarium', 'Wirkt auf alle Flaschen dieses Jahrgangs.') }}</p>
 					<div class="bd-form-grid">
 						<label><span>{{ t('vinarium', 'Jahr') }}</span><input v-model.number="form.year" type="number" required /></label>
@@ -187,7 +190,7 @@
 				</form>
 
 				<!-- Tab: Kauf -->
-				<form v-if="activeTab === 'purchase'" class="bd-panel bd-form" @submit.prevent="saveSection">
+				<form v-if="activeTab === 'purchase'" id="bd-panel-purchase" role="tabpanel" aria-labelledby="bd-tab-purchase" class="bd-panel bd-form" @submit.prevent="saveSection">
 					<p class="bd-scope">{{ t('vinarium', 'Wirkt auf alle Flaschen dieser Charge.') }}</p>
 					<div class="bd-form-grid">
 						<label><span>{{ t('vinarium', 'Kaufdatum') }}</span><input v-model="form.purchased_at" type="date" /></label>
@@ -554,6 +557,9 @@ async function onRemovePhoto() {
 	min-height: 0;
 }
 .bd-subtab:hover { color: var(--color-main-text); background: transparent; box-shadow: none; }
+.bd-subtab:focus-visible {
+	box-shadow: inset 0 0 0 2px var(--color-primary-element, #0082c9);
+}
 .bd-subtab--active {
 	color: var(--color-primary-element);
 	border-bottom-color: var(--color-primary-element);
