@@ -64,7 +64,7 @@
 							<th>{{ t('vinarium', 'Trinkfenster') }}</th>
 							<th class="r">{{ t('vinarium', 'Alkohol') }}</th>
 							<th class="r">{{ t('vinarium', 'Bewertung') }}</th>
-							<th class="r">{{ t('vinarium', 'Flaschen') }}</th>
+							<th class="r" :title="t('vinarium', 'Summe aller gekauften Flaschen — enthält auch entkorkte, verschenkte oder verlorene.')">{{ t('vinarium', 'Gekauft') }}</th>
 							<th class="r"></th>
 						</tr>
 					</thead>
