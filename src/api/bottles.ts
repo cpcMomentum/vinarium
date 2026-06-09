@@ -20,6 +20,9 @@ function buildQuery(filter: BottleFilter): string {
 export interface BottleDetail {
 	id: number
 	purchase_id: number
+	vintage_id: number
+	wine_id: number
+	producer_id: number
 	slot_id: number | null
 	status: string
 	photo_file_id: number | null
@@ -28,6 +31,9 @@ export interface BottleDetail {
 	wine_color: string
 	appellation: string | null
 	producer_name: string
+	producer_country: string | null
+	producer_region: string | null
+	producer_website: string | null
 	year: number
 	grape_varieties: string | null
 	drink_from_year: number | null

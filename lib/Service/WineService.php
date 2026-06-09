@@ -51,22 +51,27 @@ class WineService {
 
 	public function update(int $id, string $userId, array $data): Wine {
 		$wine = $this->get($id, $userId);
-		if (array_key_exists('name', $data)) {
-			$wine->setName((string)$data['name']);
+		// Accept both flat and nested ({ data: { ... } }) payloads.
+		$fields = $data;
+		if (isset($data['data']) && is_array($data['data'])) {
+			$fields = $data['data'] + $fields;
 		}
-		if (array_key_exists('color', $data)) {
-			$color = (string)$data['color'];
+		if (array_key_exists('name', $fields)) {
+			$wine->setName((string)$fields['name']);
+		}
+		if (array_key_exists('color', $fields)) {
+			$color = (string)$fields['color'];
 			$this->assertValidColor($color);
 			$wine->setColor($color);
 		}
-		if (array_key_exists('appellation', $data)) {
-			$wine->setAppellation($data['appellation'] !== null ? (string)$data['appellation'] : null);
+		if (array_key_exists('appellation', $fields)) {
+			$wine->setAppellation($fields['appellation'] !== null ? (string)$fields['appellation'] : null);
 		}
-		if (array_key_exists('notes', $data)) {
-			$wine->setNotes($data['notes'] !== null ? (string)$data['notes'] : null);
+		if (array_key_exists('notes', $fields)) {
+			$wine->setNotes($fields['notes'] !== null ? (string)$fields['notes'] : null);
 		}
-		if (array_key_exists('barcode', $data)) {
-			$wine->setBarcode($data['barcode'] !== null ? (string)$data['barcode'] : null);
+		if (array_key_exists('barcode', $fields)) {
+			$wine->setBarcode($fields['barcode'] !== null ? (string)$fields['barcode'] : null);
 		}
 		return $this->wineMapper->update($wine);
 	}
