@@ -52,79 +52,82 @@
 			</div>
 		</section>
 
-		<!-- Wines -->
+		<!-- Wines & Vintages combined: grouped wine × vintage view -->
 		<section v-else-if="activeTab === 'wines'" class="master-data__panel">
 			<p v-if="store.wines.length === 0" class="master-data__empty">{{ t('vinarium', 'Noch keine Weine erfasst.') }}</p>
 			<div v-else class="md-card">
-				<table class="md-tbl">
+				<table class="md-tbl md-wines-grouped">
 					<thead>
 						<tr>
-							<th>{{ t('vinarium', 'Wein') }}</th>
-							<th>{{ t('vinarium', 'Weingut') }}</th>
-							<th>{{ t('vinarium', 'Farbe') }}</th>
-							<th class="r">{{ t('vinarium', 'Jahrgänge') }}</th>
+							<th>{{ t('vinarium', 'Wein / Jahrgang') }}</th>
+							<th>{{ t('vinarium', 'Appellation') }}</th>
+							<th>{{ t('vinarium', 'Trinkfenster') }}</th>
+							<th class="r">{{ t('vinarium', 'Alkohol') }}</th>
+							<th class="r">{{ t('vinarium', 'Bewertung') }}</th>
+							<th class="r" :title="t('vinarium', 'Summe aller gekauften Flaschen — enthält auch entkorkte, verschenkte oder verlorene.')">{{ t('vinarium', 'Gekauft') }}</th>
 							<th class="r"></th>
 						</tr>
 					</thead>
 					<tbody>
-						<tr v-for="w in store.wines" :key="w.id">
-							<td><strong>{{ w.name }}</strong></td>
-							<td>{{ store.producerById(w.producerId)?.name ?? '—' }}</td>
-							<td>{{ t('vinarium', WINE_COLOR_LABELS[w.color]) }}</td>
-							<td class="r">{{ store.vintagesByWine(w.id).length }}</td>
-							<td class="r">
-								<NcActions :aria-label="t('vinarium', 'Aktionen')">
-									<NcActionButton @click="editEntity('wine', w.id)">
-										<template #icon><Pencil :size="20" /></template>
-										{{ t('vinarium', 'Bearbeiten') }}
-									</NcActionButton>
-									<NcActionButton @click="deleteEntity('wine', w.id)">
-										<template #icon><Delete :size="20" /></template>
-										{{ t('vinarium', 'Löschen') }}
-									</NcActionButton>
-								</NcActions>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-			</div>
-		</section>
-
-		<!-- Vintages -->
-		<section v-else-if="activeTab === 'vintages'" class="master-data__panel">
-			<p v-if="store.vintages.length === 0" class="master-data__empty">{{ t('vinarium', 'Noch keine Jahrgänge erfasst.') }}</p>
-			<div v-else class="md-card">
-				<table class="md-tbl">
-					<thead>
-						<tr>
-							<th>{{ t('vinarium', 'Wein') }}</th>
-							<th>{{ t('vinarium', 'Jahrgang') }}</th>
-							<th>{{ t('vinarium', 'Trinken bis') }}</th>
-							<th class="r">{{ t('vinarium', 'Externe Bewertung') }}</th>
-							<th class="r">{{ t('vinarium', 'Käufe') }}</th>
-							<th class="r"></th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr v-for="v in store.vintages" :key="v.id">
-							<td><strong>{{ wineNameForVintage(v.wineId) }}</strong></td>
-							<td>{{ v.year }}</td>
-							<td>{{ v.drinkUntilYear ?? '—' }}</td>
-							<td class="r">{{ v.externalRating ?? '—' }}</td>
-							<td class="r">{{ purchaseCountForVintage(v.id) }}</td>
-							<td class="r">
-								<NcActions :aria-label="t('vinarium', 'Aktionen')">
-									<NcActionButton @click="editEntity('vintage', v.id)">
-										<template #icon><Pencil :size="20" /></template>
-										{{ t('vinarium', 'Bearbeiten') }}
-									</NcActionButton>
-									<NcActionButton @click="deleteEntity('vintage', v.id)">
-										<template #icon><Delete :size="20" /></template>
-										{{ t('vinarium', 'Löschen') }}
-									</NcActionButton>
-								</NcActions>
-							</td>
-						</tr>
+						<template v-for="{ wine: w, vintages: wVintages } in winesWithVintages" :key="w.id">
+							<tr class="wine-head" @click="editEntity('wine', w.id)">
+								<td colspan="6">
+									<span class="dot" :style="{ background: cssColorFor(w.color) }"></span>
+									<strong>{{ w.name }}</strong>
+									<span class="subline">
+										{{ store.producerById(w.producerId)?.name ?? '—' }}
+										<span class="muted"> · {{ t('vinarium', WINE_COLOR_LABELS[w.color]) }}</span>
+									</span>
+								</td>
+								<td class="r" @click.stop>
+									<NcActions :aria-label="t('vinarium', 'Aktionen')">
+										<NcActionButton @click="editEntity('wine', w.id)">
+											<template #icon><Pencil :size="20" /></template>
+											{{ t('vinarium', 'Wein bearbeiten') }}
+										</NcActionButton>
+										<NcActionButton @click="deleteEntity('wine', w.id)">
+											<template #icon><Delete :size="20" /></template>
+											{{ t('vinarium', 'Wein löschen') }}
+										</NcActionButton>
+									</NcActions>
+								</td>
+							</tr>
+							<tr
+								v-for="(v, i) in wVintages"
+								:key="v.id"
+								class="vintage-row"
+								:class="{ 'is-last': i === wVintages.length - 1 }"
+								@click="editEntity('vintage', v.id)"
+							>
+								<td>{{ v.year }}</td>
+								<td>{{ w.appellation ?? '—' }}</td>
+								<td>
+									<span v-if="trinkfensterText(v) !== null" class="tw" :class="trinkfensterClass(v)">{{ trinkfensterText(v) }}</span>
+									<span v-else class="muted">—</span>
+								</td>
+								<td class="r">{{ v.alcoholPercent !== null ? v.alcoholPercent + ' %' : '—' }}</td>
+								<td class="r">
+									<span v-if="v.externalRating !== null" class="rat">
+										<span class="rat__val">{{ Number(v.externalRating).toFixed(1) }}</span>
+										<span class="rat__bar"><i :style="{ width: ratingPct(v.externalRating) + '%' }"></i></span>
+									</span>
+									<span v-else class="muted">—</span>
+								</td>
+								<td class="r">{{ bottleCountForVintage(v.id) }}</td>
+								<td class="r" @click.stop>
+									<NcActions :aria-label="t('vinarium', 'Aktionen')">
+										<NcActionButton @click="editEntity('vintage', v.id)">
+											<template #icon><Pencil :size="20" /></template>
+											{{ t('vinarium', 'Jahrgang bearbeiten') }}
+										</NcActionButton>
+										<NcActionButton @click="deleteEntity('vintage', v.id)">
+											<template #icon><Delete :size="20" /></template>
+											{{ t('vinarium', 'Jahrgang löschen') }}
+										</NcActionButton>
+									</NcActions>
+								</td>
+							</tr>
+						</template>
 					</tbody>
 				</table>
 			</div>
@@ -206,11 +209,12 @@ import Pencil from 'vue-material-design-icons/Pencil.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import EntityEditModal from '@/components/EntityEditModal.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
-import { BOTTLE_SIZE_LABELS, WINE_COLOR_LABELS, type BottleSizeMl } from '@/types/api'
+import { BOTTLE_SIZE_LABELS, WINE_COLOR_LABELS, type BottleSizeMl, type Vintage } from '@/types/api'
 import { useWineStore } from '@/stores/wineStore'
+import { cssColorFor } from '@/utils/wineColors'
 
 type EntityType = 'producer' | 'wine' | 'vintage' | 'purchase'
-type PanelTab = 'producers' | 'wines' | 'vintages' | 'purchases'
+type PanelTab = 'producers' | 'wines' | 'purchases'
 
 const props = defineProps<{ entityType?: PanelTab }>()
 
@@ -226,18 +230,52 @@ const editId = ref<number | null>(null)
 const tabs = computed(() => [
 	{ key: 'producers' as const, label: t('vinarium', 'Weingüter'), count: store.producers.length },
 	{ key: 'wines' as const, label: t('vinarium', 'Weine'), count: store.wines.length },
-	{ key: 'vintages' as const, label: t('vinarium', 'Jahrgänge'), count: store.vintages.length },
 	{ key: 'purchases' as const, label: t('vinarium', 'Käufe'), count: store.purchases.length },
 ])
 
 onMounted(() => store.fetchAll())
 
-function wineNameForVintage(wineId: number): string {
-	return store.wines.find(w => w.id === wineId)?.name ?? '—'
+const sortedWines = computed(() => {
+	return [...store.wines].sort((a, b) => {
+		const pa = store.producerById(a.producerId)?.name ?? ''
+		const pb = store.producerById(b.producerId)?.name ?? ''
+		return pa.localeCompare(pb) || a.name.localeCompare(b.name)
+	})
+})
+
+const winesWithVintages = computed(() =>
+	sortedWines.value.map(w => ({ wine: w, vintages: vintagesForWine(w.id) }))
+)
+
+function vintagesForWine(wineId: number): Vintage[] {
+	return [...store.vintagesByWine(wineId)].sort((a, b) => b.year - a.year)
 }
 
-function purchaseCountForVintage(vintageId: number): number {
-	return store.purchases.filter(pu => pu.vintage_id === vintageId).length
+function bottleCountForVintage(vintageId: number): number {
+	return store.purchases
+		.filter(pu => pu.vintage_id === vintageId)
+		.reduce((sum, pu) => sum + pu.quantity, 0)
+}
+
+function ratingPct(rating: number): number {
+	return Math.max(0, Math.min(100, Math.round(rating * 10)))
+}
+
+// Trinkfenster-Status: future (vor drink_from), active (im Fenster), past (nach drink_until).
+const currentYear = new Date().getFullYear()
+function trinkfensterClass(v: Vintage): string {
+	if (v.drinkFromYear !== null && v.drinkFromYear > currentYear) return 'future'
+	if (v.drinkUntilYear !== null && v.drinkUntilYear < currentYear) return 'past'
+	return 'active'
+}
+function trinkfensterText(v: Vintage): string | null {
+	const from = v.drinkFromYear
+	const until = v.drinkUntilYear
+	if (from === null && until === null) return null
+	if (from !== null && until !== null) return `${from} – ${until}`
+	if (from !== null) return t('vinarium', 'ab {year}', { year: from })
+	if (until !== null) return t('vinarium', 'bis {year}', { year: until! })
+	return null
 }
 
 function openCreate(type: EntityType) {
@@ -331,6 +369,121 @@ async function performDelete() {
 .md-tbl tbody tr:last-child td { border-bottom: none; }
 .md-tbl tbody tr:hover { background: var(--color-background-hover); }
 .md-tbl .r { text-align: right; }
+
+/* Grouped wines × vintages view (#132) */
+.md-wines-grouped tbody tr.wine-head td {
+	padding-top: 14px;
+	padding-bottom: 4px;
+	font-weight: 700;
+	border-top: 1px solid var(--color-border, #d2d4d7);
+	border-bottom: none;
+	background: transparent;
+}
+.md-wines-grouped tbody tr.wine-head:first-child td { border-top: none; }
+.md-wines-grouped tbody tr.wine-head:hover { background: var(--color-background-hover); cursor: pointer; }
+.md-wines-grouped tbody tr.wine-head td .subline {
+	font-weight: 400;
+	font-size: 12px;
+	color: var(--color-text-maxcontrast);
+	margin-left: 8px;
+}
+.md-wines-grouped tbody tr.wine-head .dot {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	margin-right: 8px;
+	vertical-align: middle;
+}
+
+/* Vintage rows are indented and clickable. Border-bottom collapsed away;
+   thin divider drawn as ::after pseudo-element so the line can start at the
+   year-position (after the indent) instead of at the table edge. */
+.md-wines-grouped tbody tr.vintage-row { cursor: pointer; }
+.md-wines-grouped tbody tr.vintage-row td {
+	border-bottom: none;
+	position: relative;
+}
+.md-wines-grouped tbody tr.vintage-row td:first-child {
+	padding-left: 30px;
+	color: var(--color-text-maxcontrast);
+	font-variant-numeric: tabular-nums;
+}
+.md-wines-grouped tbody tr.vintage-row:not(.is-last) td::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	height: 1px;
+	background: var(--color-border-light, #e2e3e5);
+}
+.md-wines-grouped tbody tr.vintage-row:not(.is-last) td:first-child::after {
+	left: 30px;
+}
+/* Trennstrich zwischen Wein-Header und der ersten Jahrgangs-Zeile darunter.
+   Damit visuell klar wird: zwei getrennte Klick-Targets (Header = Wein,
+   Zeile = Jahrgang). Strich folgt dem v7-Pattern: ab Jahres-Position. */
+.md-wines-grouped tbody tr.wine-head + tr.vintage-row td::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	height: 1px;
+	background: var(--color-border-light, #e2e3e5);
+}
+.md-wines-grouped tbody tr.wine-head + tr.vintage-row td:first-child::before {
+	left: 30px;
+}
+
+
+/* Trinkfenster pill (kept generic so it could be reused) */
+.tw {
+	display: inline-flex;
+	align-items: center;
+	padding: 2px 9px;
+	border-radius: 11px;
+	font-size: 12.5px;
+	font-weight: 500;
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+}
+.tw.future { background: #fff5e0; color: #b87600; }
+.tw.active { background: #e6f4e8; color: #1e6b2a; }
+.tw.past   { background: #fce8e8; color: #8a2828; }
+
+/* Rating bar mirrors InventoryView .rat */
+.rat {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+}
+.rat__val {
+	font-weight: 700;
+	font-size: 12.5px;
+	color: var(--color-primary-element, #0082c9);
+	min-width: 24px;
+	text-align: right;
+}
+.rat__bar {
+	display: inline-block;
+	width: 60px;
+	height: 6px;
+	background: var(--color-background-dark, #ededef);
+	border-radius: 3px;
+	overflow: hidden;
+}
+.rat__bar i {
+	display: block;
+	height: 100%;
+	background: var(--color-primary-element, #0082c9);
+	border-radius: 3px;
+}
+
+.muted { color: var(--color-text-maxcontrast); }
 
 .master-data__tabs {
 	display: inline-flex;

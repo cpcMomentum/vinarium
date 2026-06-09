@@ -151,10 +151,10 @@
 				<form v-if="activeTab === 'producer'" id="bd-panel-producer" role="tabpanel" aria-labelledby="bd-tab-producer" class="bd-panel bd-form" @submit.prevent="saveSection">
 					<p class="bd-scope">{{ t('vinarium', 'Wirkt auf alle Flaschen dieses Weinguts.') }}</p>
 					<div class="bd-form-grid">
-						<label><span>{{ t('vinarium', 'Name') }}</span><input v-model="form.producer_name" required /></label>
+						<label class="bd-full"><span>{{ t('vinarium', 'Name') }}</span><input v-model="form.producer_name" required /></label>
 						<label><span>{{ t('vinarium', 'Land') }}</span><input v-model="form.producer_country" /></label>
 						<label><span>{{ t('vinarium', 'Region') }}</span><input v-model="form.producer_region" /></label>
-						<label><span>{{ t('vinarium', 'Website') }}</span><input v-model="form.producer_website" type="url" placeholder="https://…" /></label>
+						<label class="bd-full"><span>{{ t('vinarium', 'Website') }}</span><input v-model="form.producer_website" type="url" placeholder="https://…" /></label>
 					</div>
 					<p v-if="editError" class="bd-error">{{ editError }}</p>
 				</form>
@@ -163,7 +163,7 @@
 				<form v-if="activeTab === 'wine'" id="bd-panel-wine" role="tabpanel" aria-labelledby="bd-tab-wine" class="bd-panel bd-form" @submit.prevent="saveSection">
 					<p class="bd-scope">{{ t('vinarium', 'Wirkt auf alle Flaschen dieses Weins.') }}</p>
 					<div class="bd-form-grid">
-						<label><span>{{ t('vinarium', 'Wein-Name') }}</span><input v-model="form.wine_name" required /></label>
+						<label class="bd-full"><span>{{ t('vinarium', 'Wein-Name') }}</span><input v-model="form.wine_name" required /></label>
 						<label><span>{{ t('vinarium', 'Farbe') }}</span>
 							<select v-model="form.wine_color">
 								<option v-for="c in WINE_COLORS" :key="c" :value="c">{{ t('vinarium', WINE_COLOR_LABELS[c]) }}</option>
@@ -194,14 +194,14 @@
 					<p class="bd-scope">{{ t('vinarium', 'Wirkt auf alle Flaschen dieser Charge.') }}</p>
 					<div class="bd-form-grid">
 						<label><span>{{ t('vinarium', 'Kaufdatum') }}</span><input v-model="form.purchased_at" type="date" /></label>
-						<label><span>{{ t('vinarium', 'Händler') }}</span><input v-model="form.vendor" /></label>
-						<label><span>{{ t('vinarium', 'Preis') }}</span><input v-model.number="form.unit_price" type="number" step="0.01" /></label>
-						<label><span>{{ t('vinarium', 'Währung') }}</span><input v-model="form.currency" maxlength="3" /></label>
 						<label><span>{{ t('vinarium', 'Größe') }}</span>
 							<select v-model.number="form.bottle_size_ml">
 								<option v-for="(label, key) in BOTTLE_SIZE_LABELS" :key="key" :value="Number(key)">{{ t('vinarium', label) }}</option>
 							</select>
 						</label>
+						<label class="bd-full"><span>{{ t('vinarium', 'Händler') }}</span><input v-model="form.vendor" /></label>
+						<label><span>{{ t('vinarium', 'Preis') }}</span><input v-model.number="form.unit_price" type="number" step="0.01" /></label>
+						<label><span>{{ t('vinarium', 'Währung') }}</span><input v-model="form.currency" maxlength="3" /></label>
 					</div>
 					<p v-if="editError" class="bd-error">{{ editError }}</p>
 				</form>
@@ -489,7 +489,11 @@ async function onRemovePhoto() {
 	display: flex; flex-direction: column;
 	min-height: 540px;
 	max-height: 80vh;
+	width: 100%;
 }
+/* NcModal teleportiert in body — scoped styles greifen über :deep auf den Wrapper.
+   Large default ist auf manchen Viewports zu schmal für die Edit-Forms; auf min 880px ziehen. */
+:deep(.modal-container__content) { padding: 0; }
 .bd-loading, .bd-hint {
 	min-height: 200px;
 	display: flex; align-items: center; justify-content: center;
@@ -644,7 +648,6 @@ async function onRemovePhoto() {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	gap: 12px 22px;
-	max-width: 720px;
 }
 .bd-form-grid label {
 	display: flex; flex-direction: column;
@@ -653,16 +656,12 @@ async function onRemovePhoto() {
 	color: var(--color-text-maxcontrast);
 }
 .bd-form-grid label span { font-size: 12px; }
-.bd-form-grid input, .bd-form-grid select, .bd-form-grid textarea {
-	padding: 7px 10px;
-	border: 1px solid var(--color-border);
-	border-radius: 6px;
-	font-size: 14px;
-	background: var(--color-main-background);
-	color: var(--color-main-text);
-	font-family: inherit;
-}
-.bd-form-grid input:focus, .bd-form-grid select:focus, .bd-form-grid textarea:focus {
+/* Input layout rules for the form grid are in the unscoped <style> block at
+   the bottom of this file — scoped CSS attribute selectors don't reach the
+   inputs reliably because NcModal teleports the slot content to <body>. */
+.bd-form-grid input:focus,
+.bd-form-grid select:focus,
+.bd-form-grid textarea:focus {
 	outline: 2px solid var(--color-primary-element);
 	outline-offset: -1px;
 	border-color: var(--color-primary-element);
@@ -685,5 +684,26 @@ async function onRemovePhoto() {
 }
 .bd-foot-left, .bd-foot-right {
 	display: flex; gap: 8px;
+}
+</style>
+
+<!--
+  Unscoped block: NcModal teleports the slot to <body>, which strips the scoped
+  data-v attributes from the actual DOM tree. We namespace via `.bd-modal` so
+  the rule still only applies to this component's modal contents.
+-->
+<style>
+.bd-modal .bd-form-grid input,
+.bd-modal .bd-form-grid select,
+.bd-modal .bd-form-grid textarea {
+	width: 100% !important;
+	padding: 7px 10px;
+	border: 1px solid var(--color-border);
+	border-radius: 6px;
+	font-size: 14px;
+	background: var(--color-main-background);
+	color: var(--color-main-text);
+	font-family: inherit;
+	box-sizing: border-box;
 }
 </style>
