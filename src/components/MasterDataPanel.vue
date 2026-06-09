@@ -79,14 +79,17 @@
 										<span class="muted"> · {{ t('vinarium', WINE_COLOR_LABELS[w.color]) }}</span>
 									</span>
 								</td>
-								<td class="r icon-cell" @click.stop>
-									<button
-										class="trash-btn"
-										:title="t('vinarium', 'Wein löschen')"
-										@click="deleteEntity('wine', w.id)"
-									>
-										<Delete :size="18" />
-									</button>
+								<td class="r" @click.stop>
+									<NcActions :aria-label="t('vinarium', 'Aktionen')">
+										<NcActionButton @click="editEntity('wine', w.id)">
+											<template #icon><Pencil :size="20" /></template>
+											{{ t('vinarium', 'Wein bearbeiten') }}
+										</NcActionButton>
+										<NcActionButton @click="deleteEntity('wine', w.id)">
+											<template #icon><Delete :size="20" /></template>
+											{{ t('vinarium', 'Wein löschen') }}
+										</NcActionButton>
+									</NcActions>
 								</td>
 							</tr>
 							<tr
@@ -111,14 +114,17 @@
 									<span v-else class="muted">—</span>
 								</td>
 								<td class="r">{{ bottleCountForVintage(v.id) }}</td>
-								<td class="r icon-cell" @click.stop>
-									<button
-										class="trash-btn"
-										:title="t('vinarium', 'Jahrgang löschen')"
-										@click="deleteEntity('vintage', v.id)"
-									>
-										<Delete :size="18" />
-									</button>
+								<td class="r" @click.stop>
+									<NcActions :aria-label="t('vinarium', 'Aktionen')">
+										<NcActionButton @click="editEntity('vintage', v.id)">
+											<template #icon><Pencil :size="20" /></template>
+											{{ t('vinarium', 'Jahrgang bearbeiten') }}
+										</NcActionButton>
+										<NcActionButton @click="deleteEntity('vintage', v.id)">
+											<template #icon><Delete :size="20" /></template>
+											{{ t('vinarium', 'Jahrgang löschen') }}
+										</NcActionButton>
+									</NcActions>
 								</td>
 							</tr>
 						</template>
@@ -431,24 +437,6 @@ async function performDelete() {
 	left: 30px;
 }
 
-/* Trash button (small, inline; replaces the kebab menu in the grouped wine view). */
-.md-wines-grouped .icon-cell { width: 44px; padding: 4px 8px; }
-.md-wines-grouped .trash-btn {
-	background: none;
-	border: none;
-	cursor: pointer;
-	color: var(--color-text-maxcontrast);
-	padding: 4px 6px;
-	border-radius: 4px;
-	display: inline-flex;
-	align-items: center;
-	opacity: 0.6;
-}
-.md-wines-grouped tr:hover .trash-btn { opacity: 1; }
-.md-wines-grouped .trash-btn:hover {
-	background: var(--color-background-hover);
-	color: var(--color-error, #c62828);
-}
 
 /* Trinkfenster pill (kept generic so it could be reused) */
 .tw {
