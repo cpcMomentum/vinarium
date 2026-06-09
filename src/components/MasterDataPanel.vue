@@ -69,7 +69,7 @@
 						</tr>
 					</thead>
 					<tbody>
-						<template v-for="w in sortedWines" :key="w.id">
+						<template v-for="{ wine: w, vintages: wVintages } in winesWithVintages" :key="w.id">
 							<tr class="wine-head" @click="editEntity('wine', w.id)">
 								<td colspan="6">
 									<span class="dot" :style="{ background: cssColorFor(w.color) }"></span>
@@ -90,10 +90,10 @@
 								</td>
 							</tr>
 							<tr
-								v-for="(v, i) in vintagesForWine(w.id)"
+								v-for="(v, i) in wVintages"
 								:key="v.id"
 								class="vintage-row"
-								:class="{ 'is-last': i === vintagesForWine(w.id).length - 1 }"
+								:class="{ 'is-last': i === wVintages.length - 1 }"
 								@click="editEntity('vintage', v.id)"
 							>
 								<td>{{ v.year }}</td>
@@ -236,6 +236,10 @@ const sortedWines = computed(() => {
 		return pa.localeCompare(pb) || a.name.localeCompare(b.name)
 	})
 })
+
+const winesWithVintages = computed(() =>
+	sortedWines.value.map(w => ({ wine: w, vintages: vintagesForWine(w.id) }))
+)
 
 function vintagesForWine(wineId: number): Vintage[] {
 	return [...store.vintagesByWine(wineId)].sort((a, b) => b.year - a.year)
