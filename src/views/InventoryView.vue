@@ -147,9 +147,6 @@
 		<div v-show="activeTab === 'wines'">
 			<MasterDataPanel entity-type="wines" />
 		</div>
-		<div v-show="activeTab === 'vintages'">
-			<MasterDataPanel entity-type="vintages" />
-		</div>
 		<div v-show="activeTab === 'purchases'">
 			<MasterDataPanel entity-type="purchases" />
 		</div>
@@ -207,13 +204,12 @@ import { useBottleStore } from '@/stores/bottleStore'
 import { useWineStore } from '@/stores/wineStore'
 import { fetchStats, type DashboardStats } from '@/api/dashboard'
 
-type SubTab = 'bottles' | 'producers' | 'wines' | 'vintages' | 'purchases'
+type SubTab = 'bottles' | 'producers' | 'wines' | 'purchases'
 
 const TAB_QUERY: Record<SubTab, string | undefined> = {
 	bottles: undefined,
 	producers: 'weinguter',
 	wines: 'weine',
-	vintages: 'jahrgange',
 	purchases: 'kaufe',
 }
 
@@ -221,7 +217,8 @@ const QUERY_TO_TAB: Record<string, SubTab> = {
 	flaschen: 'bottles',
 	weinguter: 'producers',
 	weine: 'wines',
-	jahrgange: 'vintages',
+	// "Jahrgänge"-Tab gibt es nicht mehr — Jahrgänge sind im Weine-Tab integriert.
+	jahrgange: 'wines',
 	kaufe: 'purchases',
 	// Legacy redirect
 	stammdaten: 'producers',
@@ -266,7 +263,6 @@ const subTabs = computed(() => [
 	{ key: 'bottles' as SubTab, label: t('vinarium', 'Flaschen'), count: stats.value?.inStorage ?? store.totalCount },
 	{ key: 'producers' as SubTab, label: t('vinarium', 'Weingüter'), count: stats.value?.producerCount ?? 0 },
 	{ key: 'wines' as SubTab, label: t('vinarium', 'Weine'), count: stats.value?.wineCount ?? 0 },
-	{ key: 'vintages' as SubTab, label: t('vinarium', 'Jahrgänge'), count: stats.value?.vintageCount ?? 0 },
 	{ key: 'purchases' as SubTab, label: t('vinarium', 'Käufe'), count: stats.value?.purchaseCount ?? 0 },
 ])
 
