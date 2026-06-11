@@ -56,7 +56,14 @@ class VintageService {
 			$this->assertValidYear($year);
 			$vintage->setYear($year);
 		}
-		$this->applyOptionalFields($vintage, $data);
+		// Accept both flat and nested ({ data: { ... } }) payloads — the frontend
+		// VintageCreate/Update type carries optional fields inside a `data` object,
+		// while existing internal callers pass them flat.
+		$fields = $data;
+		if (isset($data['data']) && is_array($data['data'])) {
+			$fields = $data['data'] + $fields;
+		}
+		$this->applyOptionalFields($vintage, $fields);
 		return $this->vintageMapper->update($vintage);
 	}
 
@@ -77,6 +84,11 @@ class VintageService {
 		}
 		if (array_key_exists('drinkUntilYear', $data)) {
 			$vintage->setDrinkUntilYear($data['drinkUntilYear'] !== null ? $this->parseYear($data['drinkUntilYear']) : null);
+		}
+		$from = $vintage->getDrinkFromYear();
+		$until = $vintage->getDrinkUntilYear();
+		if ($from !== null && $until !== null && $from > $until) {
+			throw new ValidationException('drinkFromYear must not be greater than drinkUntilYear');
 		}
 		if (array_key_exists('externalRating', $data)) {
 			$vintage->setExternalRating($data['externalRating'] !== null ? (float)$data['externalRating'] : null);

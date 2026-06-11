@@ -11,14 +11,6 @@
 				</template>
 			</NcAppNavigationItem>
 			<NcAppNavigationItem
-				:name="t('vinarium', 'Weine')"
-				:to="{ name: 'wines' }"
-			>
-				<template #icon>
-					<GlassWine :size="20" />
-				</template>
-			</NcAppNavigationItem>
-			<NcAppNavigationItem
 				:name="t('vinarium', 'Bestand')"
 				:to="{ name: 'inventory' }"
 			>
@@ -53,7 +45,6 @@
 <script setup lang="ts">
 import { translate as t } from '@nextcloud/l10n'
 import { NcContent, NcAppNavigation, NcAppNavigationItem, NcAppContent } from '@nextcloud/vue'
-import GlassWine from 'vue-material-design-icons/GlassWine.vue'
 import ViewDashboard from 'vue-material-design-icons/ViewDashboard.vue'
 import FormatListBulleted from 'vue-material-design-icons/FormatListBulleted.vue'
 import Grid from 'vue-material-design-icons/Grid.vue'

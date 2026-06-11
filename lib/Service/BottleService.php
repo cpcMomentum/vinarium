@@ -46,6 +46,8 @@ class BottleService {
 	public function createBottlesForPurchase(int $purchaseId, string $userId): array {
 		$purchase = $this->purchaseService->get($purchaseId, $userId);
 		$count = $purchase->getQuantity();
+		// If this wine × vintage already has a photo, inherit it for the new bottles.
+		$inheritedPhotoId = $this->bottleMapper->findExistingPhotoForVintage($purchase->getVintageId(), $userId);
 
 		$this->db->beginTransaction();
 		try {
@@ -54,6 +56,9 @@ class BottleService {
 				$bottle = new Bottle();
 				$bottle->setPurchaseId($purchase->getId());
 				$bottle->setStatus(Bottle::STATUS_IN_STORAGE);
+				if ($inheritedPhotoId !== null) {
+					$bottle->setPhotoFileId($inheritedPhotoId);
+				}
 				$bottles[] = $this->bottleMapper->insert($bottle);
 			}
 			$this->db->commit();
@@ -174,9 +179,49 @@ class BottleService {
 		return $this->bottleMapper->findByOwnerParked($userId);
 	}
 
+	/**
+	 * Atomically set $newFileId on the source bottle and on every sibling of the same
+	 * wine × vintage. The two DB updates (source UPDATE + siblings UPDATE) run inside
+	 * a single transaction; on any failure both are rolled back, so a vintage never
+	 * ends up split between an old and a new file id.
+	 *
+	 * @return array{updated: int, displaced_file_ids: list<int>}
+	 */
+	public function setPhotoAndPropagate(Bottle $bottle, string $userId, int $newFileId): array {
+		$vintageId = $this->bottleMapper->findVintageIdForOwner($bottle->getId(), $userId);
+
+		$this->db->beginTransaction();
+		try {
+			$bottle->setPhotoFileId($newFileId);
+			$this->bottleMapper->update($bottle);
+			$result = $vintageId === null
+				? ['updated' => 0, 'displaced_file_ids' => []]
+				: $this->bottleMapper->propagatePhotoToVintageSiblings($bottle->getId(), $vintageId, $userId, $newFileId);
+			$this->db->commit();
+			return $result;
+		} catch (Throwable $e) {
+			$this->db->rollBack();
+			throw $e;
+		}
+	}
+
+	/** Number of bottles of the owner still referencing the given photo file id. */
+	public function countPhotoReferences(int $fileId, string $userId): int {
+		return $this->bottleMapper->countBottlesReferencingPhoto($fileId, $userId);
+	}
+
 	/** @return array<int, array<string, mixed>> */
 	public function getFilteredBottles(string $userId, array $filter = []): array {
-		return $this->bottleMapper->findFilteredByOwner($userId, $filter);
+		$rows = $this->bottleMapper->findFilteredByOwner($userId, $filter);
+		$ratings = $this->bottleMapper->avgRatingByVintageForOwner($userId);
+		foreach ($rows as &$row) {
+			$vintageId = isset($row['vintage_id']) ? (int)$row['vintage_id'] : null;
+			$row['avg_rating'] = ($vintageId !== null && isset($ratings[$vintageId]))
+				? (float)$ratings[$vintageId]
+				: null;
+		}
+		unset($row);
+		return $rows;
 	}
 
 	/** @return array<string, mixed> Fully denormalized bottle detail */
@@ -188,6 +233,9 @@ class BottleService {
 		return [
 			'id' => (int)$row['id'],
 			'purchase_id' => (int)$row['purchase_id'],
+			'vintage_id' => (int)$row['vintage_id'],
+			'wine_id' => (int)$row['wine_id'],
+			'producer_id' => (int)$row['producer_id'],
 			'slot_id' => $row['slot_id'] !== null ? (int)$row['slot_id'] : null,
 			'status' => $row['status'],
 			'photo_file_id' => $row['photo_file_id'] !== null ? (int)$row['photo_file_id'] : null,
@@ -196,6 +244,9 @@ class BottleService {
 			'wine_color' => $row['wine_color'],
 			'appellation' => $row['appellation'],
 			'producer_name' => $row['producer_name'],
+			'producer_country' => $row['country'] ?? null,
+			'producer_region' => $row['region'] ?? null,
+			'producer_website' => $row['website'] ?? null,
 			'year' => (int)$row['year'],
 			'grape_varieties' => $row['grape_varieties'],
 			'drink_from_year' => $row['drink_from_year'] !== null ? (int)$row['drink_from_year'] : null,

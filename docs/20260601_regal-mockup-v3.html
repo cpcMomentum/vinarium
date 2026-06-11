@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Vinarium · Regal-Mockup v3</title>
+<style>
+:root{
+  --color-primary:#0082c9;--color-primary-hover:#0b6ca3;--color-primary-light:#e5f1fa;
+  --color-main-text:#222;--color-text-maxcontrast:#6b6b6b;
+  --color-main-background:#fff;--color-background-hover:#f3f4f6;--color-background-dark:#e9eaec;
+  --color-border:#d2d4d7;--color-border-light:#e2e3e5;
+  --w-red:#7a2a28;--w-white:#c9b85a;--w-rose:#cf8c8d;
+  --w-sparkling:#b8a64e;--w-dessert:#b07d3a;--w-fortified:#6e3a2a;
+  --radius-el:8px;--radius:8px;
+  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Cantarell,Ubuntu,"Helvetica Neue","Noto Sans",Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);font-size:15px;line-height:1.5;color:var(--color-main-text);background:#c9ced4;-webkit-font-smoothing:antialiased}
+
+.mockup-bar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;padding:10px 22px;background:#fff;border-bottom:1px solid var(--color-border);flex-wrap:wrap}
+.mockup-bar .brand{font-weight:700;font-size:14px;color:#444}
+.mockup-bar .brand span{color:var(--color-text-maxcontrast);font-weight:600}
+.mockup-bar .note{font-size:12.5px;color:var(--color-text-maxcontrast);margin-left:auto}
+
+.stage{padding:22px;display:flex;justify-content:center}
+.nc{width:100%;max-width:1440px;height:920px;border-radius:10px;overflow:hidden;box-shadow:0 10px 34px rgba(0,0,0,.22);display:flex;flex-direction:column;background:var(--color-main-background)}
+.nc-header{height:50px;background:var(--color-primary);display:flex;align-items:center;padding:0 12px;gap:8px;flex-shrink:0}
+.nc-logo{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:12px}
+.nc-appname{color:#fff;font-weight:600;font-size:16px;margin-left:4px}
+.nc-header .sp{flex:1}
+.nc-ava{width:32px;height:32px;border-radius:50%;background:#fff;color:var(--color-primary);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;margin-left:4px}
+.nc-body{flex:1;display:flex;min-height:0}
+
+.nav{width:248px;background:#fff;border-right:1px solid var(--color-border-light);flex-shrink:0;padding:6px;overflow:auto}
+.nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius);font-size:14.5px;color:var(--color-main-text);margin-bottom:2px}
+.nav-item.active{background:var(--color-primary-light);font-weight:600;color:var(--color-primary)}
+.nav-item .count{margin-left:auto;background:var(--color-background-dark);color:var(--color-text-maxcontrast);font-size:11.5px;font-weight:600;border-radius:10px;padding:1px 8px}
+
+.main{flex:1;overflow:auto;padding:22px 26px;background:var(--color-main-background)}
+
+/* Toolbar (analog Dashboard) */
+.toolbar{display:flex;align-items:center;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.toolbar h1{font-size:24px;font-weight:600;letter-spacing:-.01em}
+.toolbar .sp{flex:1}
+.btn{font-family:var(--font);font-size:14px;font-weight:600;border:none;border-radius:var(--radius-el);padding:9px 16px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;height:40px}
+.btn-primary{background:var(--color-primary);color:#fff}
+.btn-sec{background:#fff;color:var(--color-main-text);border:1px solid var(--color-border)}
+
+/* 2-Spalten: Parkzone | Regal-Bereich */
+.layout{display:grid;grid-template-columns:280px 1fr;gap:18px;align-items:start}
+
+/* Parkzone-Card (analog Dashboard hcard) */
+.pz{background:#fff;border:1px solid var(--color-border);border-radius:12px;padding:16px;position:sticky;top:0;max-height:calc(920px - 50px - 22px - 60px - 22px);display:flex;flex-direction:column;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.pz__head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-shrink:0}
+.pz__head h3{font-size:15px;font-weight:600}
+.pz__count{font-size:11.5px;font-weight:600;background:#e9f0f9;color:#5481b8;border-radius:10px;padding:2px 9px}
+.pz__hint{font-size:12px;color:var(--color-text-maxcontrast);margin:0 0 10px;flex-shrink:0}
+.pz__list{list-style:none;padding:0 4px 0 0;margin:0 -4px 0 0;display:flex;flex-direction:column;gap:6px;overflow-y:auto;flex:1;min-height:0}
+.pz-item{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#fff;border:1px solid var(--color-border-light);border-radius:var(--radius-el);font-size:13.5px;flex-shrink:0;cursor:grab}
+.pz-item:hover{border-color:var(--color-primary);background:var(--color-primary-light)}
+.pz-item__title{font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pz-item__year{color:var(--color-text-maxcontrast);font-variant-numeric:tabular-nums}
+.dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;display:inline-block}
+.dot.red{background:var(--w-red)}.dot.white{background:var(--w-white)}
+.dot.rose{background:var(--w-rose)}.dot.sparkling{background:var(--w-sparkling)}
+.dot.dessert{background:var(--w-dessert)}.dot.fortified{background:var(--w-fortified)}
+
+/* Regal-Bereich — items left-aligned damit fit-content-Cards links bündig sitzen */
+.shelf-area{display:flex;flex-direction:column;gap:16px;min-width:0;align-items:flex-start}
+
+/* Shelf-Tabs als NC-Pill-Toggle */
+.shelf-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.shelf-tab{font-family:var(--font);font-size:13px;font-weight:600;background:#fff;border:1px solid var(--color-border);border-radius:var(--radius-el);padding:7px 14px;cursor:pointer;color:var(--color-text-maxcontrast)}
+.shelf-tab.active{background:var(--color-primary);color:#fff;border-color:var(--color-primary)}
+.shelf-tab.add{background:transparent;border-style:dashed;color:var(--color-text-maxcontrast)}
+
+/* Compartment als Card mit Header + Ebenen-Sub-Cards.
+ * width: fit-content → Card endet genau am letzten Slot, kein leerer rechter Bereich */
+.compartment{background:#fff;border:1px solid var(--color-border);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden;width:fit-content;max-width:100%}
+.compartment__title{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px 18px;background:linear-gradient(180deg,#fafbfc 0%,#fff 100%);border-bottom:1px solid var(--color-border)}
+.compartment__title-text{font-size:12.5px;font-weight:600;color:var(--color-text-maxcontrast);text-transform:uppercase;letter-spacing:0.05em}
+.compartment__actions{display:flex;gap:4px;opacity:0;transition:opacity .12s}
+.compartment:hover .compartment__actions{opacity:.7}
+.compartment__action-btn{background:none;border:none;color:var(--color-text-maxcontrast);font-size:0.95rem;padding:2px 8px;cursor:pointer;border-radius:4px}
+.compartment__action-btn:hover{background:var(--color-background-hover);color:var(--color-main-text)}
+
+/* Ebenen-Sub-Section */
+.level{padding:14px 18px;border-bottom:1px solid var(--color-border-light)}
+.level:last-child{border-bottom:none}
+/* Header inline: Title, Position, Belegungs-Counter folgen direkt aufeinander.
+ * Card ist eh nur so breit wie der Slot-Inhalt — keine Notwendigkeit für space-between. */
+.level__head{display:flex;align-items:baseline;flex-wrap:wrap;gap:12px;margin-bottom:12px}
+.level__title{font-size:13px;font-weight:700;color:var(--color-main-text);text-transform:uppercase;letter-spacing:0.04em}
+.level__pos{color:var(--color-text-maxcontrast);font-weight:500;margin-left:6px}
+.level__occupancy{font-size:11.5px;font-weight:600;color:var(--color-text-maxcontrast);background:var(--color-background-hover);border-radius:10px;padding:3px 10px;display:inline-flex;align-items:center;gap:5px}
+.level__occupancy strong{color:var(--color-main-text);font-weight:700}
+
+/* Slot-Rows */
+.slot-row{display:flex;gap:8px;margin-bottom:8px}
+.slot-row:last-child{margin-bottom:0}
+
+/* Slot fix 110×72 */
+.slot{flex:0 0 110px;width:110px;height:72px;background:#fff;border:1.5px solid #888;border-radius:8px;display:flex;align-items:center;justify-content:center;position:relative;padding:8px;cursor:pointer;overflow:hidden;transition:transform .12s,box-shadow .12s,border-color .12s}
+.slot:not(.fill):hover{background:var(--color-primary-light);border-color:var(--color-primary)}
+.slot.fill{border:none;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.3);cursor:grab}
+.slot.fill:hover{transform:translateY(-2px);box-shadow:0 4px 10px rgba(0,0,0,.15)}
+.slot.fill.red{background:linear-gradient(160deg,#9a3b39,#6e2624)}
+.slot.fill.white{background:linear-gradient(160deg,#d6c468,#a4943a)}
+.slot.fill.rose{background:linear-gradient(160deg,#e0a3a4,#b56e6f)}
+.slot.fill.sparkling{background:linear-gradient(160deg,#d4be58,#9a8b3a);position:relative}
+.slot.fill.sparkling::after{content:"";position:absolute;top:8px;right:10px;width:5px;height:5px;background:rgba(255,255,255,.7);border-radius:50%;box-shadow:-6px 4px 0 -1px rgba(255,255,255,.5),-3px 9px 0 -2px rgba(255,255,255,.6)}
+.slot.fill.dessert{background:linear-gradient(160deg,#c89352,#8e6128)}
+.slot.fill.fortified{background:linear-gradient(160deg,#86462f,#532b1f)}
+
+.slot__id{position:absolute;top:5px;left:7px;font-size:11px;font-weight:700;letter-spacing:0.02em;color:rgba(255,255,255,.85)}
+.slot:not(.fill) .slot__id{color:#555}
+.slot__id-h{margin-left:1px;font-size:9px;opacity:0.85}
+.slot__name{font-size:0.78rem;font-weight:700;line-height:1.2;text-align:center;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;max-width:94px;word-break:break-word}
+.slot__year{font-size:0.72rem;font-weight:600;opacity:0.92;font-variant-numeric:tabular-nums;margin-top:2px}
+.slot__inner{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100%;gap:1px;line-height:1.2}
+
+/* Legende */
+.legend{display:flex;gap:14px;flex-wrap:wrap;padding:10px 4px 4px;font-size:12px;color:var(--color-text-maxcontrast)}
+.legend>span{display:inline-flex;align-items:center;gap:6px}
+.legend-sw{width:14px;height:14px;border-radius:3px;display:inline-block}
+.legend-sw.red{background:linear-gradient(160deg,#9a3b39,#6e2624)}
+.legend-sw.white{background:linear-gradient(160deg,#d6c468,#a4943a)}
+.legend-sw.rose{background:linear-gradient(160deg,#e0a3a4,#b56e6f)}
+.legend-sw.sparkling{background:linear-gradient(160deg,#d4be58,#9a8b3a)}
+.legend-sw.dessert{background:linear-gradient(160deg,#c89352,#8e6128)}
+.legend-sw.fortified{background:linear-gradient(160deg,#86462f,#532b1f)}
+.legend-sw.empty{background:#fff;border:1.5px solid #888}
+
+.foot-note{padding:10px 14px;font-size:12px;color:var(--color-text-maxcontrast);text-align:center}
+</style>
+</head>
+<body>
+
+<div class="mockup-bar">
+  <div class="brand">Vinarium <span>· Regal-Mockup v3</span></div>
+  <div class="note">v3: Compartment-Breite passt sich an Slot-Anzahl an · Belegungs-Counter inline neben Ebenen-Titel · Demo mit 5/7/10 Slots</div>
+</div>
+
+<div class="stage">
+<div class="nc">
+  <div class="nc-header">
+    <div class="nc-logo">V</div><div class="nc-appname">Vinarium</div><div class="sp"></div>
+    <div class="nc-ava">AB</div>
+  </div>
+
+  <div class="nc-body">
+    <div class="nav">
+      <div class="nav-item">📊 Dashboard</div>
+      <div class="nav-item">📋 Bestand <span class="count">42</span></div>
+      <div class="nav-item active">▦ Regal</div>
+      <div class="nav-item">⭐ Verkostungen <span class="count">15</span></div>
+    </div>
+
+    <div class="main">
+      <div class="toolbar">
+        <h1>Weinkeller</h1>
+        <div class="sp"></div>
+        <button class="btn btn-sec">⚙ Regal konfigurieren</button>
+        <button class="btn btn-primary">+ Neues Regal</button>
+      </div>
+
+      <div class="layout">
+        <!-- Parkzone -->
+        <aside class="pz">
+          <div class="pz__head">
+            <h3>Parkzone</h3>
+            <span class="pz__count">14</span>
+          </div>
+          <p class="pz__hint">Drag & Drop in einen Slot · bleibt beim Scrollen sichtbar</p>
+          <ul class="pz__list">
+            <li class="pz-item"><span class="dot red"></span><span class="pz-item__title">Bandol Rosé</span><span class="pz-item__year">2021</span></li>
+            <li class="pz-item"><span class="dot red"></span><span class="pz-item__title">Castillon</span><span class="pz-item__year">2020</span></li>
+            <li class="pz-item"><span class="dot red"></span><span class="pz-item__title">Castillon</span><span class="pz-item__year">2020</span></li>
+            <li class="pz-item"><span class="dot white"></span><span class="pz-item__title">Riesling Trocken</span><span class="pz-item__year">2021</span></li>
+            <li class="pz-item"><span class="dot sparkling"></span><span class="pz-item__title">Krug Grande Cuvée</span><span class="pz-item__year">NV</span></li>
+            <li class="pz-item"><span class="dot red"></span><span class="pz-item__title">Morgon Cuvée Marcel</span><span class="pz-item__year">2021</span></li>
+            <li class="pz-item"><span class="dot red"></span><span class="pz-item__title">Morgon Cuvée Marcel</span><span class="pz-item__year">2021</span></li>
+            <li class="pz-item"><span class="dot white"></span><span class="pz-item__title">Puligny-Montrachet</span><span class="pz-item__year">2020</span></li>
+            <li class="pz-item"><span class="dot red"></span><span class="pz-item__title">Sassicaia</span><span class="pz-item__year">2019</span></li>
+            <li class="pz-item"><span class="dot red"></span><span class="pz-item__title">Sassicaia</span><span class="pz-item__year">2019</span></li>
+            <li class="pz-item"><span class="dot dessert"></span><span class="pz-item__title">Sauternes d'Yquem</span><span class="pz-item__year">2015</span></li>
+            <li class="pz-item"><span class="dot fortified"></span><span class="pz-item__title">Vintage Port Noval</span><span class="pz-item__year">2011</span></li>
+            <li class="pz-item"><span class="dot sparkling"></span><span class="pz-item__title">Billecart Brut Rosé</span><span class="pz-item__year">NV</span></li>
+            <li class="pz-item"><span class="dot rose"></span><span class="pz-item__title">Bandol Rosé</span><span class="pz-item__year">2022</span></li>
+          </ul>
+        </aside>
+
+        <!-- Regal-Bereich -->
+        <div class="shelf-area">
+          <!-- Shelf-Tabs -->
+          <div class="shelf-tabs">
+            <button class="shelf-tab active">Hauptregal</button>
+            <button class="shelf-tab">Keller</button>
+            <button class="shelf-tab">Dekanter-Ablage</button>
+            <button class="shelf-tab add">+</button>
+          </div>
+
+          <!-- Compartment 1: Standard 6/7 -->
+          <div class="compartment">
+            <div class="compartment__title">
+              <span class="compartment__title-text">Fach 1 · Standardregal (6/7)</span>
+              <div class="compartment__actions">
+                <button class="compartment__action-btn" title="Fach konfigurieren">⚙</button>
+                <button class="compartment__action-btn" title="Fach löschen">✕</button>
+              </div>
+            </div>
+
+            <div class="level">
+              <div class="level__head">
+                <span class="level__title">Ebene 3<span class="level__pos">· TOP</span></span>
+                <span class="level__occupancy"><strong>5</strong> / 13 belegt</span>
+              </div>
+              <div class="slot-row">
+                <div class="slot"><span class="slot__id">1<span class="slot__id-h">H</span></span></div>
+                <div class="slot fill red"><span class="slot__id">2<span class="slot__id-h">H</span></span><div class="slot__inner"><span class="slot__name">Castillon</span><span class="slot__year">2018</span></div></div>
+                <div class="slot fill red"><span class="slot__id">3<span class="slot__id-h">H</span></span><div class="slot__inner"><span class="slot__name">Castillon</span><span class="slot__year">2018</span></div></div>
+                <div class="slot"><span class="slot__id">4<span class="slot__id-h">H</span></span></div>
+                <div class="slot"><span class="slot__id">5<span class="slot__id-h">H</span></span></div>
+                <div class="slot"><span class="slot__id">6<span class="slot__id-h">H</span></span></div>
+                <div class="slot"><span class="slot__id">7<span class="slot__id-h">H</span></span></div>
+              </div>
+              <div class="slot-row" style="margin-left:59px">
+                <div class="slot fill red"><span class="slot__id">1</span><div class="slot__inner"><span class="slot__name">Morgon</span><span class="slot__year">2019</span></div></div>
+                <div class="slot fill red"><span class="slot__id">2</span><div class="slot__inner"><span class="slot__name">Morgon</span><span class="slot__year">2019</span></div></div>
+                <div class="slot fill red"><span class="slot__id">3</span><div class="slot__inner"><span class="slot__name">Sassicaia</span><span class="slot__year">2018</span></div></div>
+                <div class="slot"><span class="slot__id">4</span></div>
+                <div class="slot"><span class="slot__id">5</span></div>
+                <div class="slot"><span class="slot__id">6</span></div>
+              </div>
+            </div>
+
+            <div class="level">
+              <div class="level__head">
+                <span class="level__title">Ebene 2<span class="level__pos">· MITTE</span></span>
+                <span class="level__occupancy"><strong>4</strong> / 13 belegt</span>
+              </div>
+              <div class="slot-row">
+                <div class="slot fill white"><span class="slot__id">1<span class="slot__id-h">H</span></span><div class="slot__inner"><span class="slot__name">Puligny</span><span class="slot__year">2019</span></div></div>
+                <div class="slot"><span class="slot__id">2<span class="slot__id-h">H</span></span></div>
+                <div class="slot"><span class="slot__id">3<span class="slot__id-h">H</span></span></div>
+                <div class="slot"><span class="slot__id">4<span class="slot__id-h">H</span></span></div>
+                <div class="slot"><span class="slot__id">5<span class="slot__id-h">H</span></span></div>
+                <div class="slot"><span class="slot__id">6<span class="slot__id-h">H</span></span></div>
+                <div class="slot"><span class="slot__id">7<span class="slot__id-h">H</span></span></div>
+              </div>
+              <div class="slot-row" style="margin-left:59px">
+                <div class="slot fill white"><span class="slot__id">1</span><div class="slot__inner"><span class="slot__name">Riesling</span><span class="slot__year">2020</span></div></div>
+                <div class="slot fill white"><span class="slot__id">2</span><div class="slot__inner"><span class="slot__name">Riesling</span><span class="slot__year">2020</span></div></div>
+                <div class="slot fill sparkling"><span class="slot__id">3</span><div class="slot__inner"><span class="slot__name">Krug NV</span></div></div>
+                <div class="slot"><span class="slot__id">4</span></div>
+                <div class="slot"><span class="slot__id">5</span></div>
+                <div class="slot"><span class="slot__id">6</span></div>
+              </div>
+            </div>
+
+            <div class="level">
+              <div class="level__head">
+                <span class="level__title">Ebene 1<span class="level__pos">· BODEN</span></span>
+                <span class="level__occupancy"><strong>4</strong> / 13 belegt</span>
+              </div>
+              <div class="slot-row">
+                <div class="slot"><span class="slot__id">1<span class="slot__id-h">H</span></span></div>
+                <div class="slot fill fortified"><span class="slot__id">2<span class="slot__id-h">H</span></span><div class="slot__inner"><span class="slot__name">Vintage Port</span><span class="slot__year">2011</span></div></div>
+                <div class="slot"><span class="slot__id">3<span class="slot__id-h">H</span></span></div>
+                <div class="slot fill dessert"><span class="slot__id">4<span class="slot__id-h">H</span></span><div class="slot__inner"><span class="slot__name">Sauternes</span><span class="slot__year">2015</span></div></div>
+                <div class="slot"><span class="slot__id">5<span class="slot__id-h">H</span></span></div>
+                <div class="slot"><span class="slot__id">6<span class="slot__id-h">H</span></span></div>
+                <div class="slot"><span class="slot__id">7<span class="slot__id-h">H</span></span></div>
+              </div>
+              <div class="slot-row" style="margin-left:59px">
+                <div class="slot fill rose"><span class="slot__id">1</span><div class="slot__inner"><span class="slot__name">Bandol Rosé</span><span class="slot__year">2020</span></div></div>
+                <div class="slot fill red"><span class="slot__id">2</span><div class="slot__inner"><span class="slot__name">Morgon</span><span class="slot__year">2020</span></div></div>
+                <div class="slot"><span class="slot__id">3</span></div>
+                <div class="slot"><span class="slot__id">4</span></div>
+                <div class="slot"><span class="slot__id">5</span></div>
+                <div class="slot"><span class="slot__id">6</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Compartment 2: Schmal 5/5 -->
+          <div class="compartment">
+            <div class="compartment__title">
+              <span class="compartment__title-text">Fach 2 · Schmal (5/5)</span>
+              <div class="compartment__actions">
+                <button class="compartment__action-btn">⚙</button>
+                <button class="compartment__action-btn">✕</button>
+              </div>
+            </div>
+            <div class="level">
+              <div class="level__head">
+                <span class="level__title">Ebene 2<span class="level__pos">· TOP</span></span>
+                <span class="level__occupancy"><strong>2</strong> / 10 belegt</span>
+              </div>
+              <div class="slot-row">
+                <div class="slot fill rose"><span class="slot__id">1<span class="slot__id-h">H</span></span><div class="slot__inner"><span class="slot__name">Bandol</span><span class="slot__year">2021</span></div></div>
+                <div class="slot"><span class="slot__id">2<span class="slot__id-h">H</span></span></div>
+                <div class="slot"><span class="slot__id">3<span class="slot__id-h">H</span></span></div>
+                <div class="slot"><span class="slot__id">4<span class="slot__id-h">H</span></span></div>
+                <div class="slot"><span class="slot__id">5<span class="slot__id-h">H</span></span></div>
+              </div>
+              <div class="slot-row">
+                <div class="slot fill rose"><span class="slot__id">1</span><div class="slot__inner"><span class="slot__name">Bandol</span><span class="slot__year">2021</span></div></div>
+                <div class="slot"><span class="slot__id">2</span></div>
+                <div class="slot"><span class="slot__id">3</span></div>
+                <div class="slot"><span class="slot__id">4</span></div>
+                <div class="slot"><span class="slot__id">5</span></div>
+              </div>
+            </div>
+            <div class="level">
+              <div class="level__head">
+                <span class="level__title">Ebene 1<span class="level__pos">· BODEN</span></span>
+                <span class="level__occupancy"><strong>0</strong> / 10 belegt</span>
+              </div>
+              <div class="slot-row">
+                <div class="slot"><span class="slot__id">1<span class="slot__id-h">H</span></span></div>
+                <div class="slot"><span class="slot__id">2<span class="slot__id-h">H</span></span></div>
+                <div class="slot"><span class="slot__id">3<span class="slot__id-h">H</span></span></div>
+                <div class="slot"><span class="slot__id">4<span class="slot__id-h">H</span></span></div>
+                <div class="slot"><span class="slot__id">5<span class="slot__id-h">H</span></span></div>
+              </div>
+              <div class="slot-row">
+                <div class="slot"><span class="slot__id">1</span></div>
+                <div class="slot"><span class="slot__id">2</span></div>
+                <div class="slot"><span class="slot__id">3</span></div>
+                <div class="slot"><span class="slot__id">4</span></div>
+                <div class="slot"><span class="slot__id">5</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Compartment 3: Breit 10/10 (nur Vorne) -->
+          <div class="compartment">
+            <div class="compartment__title">
+              <span class="compartment__title-text">Fach 3 · Breit ohne Hinten (10/0)</span>
+              <div class="compartment__actions">
+                <button class="compartment__action-btn">⚙</button>
+                <button class="compartment__action-btn">✕</button>
+              </div>
+            </div>
+            <div class="level">
+              <div class="level__head">
+                <span class="level__title">Ebene 1<span class="level__pos">· EINZIG</span></span>
+                <span class="level__occupancy"><strong>3</strong> / 10 belegt</span>
+              </div>
+              <div class="slot-row">
+                <div class="slot fill red"><span class="slot__id">1</span><div class="slot__inner"><span class="slot__name">Castillon</span><span class="slot__year">2020</span></div></div>
+                <div class="slot fill red"><span class="slot__id">2</span><div class="slot__inner"><span class="slot__name">Castillon</span><span class="slot__year">2020</span></div></div>
+                <div class="slot fill red"><span class="slot__id">3</span><div class="slot__inner"><span class="slot__name">Castillon</span><span class="slot__year">2020</span></div></div>
+                <div class="slot"><span class="slot__id">4</span></div>
+                <div class="slot"><span class="slot__id">5</span></div>
+                <div class="slot"><span class="slot__id">6</span></div>
+                <div class="slot"><span class="slot__id">7</span></div>
+                <div class="slot"><span class="slot__id">8</span></div>
+                <div class="slot"><span class="slot__id">9</span></div>
+                <div class="slot"><span class="slot__id">10</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Legende -->
+          <div class="legend">
+            <span><span class="legend-sw red"></span> Rot</span>
+            <span><span class="legend-sw white"></span> Weiß</span>
+            <span><span class="legend-sw rose"></span> Rosé</span>
+            <span><span class="legend-sw sparkling"></span> Schaumwein</span>
+            <span><span class="legend-sw dessert"></span> Dessertwein</span>
+            <span><span class="legend-sw fortified"></span> Likörwein</span>
+            <span><span class="legend-sw empty"></span> frei</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="foot-note">Vinarium Regal-Mockup v3 · 01.06.2026 · Compartments self-fitting (width: fit-content), Counter inline neben Ebenen-Titel</div>
+
+</body>
+</html>

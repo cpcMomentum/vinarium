@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<title>Vinarium #131 — Edit-Drill-down Mockup v1</title>
+<style>
+:root {
+  --color-main-background: #fff;
+  --color-main-text: #222;
+  --color-text-maxcontrast: #6c6c6c;
+  --color-border: #d2d4d7;
+  --color-background-hover: #f3f4f6;
+  --color-primary-element: #0a64c2;
+  --color-primary-element-light: #e8f0fe;
+  --color-warning: #e57c00;
+  --color-error: #c62828;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  color: var(--color-main-text);
+  background: #ecedf0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+header.demo-bar {
+  background: #2d2d2d; color: white; padding: 12px 20px;
+  display: flex; align-items: center; gap: 16px;
+}
+header.demo-bar h1 { margin: 0; font-size: 14px; font-weight: 600; }
+header.demo-bar .tabs { display: flex; gap: 6px; margin-left: auto; }
+header.demo-bar .tab {
+  background: #424242; color: #ddd; border: 1px solid #555;
+  padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;
+}
+header.demo-bar .tab.active { background: var(--color-primary-element); color: white; border-color: var(--color-primary-element); }
+header.demo-bar .hint { font-size: 12px; color: #aaa; }
+
+.stage {
+  display: grid; grid-template-columns: 1fr 560px; min-height: calc(100vh - 50px);
+  background: #f5f5f6;
+}
+.fake-list {
+  padding: 24px;
+  border-right: 1px solid var(--color-border);
+  background: white;
+}
+.fake-list table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.fake-list th { text-align: left; padding: 8px 6px; color: var(--color-text-maxcontrast); font-weight: 600; font-size: 12px; border-bottom: 1px solid var(--color-border); }
+.fake-list td { padding: 10px 6px; border-bottom: 1px solid #eee; }
+.fake-list tr.active { background: var(--color-primary-element-light); }
+
+.panel {
+  background: var(--color-main-background); border-left: 1px solid var(--color-border);
+  padding: 22px 26px; overflow: auto;
+  position: relative;
+}
+.panel h3 { margin: 0; font-size: 16px; font-weight: 700; }
+.panel .producer { color: var(--color-text-maxcontrast); margin-top: 4px; font-size: 13px; }
+.panel .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #762228; vertical-align: middle; margin-right: 8px; }
+
+.photo-box {
+  width: 280px; aspect-ratio: 3/4; background: #ddd; border-radius: 6px; margin: 16px 0;
+  display: flex; align-items: center; justify-content: center; color: #999;
+}
+
+dl.kv { display: grid; grid-template-columns: 130px 1fr; gap: 10px 18px; margin: 16px 0; font-size: 13px; }
+dl.kv dt { color: var(--color-text-maxcontrast); }
+dl.kv dd { margin: 0; }
+
+.editable {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 2px 6px; margin: -2px -6px;
+  transition: background 0.15s;
+  position: relative;
+}
+.editable::after {
+  content: '✎'; color: var(--color-text-maxcontrast); font-size: 11px;
+  opacity: 0; margin-left: 6px; transition: opacity 0.15s;
+}
+.editable:hover { background: var(--color-background-hover); }
+.editable:hover::after { opacity: 0.7; }
+
+.section { margin-top: 22px; }
+.section h4 { margin: 0 0 10px 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-maxcontrast); }
+.section h4.is-editable { cursor: pointer; border-radius: 4px; padding: 2px 6px; margin-left: -6px; }
+.section h4.is-editable:hover { background: var(--color-background-hover); color: var(--color-main-text); }
+
+.btn-row { display: flex; gap: 8px; margin-top: 16px; }
+.btn {
+  border: 1px solid var(--color-border); background: white; color: var(--color-main-text);
+  border-radius: 8px; padding: 8px 14px; cursor: pointer; font-size: 13px;
+}
+.btn.primary { background: var(--color-primary-element); color: white; border-color: var(--color-primary-element); }
+.btn:hover { background: var(--color-background-hover); }
+.btn.primary:hover { background: #084a91; }
+
+/* ================== VARIANT A — INLINE ================== */
+.inline-edit-form {
+  background: var(--color-primary-element-light);
+  border: 1px solid var(--color-primary-element);
+  border-radius: 8px;
+  padding: 12px 14px; margin: 4px -10px;
+}
+.inline-edit-form label { display: block; font-size: 11px; color: var(--color-text-maxcontrast); margin-top: 8px; }
+.inline-edit-form input, .inline-edit-form select {
+  width: 100%; padding: 6px 8px; border: 1px solid var(--color-border); border-radius: 4px; font-size: 13px;
+  background: white;
+}
+.inline-edit-form .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.scope-warn {
+  font-size: 11px; color: var(--color-warning);
+  background: #fff8ee; border: 1px solid #f5c98a; border-radius: 4px;
+  padding: 6px 8px; margin-top: 8px;
+}
+
+/* ================== VARIANT B — POPUP ================== */
+.popup-backdrop {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4); z-index: 100;
+  display: none; align-items: center; justify-content: center;
+}
+.popup-backdrop.open { display: flex; }
+.popup {
+  background: white; border-radius: 10px; padding: 22px 26px; width: 440px; max-width: 92vw;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+.popup h2 { margin: 0 0 4px 0; font-size: 16px; }
+.popup .popup-sub { color: var(--color-text-maxcontrast); font-size: 12px; margin-bottom: 14px; }
+.popup label { display: block; font-size: 11px; color: var(--color-text-maxcontrast); margin-top: 10px; }
+.popup input, .popup select { width: 100%; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: 6px; font-size: 13px; }
+.popup .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* ================== VARIANT C — STACK ================== */
+.stack-page {
+  display: none;
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--color-main-background);
+  padding: 22px 26px;
+  animation: slidein 0.18s ease-out;
+}
+.stack-page.open { display: block; }
+@keyframes slidein { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.stack-page .back {
+  background: none; border: none; color: var(--color-primary-element); font-size: 13px; cursor: pointer; padding: 0;
+  margin-bottom: 10px;
+}
+.stack-page label { display: block; font-size: 11px; color: var(--color-text-maxcontrast); margin-top: 12px; }
+.stack-page input, .stack-page select {
+  width: 100%; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: 6px; font-size: 13px;
+}
+.stack-page .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* hide variants */
+.variant { display: none; }
+.variant.active { display: block; }
+</style>
+</head>
+<body>
+<header class="demo-bar">
+  <h1>#131 Edit-Drill-down — Mockup-Vergleich</h1>
+  <span class="hint">Klick auf <b>Producer-Namen</b>, <b>Wein-Eigenschaften</b> oder <b>Kaufdetails</b> im Panel</span>
+  <div class="tabs">
+    <button class="tab active" onclick="show('A')">A · Inline-Edit</button>
+    <button class="tab" onclick="show('B')">B · Popup</button>
+    <button class="tab" onclick="show('C')">C · Stack im Panel</button>
+  </div>
+</header>
+
+<div class="stage">
+  <div class="fake-list">
+    <p style="color:#888;font-size:12px;">Mockup-Kontext: Du hast Bottle 144 (La Social 2021) angeklickt — Panel rechts geöffnet.</p>
+    <table>
+      <thead>
+        <tr><th>Weingut</th><th>Wein</th><th>Jahr</th></tr>
+      </thead>
+      <tbody>
+        <tr class="active"><td>Bodegas Telmo Rodriguez</td><td>La Social</td><td>2021</td></tr>
+        <tr><td>Bodegas Telmo Rodriguez</td><td>La Social</td><td>2021</td></tr>
+        <tr><td>Chateau Clos Louie</td><td>Castillon Côtes…</td><td>2020</td></tr>
+        <tr><td>Domaine Marcel Lapierre</td><td>Morgon Cuvée…</td><td>2020</td></tr>
+        <tr><td>Krug</td><td>Grande Cuvée Édition 170</td><td>2020</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="panel" id="panel">
+
+    <!-- ============ VARIANT A: INLINE ============ -->
+    <div class="variant active" id="variant-A">
+      <div>
+        <span class="dot"></span>
+        <strong style="font-size:16px;">La Social <span style="color:var(--color-text-maxcontrast);font-weight:400;">2021</span></strong>
+      </div>
+      <div class="producer editable" onclick="toggleInline('producer')">Bodegas Telmo Rodriguez Ribera del Duero</div>
+
+      <div id="inline-producer" style="display:none;" class="inline-edit-form">
+        <label>Weingut</label>
+        <input value="Bodegas Telmo Rodriguez Ribera del Duero" />
+        <label>Region</label>
+        <input value="Ribera del Duero" />
+        <div class="scope-warn">Diese Änderung betrifft alle 14 Flaschen von Bodegas Telmo Rodriguez.</div>
+        <div class="btn-row">
+          <button class="btn primary" onclick="toggleInline('producer')">Speichern</button>
+          <button class="btn" onclick="toggleInline('producer')">Abbrechen</button>
+        </div>
+      </div>
+
+      <div class="photo-box">[Foto-Platzhalter]</div>
+
+      <dl class="kv">
+        <dt>Appellation</dt>
+        <dd class="editable" onclick="toggleInline('wine')">Ribera del Duero DO</dd>
+
+        <dt>Rebsorten</dt>
+        <dd class="editable" onclick="toggleInline('wine')">Tempranillo 90%, Albillo, Garnacha, Valenciana</dd>
+      </dl>
+
+      <div id="inline-wine" style="display:none;" class="inline-edit-form">
+        <label>Appellation</label>
+        <input value="Ribera del Duero DO" />
+        <label>Rebsorten</label>
+        <input value="Tempranillo 90%, Albillo, Garnacha, Valenciana" />
+        <div class="scope-warn">Diese Änderung betrifft alle 14 Flaschen des Weins „La Social".</div>
+        <div class="btn-row">
+          <button class="btn primary" onclick="toggleInline('wine')">Speichern</button>
+          <button class="btn" onclick="toggleInline('wine')">Abbrechen</button>
+        </div>
+      </div>
+
+      <dl class="kv">
+        <dt>Alkohol</dt>
+        <dd class="editable" onclick="toggleInline('vintage')">14,5 %</dd>
+
+        <dt>Trinkfenster</dt>
+        <dd class="editable" onclick="toggleInline('vintage')">2024 – 2030</dd>
+      </dl>
+
+      <div id="inline-vintage" style="display:none;" class="inline-edit-form">
+        <label>Jahr</label>
+        <input value="2021" />
+        <div class="row2">
+          <div><label>Trinken ab</label><input value="2024" /></div>
+          <div><label>Trinken bis</label><input value="2030" /></div>
+        </div>
+        <label>Alkohol (%)</label>
+        <input value="14.5" />
+        <div class="scope-warn">Diese Änderung betrifft alle 5 Flaschen des Jahrgangs 2021.</div>
+        <div class="btn-row">
+          <button class="btn primary" onclick="toggleInline('vintage')">Speichern</button>
+          <button class="btn" onclick="toggleInline('vintage')">Abbrechen</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h4 class="is-editable" onclick="toggleInline('purchase')">Kaufdetails ✎</h4>
+        <dl class="kv">
+          <dt>Datum</dt><dd>15.04.2026</dd>
+          <dt>Preis</dt><dd>19,50 EUR</dd>
+          <dt>Größe</dt><dd>0,75 l</dd>
+        </dl>
+      </div>
+      <div id="inline-purchase" style="display:none;" class="inline-edit-form">
+        <label>Datum</label><input type="date" value="2026-04-15" />
+        <div class="row2">
+          <div><label>Preis</label><input value="19.50" /></div>
+          <div><label>Währung</label><input value="EUR" /></div>
+        </div>
+        <label>Händler</label><input value="" />
+        <div class="btn-row">
+          <button class="btn primary" onclick="toggleInline('purchase')">Speichern</button>
+          <button class="btn" onclick="toggleInline('purchase')">Abbrechen</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ VARIANT B: POPUP ============ -->
+    <div class="variant" id="variant-B">
+      <div>
+        <span class="dot"></span>
+        <strong style="font-size:16px;">La Social <span style="color:var(--color-text-maxcontrast);font-weight:400;">2021</span></strong>
+      </div>
+      <div class="producer editable" onclick="popup('producer')">Bodegas Telmo Rodriguez Ribera del Duero</div>
+
+      <div class="photo-box">[Foto-Platzhalter]</div>
+
+      <dl class="kv">
+        <dt>Appellation</dt>
+        <dd class="editable" onclick="popup('wine')">Ribera del Duero DO</dd>
+        <dt>Rebsorten</dt>
+        <dd class="editable" onclick="popup('wine')">Tempranillo 90%, Albillo, Garnacha, Valenciana</dd>
+        <dt>Alkohol</dt>
+        <dd class="editable" onclick="popup('vintage')">14,5 %</dd>
+        <dt>Trinkfenster</dt>
+        <dd class="editable" onclick="popup('vintage')">2024 – 2030</dd>
+      </dl>
+
+      <div class="section">
+        <h4 class="is-editable" onclick="popup('purchase')">Kaufdetails ✎</h4>
+        <dl class="kv">
+          <dt>Datum</dt><dd>15.04.2026</dd>
+          <dt>Preis</dt><dd>19,50 EUR</dd>
+          <dt>Größe</dt><dd>0,75 l</dd>
+        </dl>
+      </div>
+    </div>
+
+    <!-- ============ VARIANT C: STACK ============ -->
+    <div class="variant" id="variant-C">
+      <div id="stack-root">
+        <div>
+          <span class="dot"></span>
+          <strong style="font-size:16px;">La Social <span style="color:var(--color-text-maxcontrast);font-weight:400;">2021</span></strong>
+        </div>
+        <div class="producer editable" onclick="stackOpen('producer')">Bodegas Telmo Rodriguez Ribera del Duero</div>
+
+        <div class="photo-box">[Foto-Platzhalter]</div>
+
+        <dl class="kv">
+          <dt>Appellation</dt>
+          <dd class="editable" onclick="stackOpen('wine')">Ribera del Duero DO</dd>
+          <dt>Rebsorten</dt>
+          <dd class="editable" onclick="stackOpen('wine')">Tempranillo 90%, Albillo, Garnacha, Valenciana</dd>
+          <dt>Alkohol</dt>
+          <dd class="editable" onclick="stackOpen('vintage')">14,5 %</dd>
+          <dt>Trinkfenster</dt>
+          <dd class="editable" onclick="stackOpen('vintage')">2024 – 2030</dd>
+        </dl>
+
+        <div class="section">
+          <h4 class="is-editable" onclick="stackOpen('purchase')">Kaufdetails ✎</h4>
+          <dl class="kv">
+            <dt>Datum</dt><dd>15.04.2026</dd>
+            <dt>Preis</dt><dd>19,50 EUR</dd>
+            <dt>Größe</dt><dd>0,75 l</dd>
+          </dl>
+        </div>
+      </div>
+
+      <div class="stack-page" id="stack-producer">
+        <button class="back" onclick="stackClose()">← Zurück zur Flasche</button>
+        <h3>Weingut bearbeiten</h3>
+        <div class="producer">Wirkt auf alle Flaschen dieses Weinguts.</div>
+        <label>Weingut</label><input value="Bodegas Telmo Rodriguez Ribera del Duero" />
+        <label>Region</label><input value="Ribera del Duero" />
+        <div class="scope-warn" style="margin-top:14px;">Betrifft 14 Flaschen.</div>
+        <div class="btn-row"><button class="btn primary" onclick="stackClose()">Speichern</button><button class="btn" onclick="stackClose()">Abbrechen</button></div>
+      </div>
+
+      <div class="stack-page" id="stack-wine">
+        <button class="back" onclick="stackClose()">← Zurück zur Flasche</button>
+        <h3>Wein bearbeiten</h3>
+        <div class="producer">Wirkt auf alle Flaschen dieses Weins.</div>
+        <label>Wein-Name</label><input value="La Social" />
+        <label>Appellation</label><input value="Ribera del Duero DO" />
+        <label>Rebsorten</label><input value="Tempranillo 90%, Albillo, Garnacha, Valenciana" />
+        <div class="scope-warn" style="margin-top:14px;">Betrifft 14 Flaschen.</div>
+        <div class="btn-row"><button class="btn primary" onclick="stackClose()">Speichern</button><button class="btn" onclick="stackClose()">Abbrechen</button></div>
+      </div>
+
+      <div class="stack-page" id="stack-vintage">
+        <button class="back" onclick="stackClose()">← Zurück zur Flasche</button>
+        <h3>Jahrgang bearbeiten</h3>
+        <div class="producer">Wirkt auf alle Flaschen dieses Jahrgangs.</div>
+        <label>Jahr</label><input value="2021" />
+        <div class="row2"><div><label>Trinken ab</label><input value="2024" /></div><div><label>Trinken bis</label><input value="2030" /></div></div>
+        <label>Alkohol (%)</label><input value="14.5" />
+        <div class="scope-warn" style="margin-top:14px;">Betrifft 5 Flaschen.</div>
+        <div class="btn-row"><button class="btn primary" onclick="stackClose()">Speichern</button><button class="btn" onclick="stackClose()">Abbrechen</button></div>
+      </div>
+
+      <div class="stack-page" id="stack-purchase">
+        <button class="back" onclick="stackClose()">← Zurück zur Flasche</button>
+        <h3>Kauf bearbeiten</h3>
+        <div class="producer">Wirkt nur auf diese Charge.</div>
+        <label>Datum</label><input type="date" value="2026-04-15" />
+        <div class="row2"><div><label>Preis</label><input value="19.50" /></div><div><label>Währung</label><input value="EUR" /></div></div>
+        <label>Händler</label><input value="" />
+        <div class="btn-row"><button class="btn primary" onclick="stackClose()">Speichern</button><button class="btn" onclick="stackClose()">Abbrechen</button></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- popup (variant B) -->
+<div class="popup-backdrop" id="popup-backdrop" onclick="popupClose(event)">
+  <div class="popup" onclick="event.stopPropagation()">
+    <h2 id="popup-title">—</h2>
+    <div class="popup-sub" id="popup-sub">—</div>
+    <div id="popup-body"></div>
+    <div class="btn-row"><button class="btn primary" onclick="popupClose()">Speichern</button><button class="btn" onclick="popupClose()">Abbrechen</button></div>
+  </div>
+</div>
+
+<script>
+function show(which) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.variant').forEach(v => v.classList.remove('active'));
+  document.getElementById('variant-' + which).classList.add('active');
+}
+function toggleInline(which) {
+  const el = document.getElementById('inline-' + which);
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+function popup(which) {
+  const t = document.getElementById('popup-title');
+  const s = document.getElementById('popup-sub');
+  const b = document.getElementById('popup-body');
+  if (which === 'producer') {
+    t.textContent = 'Weingut bearbeiten';
+    s.textContent = 'Betrifft 14 Flaschen von Bodegas Telmo Rodriguez.';
+    b.innerHTML = `<label>Weingut</label><input value="Bodegas Telmo Rodriguez Ribera del Duero"/><label>Region</label><input value="Ribera del Duero"/>`;
+  } else if (which === 'wine') {
+    t.textContent = 'Wein bearbeiten';
+    s.textContent = 'Betrifft 14 Flaschen des Weins „La Social".';
+    b.innerHTML = `<label>Wein-Name</label><input value="La Social"/><label>Appellation</label><input value="Ribera del Duero DO"/><label>Rebsorten</label><input value="Tempranillo 90%, Albillo, Garnacha, Valenciana"/>`;
+  } else if (which === 'vintage') {
+    t.textContent = 'Jahrgang bearbeiten';
+    s.textContent = 'Betrifft 5 Flaschen des Jahrgangs 2021.';
+    b.innerHTML = `<label>Jahr</label><input value="2021"/><div class="row2"><div><label>Trinken ab</label><input value="2024"/></div><div><label>Trinken bis</label><input value="2030"/></div></div><label>Alkohol (%)</label><input value="14.5"/>`;
+  } else if (which === 'purchase') {
+    t.textContent = 'Kauf bearbeiten';
+    s.textContent = 'Wirkt nur auf diese Charge.';
+    b.innerHTML = `<label>Datum</label><input type="date" value="2026-04-15"/><div class="row2"><div><label>Preis</label><input value="19.50"/></div><div><label>Währung</label><input value="EUR"/></div></div><label>Händler</label><input value=""/>`;
+  }
+  document.getElementById('popup-backdrop').classList.add('open');
+}
+function popupClose(e) {
+  if (e && e.target.classList && !e.target.classList.contains('popup-backdrop')) return;
+  document.getElementById('popup-backdrop').classList.remove('open');
+}
+function stackOpen(which) {
+  document.getElementById('stack-root').style.display = 'none';
+  document.querySelectorAll('.stack-page').forEach(p => p.classList.remove('open'));
+  document.getElementById('stack-' + which).classList.add('open');
+}
+function stackClose() {
+  document.querySelectorAll('.stack-page').forEach(p => p.classList.remove('open'));
+  document.getElementById('stack-root').style.display = 'block';
+}
+</script>
+</body>
+</html>

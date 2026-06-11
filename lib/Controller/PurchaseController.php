@@ -67,6 +67,14 @@ class PurchaseController extends Controller {
 	}
 
 	#[NoAdminRequired]
+	public function vendors(): DataResponse {
+		if ($this->userId === null) {
+			return $this->unauthorized();
+		}
+		return new DataResponse($this->purchaseService->listVendors($this->userId));
+	}
+
+	#[NoAdminRequired]
 	public function index(int $vintageId): DataResponse {
 		if ($this->userId === null) {
 			return $this->unauthorized();
@@ -136,6 +144,8 @@ class PurchaseController extends Controller {
 			return new DataResponse(null, Http::STATUS_NO_CONTENT);
 		} catch (NotFoundException $e) {
 			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
+		} catch (ValidationException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_CONFLICT);
 		}
 	}
 

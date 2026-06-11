@@ -27,10 +27,122 @@ class DashboardService {
 			'gifted' => $this->countBottles($userId, 'gifted'),
 			'lost' => $this->countBottles($userId, 'lost'),
 			'parked' => $this->countParked($userId),
+			'shelfCount' => $this->countShelves($userId),
+			'producerCount' => $this->countEntities($userId, 'vinarium_producer', 'owner_user_id'),
+			'wineCount' => $this->countWines($userId),
+			'vintageCount' => $this->countVintages($userId),
+			'purchaseCount' => $this->countPurchases($userId),
 			'colorDistribution' => $this->colorDistribution($userId),
 			'drinkSoon' => $this->drinkSoon($userId),
 			'recentTastings' => $this->recentTastings($userId),
+			'recentActivity' => $this->recentActivity($userId, 5),
+			'topRated' => $this->ratedWines($userId, 'desc', 5),
+			'flopRated' => $this->ratedWines($userId, 'asc', 5),
 		];
+	}
+
+	private function countEntities(string $userId, string $table, string $ownerColumn): int {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select($qb->func()->count('id'))
+			->from($table)
+			->where($qb->expr()->eq($ownerColumn, $qb->createNamedParameter($userId)));
+		$result = $qb->executeQuery();
+		$count = (int)$result->fetchOne();
+		$result->closeCursor();
+		return $count;
+	}
+
+	private function countWines(string $userId): int {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select($qb->func()->count('w.id'))
+			->from('vinarium_wine', 'w')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)));
+		$result = $qb->executeQuery();
+		$count = (int)$result->fetchOne();
+		$result->closeCursor();
+		return $count;
+	}
+
+	private function countVintages(string $userId): int {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select($qb->func()->count('v.id'))
+			->from('vinarium_vintage', 'v')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)));
+		$result = $qb->executeQuery();
+		$count = (int)$result->fetchOne();
+		$result->closeCursor();
+		return $count;
+	}
+
+	private function countPurchases(string $userId): int {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select($qb->func()->count('pu.id'))
+			->from('vinarium_purchase', 'pu')
+			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)));
+		$result = $qb->executeQuery();
+		$count = (int)$result->fetchOne();
+		$result->closeCursor();
+		return $count;
+	}
+
+	/**
+	 * Aggregates AVG(rating) per (wine, vintage) over all tastings of the owner.
+	 * Returns the top or bottom N by avg, with ties broken by tasting_count DESC.
+	 * @return list<array{wine_id:int, wine_name:string, wine_color:string, vintage_id:int, year:int, producer_name:string, avg_rating:float, tasting_count:int}>
+	 */
+	private function ratedWines(string $userId, string $order, int $limit): array {
+		$orderDir = strtolower($order) === 'asc' ? 'ASC' : 'DESC';
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('w.id AS wine_id', 'w.name AS wine_name', 'w.color AS wine_color',
+				'v.id AS vintage_id', 'v.year', 'p.name AS producer_name')
+			->selectAlias($qb->createFunction('AVG(t.rating)'), 'avg_rating')
+			->selectAlias($qb->func()->count('t.id'), 'tasting_count')
+			->from('vinarium_tasting', 't')
+			->innerJoin('t', 'vinarium_bottle', 'b', 't.bottle_id = b.id')
+			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
+			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->isNotNull('t.rating'))
+			->groupBy('w.id', 'w.name', 'w.color', 'v.id', 'v.year', 'p.name')
+			->orderBy($qb->createFunction('AVG(t.rating)'), $orderDir)
+			->addOrderBy($qb->createFunction('COUNT(t.id)'), 'DESC')
+			->setMaxResults($limit);
+		$result = $qb->executeQuery();
+		$rows = [];
+		while ($row = $result->fetch()) {
+			$rows[] = [
+				'wine_id' => (int)$row['wine_id'],
+				'wine_name' => (string)$row['wine_name'],
+				'wine_color' => (string)$row['wine_color'],
+				'vintage_id' => (int)$row['vintage_id'],
+				'year' => (int)$row['year'],
+				'producer_name' => (string)$row['producer_name'],
+				'avg_rating' => (float)$row['avg_rating'],
+				'tasting_count' => (int)$row['tasting_count'],
+			];
+		}
+		$result->closeCursor();
+		return $rows;
+	}
+
+	private function countShelves(string $userId): int {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select($qb->func()->count('s.id'))
+			->from('vinarium_shelf', 's')
+			->innerJoin('s', 'vinarium_cellar', 'c', 's.cellar_id = c.id')
+			->where($qb->expr()->eq('c.owner_user_id', $qb->createNamedParameter($userId)));
+		$result = $qb->executeQuery();
+		$count = (int)$result->fetchOne();
+		$result->closeCursor();
+		return $count;
 	}
 
 	private function countBottles(string $userId, ?string $status = null): int {
@@ -93,31 +205,158 @@ class DashboardService {
 	/** @return list<array<string, mixed>> vintages with drink_until_year approaching */
 	private function drinkSoon(string $userId): array {
 		$currentYear = (int)date('Y');
+
+		// Group by wine + vintage + drink_until — slot_label kommt aus erstem Slot der Gruppe (per Aggregat)
 		$qb = $this->db->getQueryBuilder();
-		$qb->select('w.name AS wine_name', 'v.year', 'v.drink_until_year', 'p.name AS producer_name')
+		$qb->select('w.id AS wine_id', 'w.name AS wine_name', 'w.color AS wine_color',
+				'v.year', 'v.drink_until_year', 'p.name AS producer_name')
 			->selectAlias($qb->func()->count('b.id'), 'bottle_count')
+			->selectAlias($qb->func()->min('sh.name'), 'shelf_name')
+			->selectAlias($qb->func()->min('sl.row'), 'slot_row')
+			->selectAlias($qb->func()->min('sl.column'), 'slot_column')
+			->from('vinarium_bottle', 'b')
+			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
+			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->leftJoin('b', 'vinarium_slot', 'sl', 'b.slot_id = sl.id')
+			->leftJoin('sl', 'vinarium_compartment', 'co', 'sl.compartment_id = co.id')
+			->leftJoin('co', 'vinarium_shelf', 'sh', 'co.shelf_id = sh.id')
+			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->eq('b.status', $qb->createNamedParameter('in_storage')))
+			->andWhere($qb->expr()->isNotNull('v.drink_until_year'))
+			->andWhere($qb->expr()->lte('v.drink_until_year', $qb->createNamedParameter($currentYear + 1, IQueryBuilder::PARAM_INT)))
+			->groupBy('w.id', 'w.name', 'w.color', 'v.year', 'v.drink_until_year', 'p.name')
+			->orderBy('v.drink_until_year', 'ASC')
+			->setMaxResults(10);
+		$result = $qb->executeQuery();
+		$rows = [];
+		while ($row = $result->fetch()) {
+			$shelf = $row['shelf_name'] ?? null;
+			$slotRow = $row['slot_row'] ?? null;
+			$slotCol = $row['slot_column'] ?? null;
+			$slotLabel = null;
+			if ($shelf !== null && $slotRow !== null && $slotCol !== null) {
+				$slotLabel = $shelf . ' ' . $slotRow . $slotCol;
+			}
+			$rows[] = [
+				'wine_id' => (int)$row['wine_id'],
+				'wine_name' => $row['wine_name'],
+				'wine_color' => $row['wine_color'],
+				'producer_name' => $row['producer_name'],
+				'year' => (int)$row['year'],
+				'drink_until_year' => (int)$row['drink_until_year'],
+				'bottle_count' => (int)$row['bottle_count'],
+				'slot_label' => $slotLabel,
+			];
+		}
+		$result->closeCursor();
+		return $rows;
+	}
+
+	/**
+	 * Recent activity stream: purchases, tastings, gifted/lost events, merged + sorted DESC.
+	 * @return list<array{type: string, date: string, label: string, refs: array<string, mixed>}>
+	 */
+	private function recentActivity(string $userId, int $limit): array {
+		$events = [];
+
+		// Käufe — pro Purchase ein Event mit Anzahl Flaschen
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('pu.id', 'pu.purchased_at', 'w.id AS wine_id', 'w.name AS wine_name',
+				'w.color AS wine_color', 'p.name AS producer_name', 'v.year')
+			->selectAlias($qb->func()->count('b.id'), 'bottle_count')
+			->from('vinarium_purchase', 'pu')
+			->innerJoin('pu', 'vinarium_bottle', 'b', 'b.purchase_id = pu.id')
+			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)))
+			->groupBy('pu.id', 'pu.purchased_at', 'w.id', 'w.name', 'w.color', 'p.name', 'v.year')
+			->orderBy('pu.purchased_at', 'DESC')
+			->setMaxResults($limit);
+		$result = $qb->executeQuery();
+		while ($row = $result->fetch()) {
+			$events[] = [
+				'type' => 'purchase',
+				'date' => $row['purchased_at'],
+				'label' => $row['bottle_count'] . '× ' . $row['wine_name'] . ' ' . $row['year'],
+				'refs' => [
+					'wine_id' => (int)$row['wine_id'],
+					'wine_color' => $row['wine_color'],
+					'producer_name' => $row['producer_name'],
+				],
+			];
+		}
+		$result->closeCursor();
+
+		// Verkostungen
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('t.id', 't.tasted_at', 'w.id AS wine_id', 'w.name AS wine_name',
+				'w.color AS wine_color', 'p.name AS producer_name', 'v.year')
+			->from('vinarium_tasting', 't')
+			->innerJoin('t', 'vinarium_bottle', 'b', 't.bottle_id = b.id')
+			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
+			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)))
+			->orderBy('t.tasted_at', 'DESC')
+			->setMaxResults($limit);
+		$result = $qb->executeQuery();
+		while ($row = $result->fetch()) {
+			$events[] = [
+				'type' => 'tasting',
+				'date' => $row['tasted_at'],
+				'label' => $row['wine_name'] . ' ' . $row['year'],
+				'refs' => [
+					'tasting_id' => (int)$row['id'],
+					'wine_color' => $row['wine_color'],
+					'producer_name' => $row['producer_name'],
+				],
+			];
+		}
+		$result->closeCursor();
+
+		// Geschenke / Verluste (Bottle-Status-Events mit event_date)
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('b.id', 'b.status', 'b.event_date', 'b.event_recipient', 'w.name AS wine_name',
+				'w.color AS wine_color', 'p.name AS producer_name', 'v.year')
 			->from('vinarium_bottle', 'b')
 			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
 			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
 			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
 			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
 			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)))
-			->andWhere($qb->expr()->eq('b.status', $qb->createNamedParameter('in_storage')))
-			->andWhere($qb->expr()->isNotNull('v.drink_until_year'))
-			->andWhere($qb->expr()->lte('v.drink_until_year', $qb->createNamedParameter($currentYear + 1, IQueryBuilder::PARAM_INT)))
-			->groupBy('w.name', 'v.year', 'v.drink_until_year', 'p.name')
-			->orderBy('v.drink_until_year', 'ASC')
-			->setMaxResults(10);
+			->andWhere($qb->expr()->in('b.status', $qb->createNamedParameter(['gifted', 'lost'], IQueryBuilder::PARAM_STR_ARRAY)))
+			->andWhere($qb->expr()->isNotNull('b.event_date'))
+			->orderBy('b.event_date', 'DESC')
+			->setMaxResults($limit);
 		$result = $qb->executeQuery();
-		$rows = $result->fetchAll();
+		while ($row = $result->fetch()) {
+			$events[] = [
+				'type' => $row['status'], // 'gifted' | 'lost'
+				'date' => $row['event_date'],
+				'label' => $row['wine_name'] . ' ' . $row['year']
+					. ($row['event_recipient'] ? ' → ' . $row['event_recipient'] : ''),
+				'refs' => [
+					'bottle_id' => (int)$row['id'],
+					'wine_color' => $row['wine_color'],
+					'producer_name' => $row['producer_name'],
+				],
+			];
+		}
 		$result->closeCursor();
-		return $rows;
+
+		// Merge + sort DESC by date, limit
+		usort($events, fn(array $a, array $b) => strcmp((string)$b['date'], (string)$a['date']));
+		return array_slice($events, 0, $limit);
 	}
 
 	/** @return list<array<string, mixed>> */
 	private function recentTastings(string $userId): array {
 		$qb = $this->db->getQueryBuilder();
-		$qb->select('t.tasted_at', 't.rating', 't.notes', 'w.name AS wine_name', 'v.year', 'p.name AS producer_name')
+		$qb->select('t.tasted_at', 't.rating', 't.notes', 'w.name AS wine_name', 'w.color AS wine_color', 'v.year', 'p.name AS producer_name')
 			->from('vinarium_tasting', 't')
 			->innerJoin('t', 'vinarium_bottle', 'b', 't.bottle_id = b.id')
 			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')

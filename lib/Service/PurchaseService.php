@@ -31,6 +31,11 @@ class PurchaseService {
 		return $this->purchaseMapper->findAllByOwner($userId);
 	}
 
+	/** @return list<string> */
+	public function listVendors(string $userId): array {
+		return $this->purchaseMapper->findDistinctVendorsByOwner($userId);
+	}
+
 	/** @return Purchase[] */
 	public function listByVintage(int $vintageId, string $userId): array {
 		$this->vintageService->get($vintageId, $userId);
@@ -89,6 +94,12 @@ class PurchaseService {
 
 	public function delete(int $id, string $userId): Purchase {
 		$purchase = $this->get($id, $userId);
+		$bottleCount = $this->purchaseMapper->countBottlesForPurchase($id);
+		if ($bottleCount > 0) {
+			throw new ValidationException(
+				"{$bottleCount} Flasche(n) sind diesem Kauf zugeordnet. Erst die Flaschen entsorgen, verschenken oder trinken, bevor der Kauf gelöscht wird."
+			);
+		}
 		return $this->purchaseMapper->delete($purchase);
 	}
 

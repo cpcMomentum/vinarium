@@ -49,12 +49,13 @@
 						<label class="field"><span>{{ t('vinarium', 'Appellation') }}</span><input v-model="form2.appellation" :disabled="isPicked2" class="input" :placeholder="t('vinarium', 'z. B. Saint-Émilion GC')" /></label>
 					</div>
 					<label class="field"><span>{{ t('vinarium', 'Barcode') }}</span><input v-model="form2.barcode" :disabled="isPicked2" class="input" /></label>
-					<label class="field"><span>{{ t('vinarium', 'Notizen zur Cuvée') }}</span><textarea v-model="form2.notes" :disabled="isPicked2" class="input" rows="2" /></label>
+					<label class="field"><span>{{ t('vinarium', 'Notizen zur Cuvée') }}</span><textarea v-model="form2.notes" :disabled="isPicked2" class="input" rows="2" :placeholder="t('vinarium', 'z. B. tanninbetonter Saint-Émilion, klassischer Bordeaux-Stil')" /></label>
 				</fieldset>
 			</section>
 
 			<!-- Step 3: Vintage -->
 			<section v-else-if="step === 3" class="wizard__section">
+				<p class="hint">{{ t('vinarium', 'Hier landen nur Angaben, die diesen Jahrgang betreffen — Wetter/Lese, jahrgangsspezifische Bewertungen, Trinkfenster. Allgemeines zur Cuvée gehört in Schritt 2.') }}</p>
 				<label v-if="vintagesForWine.length > 0" class="field">
 					<span>{{ t('vinarium', 'Bestehender Jahrgang') }}</span>
 					<select v-model.number="vintageId" class="input">
@@ -66,7 +67,7 @@
 				<fieldset class="fieldset">
 					<div class="field-row">
 						<label class="field"><span>{{ t('vinarium', 'Jahr *') }}</span><input v-model.number="form3.year" :disabled="isPicked3" type="number" class="input" /></label>
-						<label class="field"><span>{{ t('vinarium', 'Alkohol %') }}</span><input v-model.number="form3.alcoholPercent" :disabled="isPicked3" type="number" step="0.1" class="input" :placeholder="t('vinarium', 'z. B. 92')" /></label>
+						<label class="field"><span>{{ t('vinarium', 'Alkohol %') }}</span><input v-model.number="form3.alcoholPercent" :disabled="isPicked3" type="number" step="0.1" class="input" :placeholder="t('vinarium', 'z. B. 13,5')" /></label>
 					</div>
 					<label class="field">
 						<span>{{ t('vinarium', 'Rebsorten (jahrgangsspezifisch)') }}</span>
@@ -81,7 +82,7 @@
 						<label class="field"><span>{{ t('vinarium', 'Quelle') }}</span><input v-model="form3.externalRatingSource" :disabled="isPicked3" class="input" :placeholder="t('vinarium', 'z. B. Parker')" /></label>
 					</div>
 					<label class="field"><span>{{ t('vinarium', 'Referenz-URL') }}</span><input v-model="form3.referenceUrl" :disabled="isPicked3" class="input" /></label>
-					<label class="field"><span>{{ t('vinarium', 'Beschreibung') }}</span><textarea v-model="form3.description" :disabled="isPicked3" class="input" rows="2" /></label>
+					<label class="field"><span>{{ t('vinarium', 'Jahrgangsnotizen') }}</span><textarea v-model="form3.description" :disabled="isPicked3" class="input" rows="2" :placeholder="t('vinarium', 'z. B. trockener Sommer 2019, sehr konzentrierte Lese')" /></label>
 				</fieldset>
 			</section>
 
@@ -99,7 +100,12 @@
 								<option v-for="size in BOTTLE_SIZES" :key="size" :value="size">{{ t('vinarium', BOTTLE_SIZE_LABELS[size]) }}</option>
 							</select>
 						</label>
-						<label class="field"><span>{{ t('vinarium', 'Händler') }}</span><input v-model="form4.vendor" class="input" :placeholder="t('vinarium', 'z. B. Weinhandlung Müller')" /></label>
+						<label class="field"><span>{{ t('vinarium', 'Händler') }}</span>
+							<input v-model="form4.vendor" class="input" list="vinarium-vendor-list" :placeholder="t('vinarium', 'z. B. Weinhandlung Müller')" />
+							<datalist id="vinarium-vendor-list">
+								<option v-for="v in knownVendors" :key="v" :value="v" />
+							</datalist>
+						</label>
 					</div>
 					<div class="field-row">
 						<label class="field"><span>{{ t('vinarium', 'Stückpreis') }}</span><input v-model.number="form4.unitPrice" type="number" step="0.01" class="input" /></label>
@@ -113,10 +119,42 @@
 						</label>
 					</div>
 					<label class="field"><span>{{ t('vinarium', 'Notizen') }}</span><textarea v-model="form4.notes" class="input" rows="2" /></label>
+
+					<!-- Optionales Etiketten-Foto für alle Flaschen dieses Kaufs -->
+					<div class="photo-capture">
+						<div class="photo-capture__head">
+							<span class="photo-capture__label">{{ t('vinarium', 'Etiketten-Foto') }}</span>
+							<span class="photo-capture__hint">{{ t('vinarium', 'optional — wird allen Flaschen dieses Kaufs zugeordnet') }}</span>
+						</div>
+						<div class="photo-capture__body">
+							<img v-if="photoPreviewUrl" :src="photoPreviewUrl" class="photo-capture__preview" alt="" />
+							<label class="photo-capture__btn">
+								<input
+									type="file"
+									accept="image/*"
+									capture="environment"
+									class="photo-capture__input"
+									@change="onPhotoSelected"
+								/>
+								<CameraIcon :size="18" />
+								<span>{{ photoFile ? t('vinarium', 'Foto ersetzen') : t('vinarium', '📷 Foto aufnehmen') }}</span>
+							</label>
+							<NcButton v-if="photoFile" variant="tertiary" @click="clearPhoto">
+								{{ t('vinarium', 'Entfernen') }}
+							</NcButton>
+						</div>
+					</div>
 				</fieldset>
 			</section>
 
 			<p v-if="errorMsg" class="error">{{ errorMsg }}</p>
+
+			<PhotoCropDialog
+				:open="cropOpen"
+				:file="cropSourceFile"
+				@close="onCropCancel"
+				@confirm="onCropConfirm"
+			/>
 
 			<div class="wizard__actions">
 				<NcButton @click="cancel">{{ t('vinarium', 'Abbrechen') }}</NcButton>
@@ -139,7 +177,10 @@ import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { BOTTLE_SIZES, BOTTLE_SIZE_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleSizeMl, type WineColor } from '@/types/api'
 import { useWineStore } from '@/stores/wineStore'
-import { createPurchaseViaWizard } from '@/api/purchases'
+import { createPurchaseViaWizard, listVendors } from '@/api/purchases'
+import { uploadBottlePhoto } from '@/api/bottles'
+import CameraIcon from 'vue-material-design-icons/Camera.vue'
+import PhotoCropDialog from '@/components/PhotoCropDialog.vue'
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{
@@ -151,6 +192,39 @@ const store = useWineStore()
 const step = ref(1)
 const saving = ref(false)
 const errorMsg = ref('')
+
+const photoFile = ref<File | null>(null)
+const photoPreviewUrl = ref<string | null>(null)
+const cropOpen = ref(false)
+const cropSourceFile = ref<File | null>(null)
+
+function onPhotoSelected(event: Event) {
+	const target = event.target as HTMLInputElement
+	const file = target.files?.[0]
+	if (!file) return
+	cropSourceFile.value = file
+	cropOpen.value = true
+	target.value = ''
+}
+
+function onCropCancel() {
+	cropOpen.value = false
+	cropSourceFile.value = null
+}
+
+function onCropConfirm(file: File) {
+	cropOpen.value = false
+	cropSourceFile.value = null
+	photoFile.value = file
+	if (photoPreviewUrl.value) URL.revokeObjectURL(photoPreviewUrl.value)
+	photoPreviewUrl.value = URL.createObjectURL(file)
+}
+
+function clearPhoto() {
+	if (photoPreviewUrl.value) URL.revokeObjectURL(photoPreviewUrl.value)
+	photoPreviewUrl.value = null
+	photoFile.value = null
+}
 
 const producerId = ref<number | null>(null)
 const wineId = ref<number | null>(null)
@@ -210,6 +284,8 @@ const isValidPurchase = computed(() =>
 
 // --- watchers: populate form from picked entity, clear on deselect ---
 
+const knownVendors = ref<string[]>([])
+
 watch(() => props.open, async (isOpen) => {
 	if (isOpen) {
 		step.value = 1
@@ -217,10 +293,17 @@ watch(() => props.open, async (isOpen) => {
 		wineId.value = null
 		vintageId.value = null
 		errorMsg.value = ''
+		clearPhoto()
 		resetForm1()
 		resetForm2()
 		resetForm3()
 		await store.fetchProducers()
+		try {
+			knownVendors.value = await listVendors()
+		} catch (e) {
+			console.error('Vendor list error:', e)
+			knownVendors.value = []
+		}
 	}
 }, { immediate: true })
 
@@ -332,7 +415,20 @@ async function complete() {
 				notes: form4.value.notes || null,
 			},
 		})
+		// Optionales Etiketten-Foto: für jede neu angelegte Flasche hochladen.
+		// Best-effort — Upload-Fehler dürfen den Wizard nicht blockieren, aber wir loggen sie.
+		if (photoFile.value && result.bottles.length > 0) {
+			const results = await Promise.allSettled(
+				result.bottles.map(b => uploadBottlePhoto(b.id, photoFile.value as File))
+			)
+			const failed = results.filter(r => r.status === 'rejected')
+			if (failed.length > 0) {
+				console.error(`Photo upload failed for ${failed.length}/${result.bottles.length} bottles:`, failed)
+			}
+		}
+
 		emit('complete', { purchaseId: result.purchase.id, bottleCount: result.bottles.length })
+		clearPhoto()
 		emit('close')
 	} catch (e: any) {
 		errorMsg.value = e?.message ?? t('vinarium', 'Kauf konnte nicht erfasst werden')
@@ -343,6 +439,60 @@ async function complete() {
 </script>
 
 <style scoped>
+/* Foto-Capture-Block in Step 4 */
+.photo-capture {
+	margin-top: 14px;
+	padding: 12px;
+	background: var(--color-background-hover);
+	border-radius: var(--border-radius, 8px);
+}
+.photo-capture__head {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	margin-bottom: 10px;
+}
+.photo-capture__label {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--color-main-text);
+}
+.photo-capture__hint {
+	font-size: 12px;
+	color: var(--color-text-maxcontrast);
+}
+.photo-capture__body {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+.photo-capture__preview {
+	width: 80px;
+	height: 80px;
+	object-fit: cover;
+	border-radius: 6px;
+	border: 1px solid var(--color-border);
+}
+.photo-capture__btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 8px 14px;
+	background: var(--color-primary-element, #0082c9);
+	color: #fff;
+	font-size: 13px;
+	font-weight: 600;
+	border-radius: var(--border-radius-element, 8px);
+	cursor: pointer;
+}
+.photo-capture__btn:hover {
+	background: var(--color-primary-element-hover, #006aa3);
+}
+.photo-capture__input {
+	display: none;
+}
+
 .wizard {
 	padding: 2rem;
 	min-width: 520px;

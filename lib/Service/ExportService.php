@@ -85,7 +85,9 @@ class ExportService {
 		if ($value === null || $value === '') {
 			return '';
 		}
-		if (str_contains($value, ';') || str_contains($value, '"') || str_contains($value, "\n")) {
+		// Quote if contains delimiter, quotes, newlines, or starts with a formula-injection char (=+-@\t\r)
+		if (str_contains($value, ';') || str_contains($value, '"') || str_contains($value, "\n")
+			|| preg_match('/^[=+\-@\t\r]/', $value)) {
 			return '"' . str_replace('"', '""', $value) . '"';
 		}
 		return $value;
