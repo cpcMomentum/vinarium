@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<title>Vinarium #132 v1 — Weine ⊕ Jahrgänge, Trinkfenster sichtbar</title>
+<style>
+:root {
+  --color-main-background: #fff;
+  --color-main-text: #222;
+  --color-text-maxcontrast: #6c6c6c;
+  --color-border: #d2d4d7;
+  --color-background-hover: #f3f4f6;
+  --color-background-dark: #ededef;
+  --color-primary-element: #0082c9;
+  --color-primary-element-light: #e8f0fe;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  color: var(--color-main-text);
+  background: #ecedf0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.demo-bar { background: #2d2d2d; color: white; padding: 14px 22px; }
+.demo-bar h1 { margin: 0 0 4px 0; font-size: 15px; }
+.demo-bar p { margin: 0; font-size: 12px; color: #bbb; }
+.demo-bar code { background: #444; padding: 2px 6px; border-radius: 3px; font-size: 11px; }
+
+.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; padding: 22px; align-items: start; }
+
+.variant {
+  background: white; border: 1px solid var(--color-border); border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.variant-head { padding: 12px 18px; border-bottom: 1px solid var(--color-border); }
+.variant-head h2 { margin: 0; font-size: 14px; font-weight: 700; }
+.variant-head .desc { margin: 6px 0 0 0; font-size: 12px; color: var(--color-text-maxcontrast); }
+
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; padding: 9px 12px; color: var(--color-text-maxcontrast); font-weight: 600; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid var(--color-border); background: #fafafa; }
+th.r { text-align: right; }
+td { padding: 9px 12px; border-bottom: 1px solid #eee; vertical-align: middle; }
+td.r { text-align: right; }
+tr:hover { background: var(--color-background-hover); cursor: pointer; }
+
+.dot {
+  display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+  background: #762228; margin-right: 8px; vertical-align: middle;
+}
+.dot.white { background: #ead884; }
+.dot.rose { background: #c8757b; }
+
+/* Variant A — grouped (wine header row + vintage sub-rows) */
+tr.wine-head td {
+  background: #f7f8fa;
+  padding-top: 14px; padding-bottom: 6px;
+  font-weight: 700;
+  border-top: 1px solid var(--color-border);
+  border-bottom: none;
+}
+tr.wine-head td .subline {
+  font-weight: 400; font-size: 12px; color: var(--color-text-maxcontrast); margin-left: 8px;
+}
+tr.vintage-row td:first-child { padding-left: 30px; }
+tr.vintage-row td:first-child::before {
+  content: '↳'; color: var(--color-text-maxcontrast); font-size: 11px; margin-right: 4px;
+}
+
+/* Variant B — flat with sticky wine name on first row */
+tr.first-of-wine td {
+  border-top: 1px solid var(--color-border);
+}
+tr.first-of-wine td.wine-name { font-weight: 700; }
+tr.repeat-wine td.wine-name { color: transparent; }
+
+/* Trinkfenster cell */
+.tw {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.tw .badge {
+  display: inline-flex; align-items: center;
+  padding: 1px 7px; border-radius: 10px;
+  font-size: 10.5px; font-weight: 600;
+}
+.tw .badge.future { background: #fff5e0; color: #8a5a00; }
+.tw .badge.active { background: #e6f4e8; color: #1e6b2a; }
+.tw .badge.past { background: #fce8e8; color: #8a2828; }
+
+.actions { color: var(--color-text-maxcontrast); }
+.actions:hover { color: var(--color-main-text); }
+
+.pros-cons {
+  background: #fafafa; padding: 10px 18px; font-size: 12px;
+  border-top: 1px solid var(--color-border);
+}
+.pros-cons div { margin: 2px 0; }
+.pros-cons .plus { color: #2e7d32; }
+.pros-cons .minus { color: #c62828; }
+</style>
+</head>
+<body>
+
+<div class="demo-bar">
+  <h1>#132 Mockup v1 — Jahrgänge-Tab raus, Weine als Wein × Jahrgang-View + Trinkfenster sichtbar</h1>
+  <p>Zwei Darstellungs-Varianten. Klick auf eine Zeile soll später das Detail-Modal aus #131 öffnen — Wein-Header öffnet Reiter „Wein", Jahrgangs-Zeile öffnet Reiter „Jahrgang". Trinkfenster mit Status-Badge:  <code>noch nicht offen</code> · <code>trinkbereit</code> · <code>Höhepunkt vorbei</code>.</p>
+</div>
+
+<div class="grid">
+
+  <!-- ===== A · Grouped ===== -->
+  <div class="variant">
+    <div class="variant-head">
+      <h2>A · Gruppiert (Wein-Header + Sub-Zeilen)</h2>
+      <p class="desc">Pro Wein eine Header-Zeile (grau hinterlegt), darunter die Jahrgänge eingerückt mit Pfeil. Klick auf den Header → Wein-Edit. Klick auf eine Sub-Zeile → Jahrgang-Edit.</p>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Wein · Jahrgang</th>
+          <th>Weingut / Farbe</th>
+          <th>Trinkfenster</th>
+          <th class="r">Alkohol</th>
+          <th class="r">★</th>
+          <th class="r">Flaschen</th>
+          <th class="r"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="wine-head"><td colspan="7"><span class="dot"></span>La Social <span class="subline">Bodegas Telmo Rodriguez Ribera del Duero · Rot</span></td></tr>
+        <tr class="vintage-row"><td>2021</td><td>Ribera del Duero DO</td><td><span class="tw"><span class="badge active">trinkbereit</span> 2024 – 2030</span></td><td class="r">14,5 %</td><td class="r">8.3</td><td class="r">5</td><td class="r actions">⋯</td></tr>
+
+        <tr class="wine-head"><td colspan="7"><span class="dot"></span>Castillon Côtes de Bordeaux <span class="subline">Chateau Clos Louie · Rot</span></td></tr>
+        <tr class="vintage-row"><td>2020</td><td>Castillon Côtes de Bordeaux AOC</td><td><span class="tw"><span class="badge active">trinkbereit</span> 2022 – 2028</span></td><td class="r">13,5 %</td><td class="r">—</td><td class="r">7</td><td class="r actions">⋯</td></tr>
+        <tr class="vintage-row"><td>2018</td><td>Castillon Côtes de Bordeaux AOC</td><td><span class="tw"><span class="badge past">Höhepunkt vorbei</span> 2020 – 2024</span></td><td class="r">13,5 %</td><td class="r">8.8</td><td class="r">3</td><td class="r actions">⋯</td></tr>
+
+        <tr class="wine-head"><td colspan="7"><span class="dot"></span>Morgon Cuvée Marcel <span class="subline">Domaine Marcel Lapierre · Rot</span></td></tr>
+        <tr class="vintage-row"><td>2020</td><td>Morgon AOC</td><td><span class="tw"><span class="badge active">trinkbereit</span> 2022 – 2027</span></td><td class="r">13,0 %</td><td class="r">—</td><td class="r">3</td><td class="r actions">⋯</td></tr>
+        <tr class="vintage-row"><td>2019</td><td>Morgon AOC</td><td><span class="tw"><span class="badge active">trinkbereit</span> 2021 – 2026</span></td><td class="r">13,0 %</td><td class="r">8.3</td><td class="r">2</td><td class="r actions">⋯</td></tr>
+
+        <tr class="wine-head"><td colspan="7"><span class="dot white"></span>Grande Cuvée Édition 170 <span class="subline">Krug · Champagne</span></td></tr>
+        <tr class="vintage-row"><td>2020</td><td>Champagne AOC</td><td><span class="tw"><span class="badge active">trinkbereit</span> jederzeit</span></td><td class="r">12,0 %</td><td class="r">9.3</td><td class="r">1</td><td class="r actions">⋯</td></tr>
+
+        <tr class="wine-head"><td colspan="7"><span class="dot"></span>Sassicaia <span class="subline">Tenuta San Guido · Rot</span></td></tr>
+        <tr class="vintage-row"><td>2017</td><td>Toskana IGT</td><td><span class="tw"><span class="badge future">noch nicht offen</span> ab 2027</span></td><td class="r">14,0 %</td><td class="r">—</td><td class="r">2</td><td class="r actions">⋯</td></tr>
+      </tbody>
+    </table>
+    <div class="pros-cons">
+      <div class="plus">+ Wein als Konzept klar: 1 Header pro Wein, darunter die Jahrgänge</div>
+      <div class="plus">+ Spaltenbreiten konsistent, einfach zu scannen</div>
+      <div class="minus">– Bei Weinen mit nur 1 Jahrgang wirkt der Header redundant</div>
+    </div>
+  </div>
+
+  <!-- ===== B · Flat with sticky wine name ===== -->
+  <div class="variant">
+    <div class="variant-head">
+      <h2>B · Flach (Wein-Name nur in erster Zeile)</h2>
+      <p class="desc">Eine Zeile pro Wein × Jahrgang. Wein-Name in der ersten Zeile fett, in Folgezeilen leer (= „dito"). Trennlinien nur zwischen Weinen.</p>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Wein</th>
+          <th>Weingut</th>
+          <th>Jahr</th>
+          <th>Trinkfenster</th>
+          <th class="r">Alkohol</th>
+          <th class="r">★</th>
+          <th class="r">Flaschen</th>
+          <th class="r"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="first-of-wine"><td class="wine-name"><span class="dot"></span>La Social</td><td>Bodegas Telmo Rodriguez</td><td>2021</td><td><span class="tw"><span class="badge active">trinkbereit</span> 2024 – 2030</span></td><td class="r">14,5 %</td><td class="r">8.3</td><td class="r">5</td><td class="r actions">⋯</td></tr>
+
+        <tr class="first-of-wine"><td class="wine-name"><span class="dot"></span>Castillon Côtes de Bordeaux</td><td>Chateau Clos Louie</td><td>2020</td><td><span class="tw"><span class="badge active">trinkbereit</span> 2022 – 2028</span></td><td class="r">13,5 %</td><td class="r">—</td><td class="r">7</td><td class="r actions">⋯</td></tr>
+        <tr class="repeat-wine"><td class="wine-name"><span class="dot"></span>Castillon Côtes de Bordeaux</td><td>Chateau Clos Louie</td><td>2018</td><td><span class="tw"><span class="badge past">Höhepunkt vorbei</span> 2020 – 2024</span></td><td class="r">13,5 %</td><td class="r">8.8</td><td class="r">3</td><td class="r actions">⋯</td></tr>
+
+        <tr class="first-of-wine"><td class="wine-name"><span class="dot"></span>Morgon Cuvée Marcel</td><td>Domaine Marcel Lapierre</td><td>2020</td><td><span class="tw"><span class="badge active">trinkbereit</span> 2022 – 2027</span></td><td class="r">13,0 %</td><td class="r">—</td><td class="r">3</td><td class="r actions">⋯</td></tr>
+        <tr class="repeat-wine"><td class="wine-name"><span class="dot"></span>Morgon Cuvée Marcel</td><td>Domaine Marcel Lapierre</td><td>2019</td><td><span class="tw"><span class="badge active">trinkbereit</span> 2021 – 2026</span></td><td class="r">13,0 %</td><td class="r">8.3</td><td class="r">2</td><td class="r actions">⋯</td></tr>
+
+        <tr class="first-of-wine"><td class="wine-name"><span class="dot white"></span>Grande Cuvée Édition 170</td><td>Krug</td><td>2020</td><td><span class="tw"><span class="badge active">trinkbereit</span> jederzeit</span></td><td class="r">12,0 %</td><td class="r">9.3</td><td class="r">1</td><td class="r actions">⋯</td></tr>
+
+        <tr class="first-of-wine"><td class="wine-name"><span class="dot"></span>Sassicaia</td><td>Tenuta San Guido</td><td>2017</td><td><span class="tw"><span class="badge future">noch nicht offen</span> ab 2027</span></td><td class="r">14,0 %</td><td class="r">—</td><td class="r">2</td><td class="r actions">⋯</td></tr>
+      </tbody>
+    </table>
+    <div class="pros-cons">
+      <div class="plus">+ Jede Zeile ist self-contained (alle Infos sichtbar)</div>
+      <div class="plus">+ Sortier- und filterbar wie eine normale Tabelle</div>
+      <div class="minus">– Wein-Name visuell doppelt vorhanden (auch wenn ausgegraut)</div>
+      <div class="minus">– Bei vielen Jahrgängen pro Wein wirkt die Liste länger</div>
+    </div>
+  </div>
+
+</div>
+
+<div style="padding: 0 22px 30px; color: #555; font-size: 13px;">
+  <p><b>Trinkfenster-Logik</b> (Status-Badge):
+    <span class="tw" style="margin: 0 6px;"><span class="badge future">noch nicht offen</span></span> wenn <code>drink_from_year &gt; aktuelles Jahr</code> ·
+    <span class="tw" style="margin: 0 6px;"><span class="badge active">trinkbereit</span></span> wenn aktuell im Fenster ·
+    <span class="tw" style="margin: 0 6px;"><span class="badge past">Höhepunkt vorbei</span></span> wenn <code>drink_until_year &lt; aktuelles Jahr</code>.
+  </p>
+  <p><b>Edit-Flow</b>: Klick auf eine Zeile (Wein-Header oder Jahrgang) öffnet das bestehende Detail-Modal aus #131 mit dem passenden Reiter aktiv. Für #132-Scope reicht aber auch das einfache EntityEditModal — entscheiden wir gemeinsam.</p>
+  <p><b>Mein Vorschlag</b>: <b>A · Gruppiert</b>. Wein als Konzept ist deutlich, die Jahrgänge sind klar untergeordnet — das spiegelt deine Datenstruktur. Variante B ist OK wenn du sortieren willst (z.B. nach „nächstes Trinkfenster" über alle Weine).</p>
+</div>
+
+</body>
+</html>

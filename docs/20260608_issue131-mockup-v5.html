@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<title>Vinarium #131 v5 — H · NcAppSidebar vs. J · Master-Detail</title>
+<style>
+:root {
+  --color-main-background: #fff;
+  --color-main-text: #222;
+  --color-text-maxcontrast: #6c6c6c;
+  --color-border: #d2d4d7;
+  --color-background-hover: #f3f4f6;
+  --color-background-dark: #ededef;
+  --color-primary-element: #0082c9;
+  --color-primary-element-light: #e8f0fe;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  color: var(--color-main-text);
+  background: #ecedf0;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+.demo-bar {
+  background: #2d2d2d; color: white; padding: 14px 20px;
+  display: flex; align-items: center; gap: 16px;
+}
+.demo-bar h1 { margin: 0; font-size: 15px; }
+.demo-bar p { margin: 0; font-size: 12px; color: #bbb; flex: 1; }
+.demo-bar .switch { display: flex; gap: 6px; }
+.demo-bar .switch button {
+  background: #424242; color: #ddd; border: 1px solid #555;
+  padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;
+}
+.demo-bar .switch button.active { background: var(--color-primary-element); color: white; border-color: var(--color-primary-element); }
+
+.view { display: none; }
+.view.active { display: block; }
+
+/* Shared NC header strip */
+.nc-strip {
+  height: 50px;
+  background: var(--color-primary-element);
+  display: flex; align-items: center; padding: 0 16px;
+  color: white; font-size: 13px;
+}
+
+/* Inventory list shared */
+.list {
+  font-family: inherit;
+}
+.list table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.list th { color: var(--color-text-maxcontrast); font-weight: 600; font-size: 11px; text-transform: uppercase; text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--color-border); }
+.list td { padding: 9px 10px; border-bottom: 1px solid #eee; }
+.list tr.selected { background: var(--color-primary-element-light); }
+.list tr:hover { background: var(--color-background-hover); cursor: pointer; }
+.tile { display: inline-block; width: 24px; height: 24px; border-radius: 4px; background: linear-gradient(135deg, #762228, #5a1820); vertical-align: middle; margin-right: 8px; }
+.tile--white { background: linear-gradient(135deg, #ead884, #c4b056); }
+.chip { display: inline-block; background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 500; }
+
+/* ===== H: NcAppSidebar style ===== */
+.h-layout {
+  display: flex; flex-direction: column;
+  height: 100vh;
+}
+.h-body { flex: 1; display: flex; min-height: 0; }
+.h-main { flex: 1; padding: 20px 24px; overflow: auto; background: white; }
+.h-main h2 { margin: 0 0 14px 0; font-size: 16px; }
+.h-sidebar {
+  width: 500px; flex-shrink: 0;
+  background: white;
+  border-left: 1px solid var(--color-border);
+  display: flex; flex-direction: column;
+  box-shadow: -4px 0 12px rgba(0,0,0,0.04);
+}
+
+/* ===== J: Master-Detail ===== */
+.j-layout {
+  display: flex; flex-direction: column;
+  height: 100vh;
+}
+.j-body { flex: 1; display: flex; min-height: 0; }
+.j-master {
+  width: 340px; flex-shrink: 0;
+  background: white;
+  border-right: 1px solid var(--color-border);
+  overflow: auto;
+  padding: 12px;
+}
+.j-master .compact-row {
+  padding: 10px 12px; border-bottom: 1px solid #eee;
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer;
+}
+.j-master .compact-row:hover { background: var(--color-background-hover); }
+.j-master .compact-row.selected {
+  background: var(--color-primary-element-light);
+  border-left: 3px solid var(--color-primary-element);
+  padding-left: 9px;
+}
+.j-master .compact-row .name { font-size: 13px; font-weight: 600; flex: 1; min-width: 0; }
+.j-master .compact-row .name .producer-sub { font-size: 11px; color: var(--color-text-maxcontrast); font-weight: 400; display: block; }
+.j-master .compact-row .meta { font-size: 11px; color: var(--color-text-maxcontrast); text-align: right; }
+.j-detail {
+  flex: 1; background: white; overflow: auto;
+  display: flex; flex-direction: column;
+}
+
+/* ===== Shared Detail Panel (inside both layouts) ===== */
+.panel-head {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 18px 22px 6px;
+}
+.panel-head .dot { width: 12px; height: 12px; border-radius: 50%; background: #762228; margin-top: 7px; flex-shrink: 0; }
+.panel-head .title { flex: 1; min-width: 0; }
+.panel-head .wine { font-size: 17px; font-weight: 700; line-height: 1.2; }
+.panel-head .year { color: var(--color-text-maxcontrast); margin-left: 6px; font-weight: 400; }
+.panel-head .producer { color: var(--color-text-maxcontrast); font-size: 12.5px; margin-top: 2px; }
+.panel-head .close-btn {
+  background: none; border: none; cursor: pointer; padding: 6px 10px;
+  border-radius: 8px; font-size: 16px; color: var(--color-text-maxcontrast);
+}
+.panel-head .close-btn:hover { background: var(--color-background-hover); color: var(--color-main-text); }
+
+.subtabs {
+  display: flex; gap: 2px;
+  border-bottom: 1px solid var(--color-border);
+  padding: 0 22px;
+  margin-top: 6px;
+}
+.subtab {
+  font-family: inherit;
+  font-size: 13.5px; font-weight: 600;
+  color: var(--color-text-maxcontrast);
+  background: none; border: none;
+  border-bottom: 2px solid transparent;
+  padding: 10px 14px; cursor: pointer;
+  margin-bottom: -1px;
+}
+.subtab:hover { color: var(--color-main-text); }
+.subtab--active {
+  color: var(--color-primary-element);
+  border-bottom-color: var(--color-primary-element);
+}
+
+.tabpanel { display: none; padding: 18px 22px; flex: 1; }
+.tabpanel.is-active { display: block; }
+
+.bottle-grid {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 22px;
+  align-items: start;
+}
+.photo-box {
+  width: 200px; aspect-ratio: 3/4;
+  background: #e6e6e8;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  color: #aaa; font-size: 12px;
+}
+.kv {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 8px 16px;
+  font-size: 13px;
+  margin: 0;
+}
+.kv dt { color: var(--color-text-maxcontrast); }
+.kv dd { margin: 0; }
+.kv .group-head { grid-column: 1 / -1; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-maxcontrast); font-weight: 600; margin-top: 8px; }
+.kv .group-head:first-child { margin-top: 0; }
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 18px;
+}
+.form-row { display: flex; flex-direction: column; gap: 4px; }
+.form-row label { font-size: 11.5px; color: var(--color-text-maxcontrast); }
+.form-row input, .form-row select, .form-row textarea {
+  padding: 6px 9px;
+  border: 1px solid var(--color-border);
+  border-radius: 5px;
+  font-size: 13px;
+  background: white;
+  font-family: inherit;
+}
+.form-row input:focus { outline: 2px solid var(--color-primary-element); outline-offset: -1px; border-color: var(--color-primary-element); }
+.form-row.full { grid-column: 1 / -1; }
+.scope-note { font-size: 12px; color: var(--color-text-maxcontrast); font-style: italic; margin: 0 0 12px 0; }
+
+.panel-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+  padding: 12px 22px;
+  border-top: 1px solid var(--color-border);
+  background: #fafafa;
+}
+.foot-left { display: flex; gap: 6px; }
+.foot-right { display: flex; gap: 6px; }
+.btn {
+  border: 1px solid var(--color-border); background: white;
+  color: var(--color-main-text);
+  padding: 6px 12px; border-radius: 5px; font-size: 13px; cursor: pointer;
+  font-family: inherit;
+}
+.btn:hover { background: var(--color-background-hover); }
+.btn.primary { background: var(--color-primary-element); color: white; border-color: var(--color-primary-element); }
+.btn.danger:hover { color: #c62828; }
+
+/* Compact J master rows visual */
+.j-master .group-label {
+  font-size: 10px; text-transform: uppercase; color: var(--color-text-maxcontrast);
+  padding: 8px 12px 4px; letter-spacing: 0.05em; font-weight: 600;
+}
+
+.pros-cons {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+  background: #fafafa;
+  border-top: 1px solid var(--color-border);
+  padding: 10px 24px;
+  display: flex; gap: 24px;
+  font-size: 11.5px;
+}
+.pros-cons .col { flex: 1; }
+.pros-cons b { display: block; margin-bottom: 4px; }
+.pros-cons .plus { color: #2e7d32; }
+.pros-cons .minus { color: #c62828; }
+</style>
+</head>
+<body>
+
+<div class="demo-bar">
+  <h1>#131 v5</h1>
+  <p>Vergleich „Schnell durchklicken UND hübsch":  <b>H</b> = NcAppSidebar (NC-Standard, slide-over rechts mit Tabs) vs. <b>J</b> = Master-Detail wie WorkTime (Liste links kompakt, Detail rechts immer offen).</p>
+  <div class="switch">
+    <button class="active" onclick="show('H')">H · NcAppSidebar</button>
+    <button onclick="show('J')">J · Master-Detail (WorkTime-Stil)</button>
+  </div>
+</div>
+
+<!-- ====================== H · NcAppSidebar ====================== -->
+<div class="view active" id="view-H">
+  <div class="nc-strip">Vinarium · Bestand · 42 Flaschen</div>
+  <div class="h-layout">
+    <div class="h-body">
+      <div class="h-main">
+        <h2>Bestand</h2>
+        <div class="list">
+          <table>
+            <thead><tr><th>Weingut</th><th>Wein</th><th>Jahr</th><th>Status</th><th>Slot</th><th>★</th></tr></thead>
+            <tbody>
+              <tr class="selected"><td><span class="tile"></span>Bodegas Telmo Rodriguez</td><td>La Social</td><td>2021</td><td><span class="chip">Im Bestand</span></td><td>Parkzone</td><td>8.3</td></tr>
+              <tr><td><span class="tile"></span>Bodegas Telmo Rodriguez</td><td>La Social</td><td>2021</td><td><span class="chip">Im Bestand</span></td><td>Parkzone</td><td>8.3</td></tr>
+              <tr><td><span class="tile"></span>Chateau Clos Louie</td><td>Castillon Côtes…</td><td>2020</td><td><span class="chip">Im Bestand</span></td><td>Parkzone</td><td>—</td></tr>
+              <tr><td><span class="tile"></span>Domaine Marcel Lapierre</td><td>Morgon Cuvée…</td><td>2020</td><td><span class="chip">Im Bestand</span></td><td>Parkzone</td><td>—</td></tr>
+              <tr><td><span class="tile tile--white"></span>Krug</td><td>Grande Cuvée Édition 170</td><td>2020</td><td><span class="chip">Im Bestand</span></td><td>Parkzone</td><td>9.3</td></tr>
+              <tr><td><span class="tile"></span>Quinta do Noval</td><td>Vintage Port</td><td>2011</td><td><span class="chip">Im Bestand</span></td><td>Parkzone</td><td>—</td></tr>
+              <tr><td><span class="tile"></span>Tenuta San Guido</td><td>Sassicaia</td><td>2017</td><td><span class="chip">Im Bestand</span></td><td>Parkzone</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <aside class="h-sidebar">
+        <div class="panel-head">
+          <div class="dot"></div>
+          <div class="title">
+            <div><span class="wine">La Social</span><span class="year">2021</span></div>
+            <div class="producer">Bodegas Telmo Rodriguez Ribera del Duero</div>
+          </div>
+          <button class="close-btn">✕</button>
+        </div>
+
+        <div class="subtabs">
+          <button class="subtab subtab--active" onclick="tab('H', 'bottle', this)">Flasche</button>
+          <button class="subtab" onclick="tab('H', 'producer', this)">Weingut</button>
+          <button class="subtab" onclick="tab('H', 'wine', this)">Wein</button>
+          <button class="subtab" onclick="tab('H', 'vintage', this)">Jahrgang</button>
+          <button class="subtab" onclick="tab('H', 'purchase', this)">Kauf</button>
+        </div>
+
+        <div class="tabpanel is-active" id="H-bottle">
+          <div class="bottle-grid">
+            <div class="photo-box">[Foto 3:4]</div>
+            <dl class="kv">
+              <div class="group-head">Status</div>
+              <dt>Status</dt><dd>Im Bestand</dd>
+              <dt>Slot</dt><dd>Parkzone</dd>
+
+              <div class="group-head">Wein</div>
+              <dt>Appellation</dt><dd>Ribera del Duero DO</dd>
+              <dt>Trinkfenster</dt><dd>2024 – 2030</dd>
+              <dt>Alkohol</dt><dd>14,5 %</dd>
+
+              <div class="group-head">Kauf</div>
+              <dt>Datum</dt><dd>15.04.2026</dd>
+              <dt>Preis</dt><dd>19,50 EUR</dd>
+            </dl>
+          </div>
+        </div>
+
+        <div class="tabpanel" id="H-producer">
+          <p class="scope-note">Wirkt auf alle Flaschen dieses Weinguts.</p>
+          <div class="form-grid">
+            <div class="form-row"><label>Name</label><input value="Bodegas Telmo Rodriguez Ribera del Duero" /></div>
+            <div class="form-row"><label>Land</label><input value="Spanien" /></div>
+            <div class="form-row"><label>Region</label><input value="Ribera del Duero" /></div>
+            <div class="form-row"><label>Website</label><input value="" placeholder="https://…" /></div>
+            <div class="form-row full"><label>Notizen</label><textarea rows="2"></textarea></div>
+          </div>
+        </div>
+
+        <div class="tabpanel" id="H-wine">
+          <p class="scope-note">Wirkt auf alle Flaschen dieses Weins.</p>
+          <div class="form-grid">
+            <div class="form-row"><label>Wein-Name</label><input value="La Social" /></div>
+            <div class="form-row"><label>Farbe</label><select><option>Rot</option><option>Weiß</option></select></div>
+            <div class="form-row full"><label>Appellation</label><input value="Ribera del Duero DO" /></div>
+          </div>
+        </div>
+
+        <div class="tabpanel" id="H-vintage">
+          <p class="scope-note">Wirkt auf alle Flaschen dieses Jahrgangs.</p>
+          <div class="form-grid">
+            <div class="form-row"><label>Jahr</label><input type="number" value="2021" /></div>
+            <div class="form-row"><label>Alkohol (%)</label><input type="number" step="0.1" value="14.5" /></div>
+            <div class="form-row full"><label>Rebsorten</label><input value="Tempranillo 90%, Albillo, Garnacha, Valenciana" /></div>
+            <div class="form-row"><label>Trinken ab</label><input type="number" value="2024" /></div>
+            <div class="form-row"><label>Trinken bis</label><input type="number" value="2030" /></div>
+          </div>
+        </div>
+
+        <div class="tabpanel" id="H-purchase">
+          <p class="scope-note">Wirkt auf alle Flaschen dieser Charge.</p>
+          <div class="form-grid">
+            <div class="form-row"><label>Kaufdatum</label><input type="date" value="2026-04-15" /></div>
+            <div class="form-row"><label>Händler</label><input value="" /></div>
+            <div class="form-row"><label>Preis</label><input type="number" value="19.50" step="0.01" /></div>
+            <div class="form-row"><label>Größe</label><select><option>0,75 l (Standard)</option></select></div>
+          </div>
+        </div>
+
+        <div class="panel-foot">
+          <div class="foot-left">
+            <button class="btn">Entkorken</button>
+            <button class="btn">Verschenken</button>
+          </div>
+          <div class="foot-right">
+            <button class="btn">Schließen</button>
+            <button class="btn primary">Speichern</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+</div>
+
+<!-- ====================== J · Master-Detail ====================== -->
+<div class="view" id="view-J">
+  <div class="nc-strip">Vinarium · Bestand · 42 Flaschen</div>
+  <div class="j-layout">
+    <div class="j-body">
+      <div class="j-master">
+        <div class="group-label">Im Bestand · 42 Flaschen</div>
+        <div class="compact-row selected">
+          <span class="tile"></span>
+          <span class="name">La Social <span style="color:var(--color-text-maxcontrast)">2021</span>
+            <span class="producer-sub">Bodegas Telmo Rodriguez</span>
+          </span>
+          <span class="meta">★ 8.3</span>
+        </div>
+        <div class="compact-row">
+          <span class="tile"></span>
+          <span class="name">La Social <span style="color:var(--color-text-maxcontrast)">2021</span>
+            <span class="producer-sub">Bodegas Telmo Rodriguez</span>
+          </span>
+          <span class="meta">★ 8.3</span>
+        </div>
+        <div class="compact-row">
+          <span class="tile"></span>
+          <span class="name">Castillon Côtes… <span style="color:var(--color-text-maxcontrast)">2020</span>
+            <span class="producer-sub">Chateau Clos Louie</span>
+          </span>
+          <span class="meta">—</span>
+        </div>
+        <div class="compact-row">
+          <span class="tile"></span>
+          <span class="name">Morgon Cuvée Marcel <span style="color:var(--color-text-maxcontrast)">2020</span>
+            <span class="producer-sub">Domaine Marcel Lapierre</span>
+          </span>
+          <span class="meta">—</span>
+        </div>
+        <div class="compact-row">
+          <span class="tile tile--white"></span>
+          <span class="name">Grande Cuvée Édition 170 <span style="color:var(--color-text-maxcontrast)">2020</span>
+            <span class="producer-sub">Krug</span>
+          </span>
+          <span class="meta">★ 9.3</span>
+        </div>
+        <div class="compact-row">
+          <span class="tile"></span>
+          <span class="name">Vintage Port <span style="color:var(--color-text-maxcontrast)">2011</span>
+            <span class="producer-sub">Quinta do Noval</span>
+          </span>
+          <span class="meta">—</span>
+        </div>
+        <div class="compact-row">
+          <span class="tile"></span>
+          <span class="name">Sassicaia <span style="color:var(--color-text-maxcontrast)">2017</span>
+            <span class="producer-sub">Tenuta San Guido</span>
+          </span>
+          <span class="meta">—</span>
+        </div>
+      </div>
+
+      <div class="j-detail">
+        <div class="panel-head">
+          <div class="dot"></div>
+          <div class="title">
+            <div><span class="wine">La Social</span><span class="year">2021</span></div>
+            <div class="producer">Bodegas Telmo Rodriguez Ribera del Duero</div>
+          </div>
+        </div>
+
+        <div class="subtabs">
+          <button class="subtab subtab--active" onclick="tab('J', 'bottle', this)">Flasche</button>
+          <button class="subtab" onclick="tab('J', 'producer', this)">Weingut</button>
+          <button class="subtab" onclick="tab('J', 'wine', this)">Wein</button>
+          <button class="subtab" onclick="tab('J', 'vintage', this)">Jahrgang</button>
+          <button class="subtab" onclick="tab('J', 'purchase', this)">Kauf</button>
+        </div>
+
+        <div class="tabpanel is-active" id="J-bottle">
+          <div class="bottle-grid" style="grid-template-columns: 240px 1fr;">
+            <div class="photo-box" style="width:240px;">[Foto 3:4]</div>
+            <dl class="kv">
+              <div class="group-head">Status</div>
+              <dt>Status</dt><dd>Im Bestand</dd>
+              <dt>Slot</dt><dd>Parkzone</dd>
+
+              <div class="group-head">Wein</div>
+              <dt>Appellation</dt><dd>Ribera del Duero DO</dd>
+              <dt>Rebsorten</dt><dd>Tempranillo 90%, Albillo, Garnacha, Valenciana</dd>
+              <dt>Trinkfenster</dt><dd>2024 – 2030</dd>
+              <dt>Alkohol</dt><dd>14,5 %</dd>
+
+              <div class="group-head">Kauf</div>
+              <dt>Datum</dt><dd>15.04.2026</dd>
+              <dt>Preis</dt><dd>19,50 EUR</dd>
+              <dt>Größe</dt><dd>0,75 l (Standard)</dd>
+            </dl>
+          </div>
+        </div>
+
+        <div class="tabpanel" id="J-producer">
+          <p class="scope-note">Wirkt auf alle Flaschen dieses Weinguts.</p>
+          <div class="form-grid">
+            <div class="form-row"><label>Name</label><input value="Bodegas Telmo Rodriguez Ribera del Duero" /></div>
+            <div class="form-row"><label>Land</label><input value="Spanien" /></div>
+            <div class="form-row"><label>Region</label><input value="Ribera del Duero" /></div>
+            <div class="form-row"><label>Website</label><input value="" placeholder="https://…" /></div>
+            <div class="form-row full"><label>Notizen</label><textarea rows="2"></textarea></div>
+          </div>
+        </div>
+
+        <div class="tabpanel" id="J-wine">
+          <p class="scope-note">Wirkt auf alle Flaschen dieses Weins.</p>
+          <div class="form-grid">
+            <div class="form-row"><label>Wein-Name</label><input value="La Social" /></div>
+            <div class="form-row"><label>Farbe</label><select><option>Rot</option></select></div>
+            <div class="form-row full"><label>Appellation</label><input value="Ribera del Duero DO" /></div>
+          </div>
+        </div>
+
+        <div class="tabpanel" id="J-vintage">
+          <p class="scope-note">Wirkt auf alle Flaschen dieses Jahrgangs.</p>
+          <div class="form-grid">
+            <div class="form-row"><label>Jahr</label><input type="number" value="2021" /></div>
+            <div class="form-row"><label>Alkohol (%)</label><input type="number" step="0.1" value="14.5" /></div>
+            <div class="form-row full"><label>Rebsorten</label><input value="Tempranillo 90%, Albillo, Garnacha, Valenciana" /></div>
+            <div class="form-row"><label>Trinken ab</label><input type="number" value="2024" /></div>
+            <div class="form-row"><label>Trinken bis</label><input type="number" value="2030" /></div>
+          </div>
+        </div>
+
+        <div class="tabpanel" id="J-purchase">
+          <p class="scope-note">Wirkt auf alle Flaschen dieser Charge.</p>
+          <div class="form-grid">
+            <div class="form-row"><label>Kaufdatum</label><input type="date" value="2026-04-15" /></div>
+            <div class="form-row"><label>Händler</label><input value="" /></div>
+            <div class="form-row"><label>Preis</label><input type="number" value="19.50" step="0.01" /></div>
+            <div class="form-row"><label>Größe</label><select><option>0,75 l (Standard)</option></select></div>
+          </div>
+        </div>
+
+        <div class="panel-foot">
+          <div class="foot-left">
+            <button class="btn">Entkorken</button>
+            <button class="btn">Verschenken</button>
+          </div>
+          <div class="foot-right">
+            <button class="btn primary">Speichern</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="pros-cons">
+  <div class="col">
+    <b>H · NcAppSidebar</b>
+    <div class="plus">+ NC-Standard-Komponente, automatisch konsistent mit Files/Calendar/Tasks</div>
+    <div class="plus">+ Tabelle behält alle Spalten (Weingut, Wein, Jahr, Status, Slot, Bewertung)</div>
+    <div class="minus">– Sidebar ~500 px, Liste links wird etwas schmaler</div>
+  </div>
+  <div class="col">
+    <b>J · Master-Detail (WorkTime-Stil)</b>
+    <div class="plus">+ Liste links sehr kompakt (340 px), Detail rechts hat viel Platz</div>
+    <div class="plus">+ Identisches Pattern wie WorkTime → konsistent in deinen Apps</div>
+    <div class="minus">– Tabelle wird zur Karten-Liste: nicht mehr alle 6 Spalten gleichzeitig sichtbar</div>
+    <div class="minus">– Größerer Refactor: Inventory-Liste muss kompakt umgebaut werden</div>
+  </div>
+</div>
+
+<script>
+function show(which) {
+  document.querySelectorAll('.demo-bar .switch button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + which).classList.add('active');
+}
+function tab(view, name, btn) {
+  const panel = btn.parentElement.parentElement;
+  panel.querySelectorAll('.subtab').forEach(s => s.classList.remove('subtab--active'));
+  btn.classList.add('subtab--active');
+  panel.querySelectorAll('.tabpanel').forEach(p => p.classList.remove('is-active'));
+  document.getElementById(view + '-' + name).classList.add('is-active');
+}
+</script>
+
+</body>
+</html>

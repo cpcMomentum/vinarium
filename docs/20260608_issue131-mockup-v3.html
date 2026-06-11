@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<title>Vinarium #131 — Edit-Drill-down v3 (D vs. E)</title>
+<style>
+:root {
+  --color-main-background: #fff;
+  --color-main-text: #222;
+  --color-text-maxcontrast: #6c6c6c;
+  --color-border: #d2d4d7;
+  --color-background-hover: #f3f4f6;
+  --color-primary-element: #0a64c2;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  color: var(--color-main-text);
+  background: #ecedf0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.demo-bar { background: #2d2d2d; color: white; padding: 14px 20px; }
+.demo-bar h1 { margin: 0 0 4px 0; font-size: 15px; }
+.demo-bar p { margin: 0; font-size: 12px; color: #bbb; }
+
+.grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 22px;
+  padding: 22px; align-items: start;
+}
+
+.variant {
+  background: white; border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+.variant-head {
+  padding: 14px 18px; border-bottom: 1px solid var(--color-border);
+}
+.variant-head h2 { margin: 0; font-size: 14px; font-weight: 700; }
+.variant-head .desc { margin: 6px 0 0 0; font-size: 12px; color: var(--color-text-maxcontrast); }
+
+.panel {
+  padding: 22px 24px;
+}
+
+.panel-head {
+  display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px;
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; background: #762228; margin-top: 6px; }
+.wine { font-size: 16px; font-weight: 700; line-height: 1.2; }
+.year { color: var(--color-text-maxcontrast); margin-left: 4px; font-weight: 400; }
+.producer { color: var(--color-text-maxcontrast); font-size: 12px; margin-top: 2px; }
+
+.photo {
+  width: 100%; max-width: 220px; aspect-ratio: 3/4; background: #e6e6e8; border-radius: 4px; margin: 8px auto 16px;
+  display: flex; align-items: center; justify-content: center; color: #aaa; font-size: 11px;
+}
+
+dl.kv { display: grid; grid-template-columns: 120px 1fr; gap: 8px 16px; margin: 0; font-size: 13px; }
+dl.kv dt { color: var(--color-text-maxcontrast); font-weight: 400; }
+dl.kv dd { margin: 0; }
+
+.section { margin-top: 22px; padding-top: 16px; border-top: 1px solid #eee; }
+.section-head {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+}
+.section h4 { margin: 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-text-maxcontrast); font-weight: 600; }
+
+.edit-pen {
+  background: none; border: none; cursor: pointer; padding: 4px 6px; border-radius: 4px;
+  color: var(--color-text-maxcontrast); font-size: 13px;
+}
+.edit-pen:hover { background: var(--color-background-hover); color: var(--color-main-text); }
+
+.input-line {
+  border: 1px solid var(--color-border); border-radius: 4px; padding: 4px 8px; font-size: 13px; background: white;
+  font-family: inherit;
+}
+.input-line:focus { outline: 2px solid var(--color-primary-element); outline-offset: -1px; border-color: var(--color-primary-element); }
+
+.btn { border: 1px solid var(--color-border); background: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; font-family: inherit; }
+.btn.primary { background: var(--color-primary-element); color: white; border-color: var(--color-primary-element); }
+.btn-row { display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end; }
+
+/* ============ D: IN-PLACE INPUT ============ */
+.d-inplace dd.editing {
+  background: transparent; padding: 0;
+}
+.d-hint {
+  font-size: 11px; color: var(--color-text-maxcontrast); margin-top: 4px; font-style: italic;
+}
+.d-range { display: flex; align-items: center; gap: 6px; }
+.d-range .input-line { width: 70px; }
+
+.hint-hover { color: var(--color-text-maxcontrast); font-size: 12px; padding: 2px 0; cursor: text; border-bottom: 1px dashed transparent; }
+.hint-hover:hover { border-bottom-color: var(--color-border); }
+
+/* ============ E: SECTION TOGGLE ============ */
+.e-form-row { display: grid; grid-template-columns: 120px 1fr; gap: 8px 16px; align-items: center; }
+.e-form-row label { color: var(--color-text-maxcontrast); font-size: 13px; }
+.e-form-row .input-line { width: 100%; }
+.e-form-row .e-pair { display: flex; gap: 8px; align-items: center; }
+.e-form-row .e-pair .input-line { width: 80px; }
+.e-form-stack { display: flex; flex-direction: column; gap: 10px; }
+.e-active-bg {
+  background: #fafbfc; border-radius: 6px; margin: 6px -10px 0; padding: 14px 10px;
+}
+
+.pros-cons {
+  background: #fafafa; padding: 12px 18px; border-top: 1px solid #eee; font-size: 12px;
+}
+.pros-cons div { margin: 2px 0; }
+.pros-cons .plus { color: #2e7d32; }
+.pros-cons .minus { color: #c62828; }
+</style>
+</head>
+<body>
+
+<div class="demo-bar">
+  <h1>#131 Edit-Drill-down — D · In-place vs. E · Sektion-Toggle</h1>
+  <p>Beide zeigen den aktiven Edit-Zustand für den <b>Jahrgang</b>. NC-Optik: keine farbigen Form-Blöcke, kein Highlight-Outline.</p>
+</div>
+
+<div class="grid">
+
+  <!-- ============ D · In-place ============ -->
+  <div class="variant">
+    <div class="variant-head">
+      <h2>D · In-place direkt-editieren</h2>
+      <p class="desc">Klick auf einen Wert → das Wort selbst wird zum Input. Enter speichert, ESC bricht ab. Kein extra Form-Block, kein Highlight.</p>
+    </div>
+    <div class="panel d-inplace">
+      <div class="panel-head">
+        <div class="dot"></div>
+        <div>
+          <div class="wine">La Social <span class="year">2021</span></div>
+          <div class="producer">Bodegas Telmo Rodriguez Ribera del Duero</div>
+        </div>
+      </div>
+
+      <div class="photo">[Foto]</div>
+
+      <dl class="kv">
+        <dt>Appellation</dt>
+        <dd><span class="hint-hover">Ribera del Duero DO</span></dd>
+
+        <dt>Rebsorten</dt>
+        <dd><span class="hint-hover">Tempranillo 90%, Albillo, Garnacha, Valenciana</span></dd>
+
+        <dt>Alkohol</dt>
+        <dd><span class="hint-hover">14,5 %</span></dd>
+
+        <dt>Trinkfenster</dt>
+        <dd class="editing">
+          <div class="d-range">
+            <input class="input-line" value="2024" autofocus />
+            <span>–</span>
+            <input class="input-line" value="2030" />
+          </div>
+          <div class="d-hint">Enter zum Speichern, ESC zum Abbrechen</div>
+        </dd>
+      </dl>
+
+      <div class="section">
+        <h4>Kaufdetails</h4>
+        <dl class="kv">
+          <dt>Datum</dt>
+          <dd><span class="hint-hover">15.04.2026</span></dd>
+          <dt>Preis</dt>
+          <dd><span class="hint-hover">19,50 EUR</span></dd>
+          <dt>Größe</dt>
+          <dd><span class="hint-hover">0,75 l</span></dd>
+        </dl>
+      </div>
+    </div>
+    <div class="pros-cons">
+      <div class="plus">+ Minimalistisch, kein extra UI, sehr „NC-Notion-style"</div>
+      <div class="plus">+ Klick → tippen → Enter ist drei Schritte total</div>
+      <div class="minus">– Bei Jahrgang sind Jahr, Alkohol, Trinkfenster konzeptionell zusammen — hier muss man 3× klicken</div>
+      <div class="minus">– Scope (= „betrifft 5 Flaschen") erst nach Klick sichtbar (z.B. als Hint)</div>
+    </div>
+  </div>
+
+  <!-- ============ E · Sektion-Toggle ============ -->
+  <div class="variant">
+    <div class="variant-head">
+      <h2>E · Sektion-Toggle mit ✎</h2>
+      <p class="desc">Jede Sektion (Wein / Jahrgang / Kauf) hat oben rechts einen ✎. Klick → ganze Sektion wird zum Form. Speichern unten.</p>
+    </div>
+    <div class="panel">
+      <div class="panel-head">
+        <div class="dot"></div>
+        <div>
+          <div class="wine">La Social <span class="year">2021</span></div>
+          <div class="producer">Bodegas Telmo Rodriguez Ribera del Duero <button class="edit-pen" title="Weingut bearbeiten">✎</button></div>
+        </div>
+      </div>
+
+      <div class="photo">[Foto]</div>
+
+      <div class="section" style="border-top: none; margin-top: 0; padding-top: 0;">
+        <div class="section-head">
+          <h4>Wein-Eigenschaften</h4>
+          <button class="edit-pen" title="Wein bearbeiten">✎</button>
+        </div>
+        <dl class="kv">
+          <dt>Appellation</dt><dd>Ribera del Duero DO</dd>
+          <dt>Rebsorten</dt><dd>Tempranillo 90%, Albillo, Garnacha, Valenciana</dd>
+        </dl>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <h4 style="color: var(--color-primary-element);">Jahrgang — Bearbeiten</h4>
+          <span style="font-size: 11px; color: var(--color-text-maxcontrast);">Betrifft 5 Flaschen</span>
+        </div>
+        <div class="e-active-bg">
+          <div class="e-form-stack">
+            <div class="e-form-row">
+              <label>Jahr</label>
+              <input class="input-line" value="2021" />
+            </div>
+            <div class="e-form-row">
+              <label>Alkohol</label>
+              <div class="e-pair"><input class="input-line" value="14.5" /><span>%</span></div>
+            </div>
+            <div class="e-form-row">
+              <label>Trinkfenster</label>
+              <div class="e-pair"><input class="input-line" value="2024" /><span>–</span><input class="input-line" value="2030" /></div>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn">Abbrechen</button>
+            <button class="btn primary">Speichern</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-head">
+          <h4>Kaufdetails</h4>
+          <button class="edit-pen" title="Kauf bearbeiten">✎</button>
+        </div>
+        <dl class="kv">
+          <dt>Datum</dt><dd>15.04.2026</dd>
+          <dt>Preis</dt><dd>19,50 EUR</dd>
+          <dt>Größe</dt><dd>0,75 l</dd>
+        </dl>
+      </div>
+    </div>
+    <div class="pros-cons">
+      <div class="plus">+ Zusammenhängende Felder gleichzeitig editierbar (1 Klick, alle Inputs offen)</div>
+      <div class="plus">+ Klare Sektion-Struktur, ✎-Stift ist eindeutig</div>
+      <div class="plus">+ Scope-Anzeige („Betrifft 5 Flaschen") natürlich oberhalb des Forms</div>
+      <div class="minus">– Mehr UI als D (Buttons, Hintergrundfarbe der Sektion)</div>
+    </div>
+  </div>
+
+</div>
+
+<div style="padding: 0 22px 30px 22px; color: #555; font-size: 13px;">
+  <p><b>Mein Vorschlag</b>: <b>E · Sektion-Toggle</b>. Du klickst einmal den ✎ und kannst alle zusammengehörigen Jahrgangs-Felder in einem Rutsch editieren, statt 3× einzeln. Scope wird natürlich angezeigt. D ist eleganter im Look aber unpraktischer im Use.</p>
+  <p>Wenn dir <b>E</b> zusagt, baue ich das in Vue um. Producer / Wein / Jahrgang / Kauf bekommen jeweils ihren eigenen ✎ und einen Edit-Mode.</p>
+</div>
+
+</body>
+</html>

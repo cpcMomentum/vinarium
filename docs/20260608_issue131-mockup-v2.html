@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<title>Vinarium #131 — Edit-Drill-down v2 (Vergleich)</title>
+<style>
+:root {
+  --color-main-background: #fff;
+  --color-main-text: #222;
+  --color-text-maxcontrast: #6c6c6c;
+  --color-border: #d2d4d7;
+  --color-background-hover: #f3f4f6;
+  --color-primary-element: #0a64c2;
+  --color-primary-element-light: #e8f0fe;
+  --color-warning: #e57c00;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  color: var(--color-main-text);
+  background: #ecedf0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.demo-bar { background: #2d2d2d; color: white; padding: 14px 20px; }
+.demo-bar h1 { margin: 0 0 4px 0; font-size: 15px; }
+.demo-bar p { margin: 0; font-size: 12px; color: #bbb; }
+
+.grid {
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px;
+  padding: 20px; align-items: start;
+}
+
+.variant {
+  background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+.variant-head {
+  padding: 14px 18px; background: var(--color-primary-element); color: white;
+}
+.variant-head h2 { margin: 0; font-size: 14px; }
+.variant-head .tag { display: inline-block; background: rgba(255,255,255,0.18); padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-top: 4px; }
+.variant-head .desc { margin: 6px 0 0 0; font-size: 12px; opacity: 0.9; }
+
+.panel {
+  padding: 18px 20px;
+  position: relative;
+}
+.panel-title {
+  display: flex; align-items: center; gap: 8px;
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; background: #762228; }
+.wine { font-size: 16px; font-weight: 700; }
+.year { color: var(--color-text-maxcontrast); margin-left: 4px; }
+.producer { color: var(--color-text-maxcontrast); font-size: 12px; margin-top: 2px; padding-left: 18px; }
+
+.photo {
+  width: 100%; max-width: 200px; aspect-ratio: 3/4; background: #ddd; border-radius: 4px; margin: 12px auto;
+  display: flex; align-items: center; justify-content: center; color: #999; font-size: 11px;
+}
+
+dl.kv { display: grid; grid-template-columns: 90px 1fr; gap: 6px 12px; margin: 12px 0; font-size: 12px; }
+dl.kv dt { color: var(--color-text-maxcontrast); }
+dl.kv dd { margin: 0; }
+
+.editable {
+  cursor: pointer; border-radius: 4px; padding: 1px 4px; margin: -1px -4px;
+  position: relative;
+}
+.editable::after { content: ' ✎'; color: var(--color-text-maxcontrast); font-size: 10px; opacity: 0.5; }
+.editable:hover { background: var(--color-background-hover); }
+.highlight { background: var(--color-primary-element-light) !important; outline: 2px solid var(--color-primary-element); }
+
+.section { margin-top: 16px; padding-top: 12px; border-top: 1px solid #eee; }
+.section h4 { margin: 0 0 8px 0; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-text-maxcontrast); }
+
+.btn { border: 1px solid var(--color-border); background: white; padding: 5px 10px; border-radius: 6px; font-size: 11px; cursor: pointer; }
+.btn.primary { background: var(--color-primary-element); color: white; border-color: var(--color-primary-element); }
+.btn-row { display: flex; gap: 6px; margin-top: 10px; }
+
+/* ==== A: INLINE EDIT FORM ==== */
+.inline-form {
+  background: var(--color-primary-element-light);
+  border: 1px solid var(--color-primary-element);
+  border-radius: 6px;
+  padding: 10px 12px; margin: 6px -8px;
+  position: relative;
+}
+.inline-form::before {
+  content: ''; position: absolute; top: -6px; left: 20px;
+  width: 10px; height: 10px; background: var(--color-primary-element-light);
+  border-left: 1px solid var(--color-primary-element);
+  border-top: 1px solid var(--color-primary-element);
+  transform: rotate(45deg);
+}
+.inline-form label { display: block; font-size: 10px; color: var(--color-text-maxcontrast); margin-top: 6px; }
+.inline-form input { width: 100%; padding: 4px 6px; border: 1px solid var(--color-border); border-radius: 3px; font-size: 12px; background: white; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.scope-warn {
+  font-size: 10px; color: var(--color-warning);
+  background: #fff8ee; border: 1px solid #f5c98a; border-radius: 3px;
+  padding: 4px 6px; margin-top: 6px;
+}
+
+/* ==== B: POPUP ==== */
+.popup-overlay {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.35); display: flex; align-items: center; justify-content: center;
+  border-radius: 0 0 10px 10px;
+}
+.popup-card {
+  background: white; border-radius: 8px; padding: 14px 16px; width: 88%;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+}
+.popup-card h3 { margin: 0 0 2px 0; font-size: 13px; }
+.popup-card .pop-sub { font-size: 10px; color: var(--color-text-maxcontrast); margin-bottom: 8px; }
+.popup-card label { display: block; font-size: 10px; color: var(--color-text-maxcontrast); margin-top: 6px; }
+.popup-card input { width: 100%; padding: 4px 6px; border: 1px solid var(--color-border); border-radius: 3px; font-size: 12px; }
+
+/* ==== C: STACK ==== */
+.stack-overlay {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: white; padding: 18px 20px; border-radius: 0 0 10px 10px;
+}
+.back-link {
+  background: none; border: none; color: var(--color-primary-element); font-size: 12px; cursor: pointer; padding: 0;
+  margin-bottom: 8px;
+}
+.stack-overlay h3 { margin: 0 0 2px 0; font-size: 14px; }
+.stack-overlay .stack-sub { font-size: 11px; color: var(--color-text-maxcontrast); margin-bottom: 10px; }
+.stack-overlay label { display: block; font-size: 10px; color: var(--color-text-maxcontrast); margin-top: 8px; }
+.stack-overlay input { width: 100%; padding: 4px 6px; border: 1px solid var(--color-border); border-radius: 3px; font-size: 12px; }
+
+.pros-cons {
+  background: #fafafa; padding: 12px 16px; border-top: 1px solid #eee; font-size: 11px;
+}
+.pros-cons div { margin: 2px 0; }
+.pros-cons .plus { color: #2e7d32; }
+.pros-cons .minus { color: #c62828; }
+</style>
+</head>
+<body>
+
+<div class="demo-bar">
+  <h1>#131 Edit-Drill-down — Vergleich der 3 Varianten</h1>
+  <p>Alle drei zeigen den <b>aktiven Edit-Zustand für „Jahrgang bearbeiten"</b> (Klick auf „Trinkfenster" 2024–2030). Annotation: das blau markierte Feld ist der angeklickte Trigger.</p>
+</div>
+
+<div class="grid">
+
+  <!-- ============ A · INLINE ============ -->
+  <div class="variant">
+    <div class="variant-head">
+      <h2>A · Inline-Edit</h2>
+      <span class="tag">Bearbeitung direkt im Panel</span>
+      <p class="desc">Das Edit-Form klappt unter dem Trigger auf. Bottle-Detail bleibt komplett sichtbar.</p>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="dot"></span><span class="wine">La Social <span class="year">2021</span></span></div>
+      <div class="producer">Bodegas Telmo Rodriguez Ribera del Duero</div>
+      <div class="photo">[Foto]</div>
+      <dl class="kv">
+        <dt>Appellation</dt><dd class="editable">Ribera del Duero DO</dd>
+        <dt>Rebsorten</dt><dd class="editable">Tempranillo 90%</dd>
+        <dt>Alkohol</dt><dd class="editable">14,5 %</dd>
+        <dt>Trinkfenster</dt><dd class="editable highlight">2024 – 2030</dd>
+      </dl>
+      <div class="inline-form">
+        <strong style="font-size:11px;">Jahrgang bearbeiten</strong>
+        <label>Jahr</label><input value="2021" />
+        <div class="row2">
+          <div><label>Ab</label><input value="2024" /></div>
+          <div><label>Bis</label><input value="2030" /></div>
+        </div>
+        <label>Alkohol (%)</label><input value="14.5" />
+        <div class="scope-warn">Betrifft 5 Flaschen des Jahrgangs.</div>
+        <div class="btn-row"><button class="btn primary">Speichern</button><button class="btn">Abbrechen</button></div>
+      </div>
+      <div class="section">
+        <h4>Kaufdetails</h4>
+        <dl class="kv">
+          <dt>Datum</dt><dd>15.04.2026</dd>
+          <dt>Preis</dt><dd>19,50 EUR</dd>
+        </dl>
+      </div>
+    </div>
+    <div class="pros-cons">
+      <div class="plus">+ Bottle-Daten weiter sichtbar während Edit</div>
+      <div class="plus">+ Keine neue Ebene, ein Konzept</div>
+      <div class="minus">– Panel wird länger, Scroll möglich</div>
+      <div class="minus">– Scope-Warnung muss neben jedem Form-Feld sichtbar sein</div>
+    </div>
+  </div>
+
+  <!-- ============ B · POPUP ============ -->
+  <div class="variant">
+    <div class="variant-head">
+      <h2>B · Popup</h2>
+      <span class="tag">Modal-Dialog über dem Panel</span>
+      <p class="desc">Klassisches Modal mit dunklem Backdrop. Bottle-Detail wird unsichtbar.</p>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="dot"></span><span class="wine">La Social <span class="year">2021</span></span></div>
+      <div class="producer">Bodegas Telmo Rodriguez Ribera del Duero</div>
+      <div class="photo">[Foto]</div>
+      <dl class="kv">
+        <dt>Appellation</dt><dd class="editable">Ribera del Duero DO</dd>
+        <dt>Rebsorten</dt><dd class="editable">Tempranillo 90%</dd>
+        <dt>Alkohol</dt><dd class="editable">14,5 %</dd>
+        <dt>Trinkfenster</dt><dd class="editable">2024 – 2030</dd>
+      </dl>
+      <div class="section">
+        <h4>Kaufdetails</h4>
+        <dl class="kv">
+          <dt>Datum</dt><dd>15.04.2026</dd>
+          <dt>Preis</dt><dd>19,50 EUR</dd>
+        </dl>
+      </div>
+      <div class="popup-overlay">
+        <div class="popup-card">
+          <h3>Jahrgang bearbeiten</h3>
+          <div class="pop-sub">Betrifft 5 Flaschen des Jahrgangs.</div>
+          <label>Jahr</label><input value="2021" />
+          <div class="row2">
+            <div><label>Ab</label><input value="2024" /></div>
+            <div><label>Bis</label><input value="2030" /></div>
+          </div>
+          <label>Alkohol (%)</label><input value="14.5" />
+          <div class="btn-row" style="justify-content:flex-end;"><button class="btn">Abbrechen</button><button class="btn primary">Speichern</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="pros-cons">
+      <div class="plus">+ Klarer Fokus auf die Eingabe</div>
+      <div class="plus">+ Bekanntes Pattern (alle NC-Modals)</div>
+      <div class="minus">– Bottle-Detail dahinter unsichtbar während Edit</div>
+      <div class="minus">– Zweite Ebene über dem Panel (wirkt wie viel)</div>
+    </div>
+  </div>
+
+  <!-- ============ C · STACK ============ -->
+  <div class="variant">
+    <div class="variant-head">
+      <h2>C · Stack im Panel</h2>
+      <span class="tag">Sub-Seite ersetzt den Panel-Inhalt</span>
+      <p class="desc">Wie iOS-Navigation: das Panel zeigt jetzt den Editor, mit „← Zurück". Kein Modal, kein zweites Panel.</p>
+    </div>
+    <div class="panel">
+      <div class="panel-title"><span class="dot"></span><span class="wine">La Social <span class="year">2021</span></span></div>
+      <div class="producer">Bodegas Telmo Rodriguez Ribera del Duero</div>
+      <div class="photo">[Foto]</div>
+      <dl class="kv">
+        <dt>Appellation</dt><dd>Ribera del Duero DO</dd>
+        <dt>Rebsorten</dt><dd>Tempranillo 90%</dd>
+        <dt>Alkohol</dt><dd>14,5 %</dd>
+        <dt>Trinkfenster</dt><dd>2024 – 2030</dd>
+      </dl>
+      <div class="stack-overlay">
+        <button class="back-link">← Zurück zu La Social 2021</button>
+        <h3>Jahrgang bearbeiten</h3>
+        <div class="stack-sub">Betrifft 5 Flaschen des Jahrgangs.</div>
+        <label>Jahr</label><input value="2021" />
+        <div class="row2">
+          <div><label>Ab</label><input value="2024" /></div>
+          <div><label>Bis</label><input value="2030" /></div>
+        </div>
+        <label>Alkohol (%)</label><input value="14.5" />
+        <label>Rating</label><input value="" />
+        <label>Externe Bewertung</label><input value="" />
+        <div class="btn-row"><button class="btn primary">Speichern</button><button class="btn">Abbrechen</button></div>
+      </div>
+    </div>
+    <div class="pros-cons">
+      <div class="plus">+ Klare Drilldown-Geste, Konzept aus Mobile-Apps bekannt</div>
+      <div class="plus">+ Volle Höhe für Edit-Form, alle Felder gut sichtbar</div>
+      <div class="plus">+ Eine Spalte, kein Stapel, kein Modal</div>
+      <div class="minus">– Bottle-Detail temporär nicht sichtbar</div>
+    </div>
+  </div>
+
+</div>
+
+<div style="padding: 0 20px 30px 20px; color:#555;">
+  <p><b>Mein Vorschlag</b>: <b>C · Stack</b> — fühlt sich am natürlichsten an, gibt dem Edit-Form genug Platz, und passt zum bestehenden Slide-Over-Konzept (ein Panel = ein Kontext).</p>
+</div>
+
+</body>
+</html>
