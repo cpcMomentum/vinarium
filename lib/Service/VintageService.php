@@ -85,6 +85,11 @@ class VintageService {
 		if (array_key_exists('drinkUntilYear', $data)) {
 			$vintage->setDrinkUntilYear($data['drinkUntilYear'] !== null ? $this->parseYear($data['drinkUntilYear']) : null);
 		}
+		$from = $vintage->getDrinkFromYear();
+		$until = $vintage->getDrinkUntilYear();
+		if ($from !== null && $until !== null && $from > $until) {
+			throw new ValidationException('drinkFromYear must not be greater than drinkUntilYear');
+		}
 		if (array_key_exists('externalRating', $data)) {
 			$vintage->setExternalRating($data['externalRating'] !== null ? (float)$data['externalRating'] : null);
 		}

@@ -309,7 +309,7 @@ const modalTitle = computed(() => detail.value
 	: t('vinarium', 'Flasche'))
 
 const photoUrl = computed(() =>
-	detail.value?.photo_file_id !== null && detail.value !== null
+	detail.value !== null && detail.value?.photo_file_id !== null
 		? `${getBottlePhotoUrl(detail.value.id)}?v=${detail.value.photo_file_id}`
 		: null,
 )

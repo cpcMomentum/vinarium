@@ -7,6 +7,36 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-06-11
+
+Großes UI-Redesign über alle Ansichten („v4-Konzept") plus neue Detail- und Foto-Funktionen.
+
+### Added
+- **Dashboard-Redesign** — Bestand-Hero mit Farb-Verteilung, „Bald trinken"-Vorschläge anhand des Trinkfensters, „Top & Flop" (beste/schlechteste Bewertung pro Wein × Jahrgang) und Aktivitäts-Feed (Fixes #94, #99, #91)
+- **Bestand komplett neu** — fünf flache Sub-Tabs (Flaschen · Weingüter · Weine · Käufe), v4-Kartentabellen mit Bewertungs-Spalte und Weingut-Filter (Fixes #111, #113, #114, #115)
+- **Wein × Jahrgang** — der Weine-Tab zeigt Weine gruppiert mit ihren Jahrgängen und einer farbigen **Trinkfenster-Pille**; der separate Jahrgänge-Tab entfällt (Fixes #132)
+- **Käufe** in den Stammdaten editier- und löschbar (CRUD-Konsistenz) (Fixes #116)
+- **Flaschen-Detail-Modal** mit fünf Reitern (Flasche · Weingut · Wein · Jahrgang · Kauf) und Vor/Zurück-Navigation samt Tastatursteuerung (Fixes #131)
+- **Etiketten-Fotos** — direkt beim Einlegen ins Regal aufnehmen, als Hintergrund im Regal-Slot anzeigen, jahrgangsweit geteilt mit Zuschnitt (Fixes #117, #118, #127, #128)
+- **Verkostungen-Redesign** — Vier-KPI-Reihe und Bewertungs-Balken in der Tabelle (Fixes #97)
+- **Weinkeller/Regal-Redesign** — links angeheftete Parkzone und gedämpfte Slot-Farben (Fixes #96)
+- Kauf-Wizard: **Händler-Autocomplete** aus bestehenden Käufen (Fixes #86)
+- Fächer werden beim Löschen automatisch neu durchnummeriert (Fixes #105)
+
+### Changed
+- Kauf-Wizard: Notiz-/Beschreibungsfelder klarer beschriftet (Cuvée vs. Jahrgang) (Fixes #87)
+- App-Store-Screenshots auf den neuen v4-Stand aktualisiert
+
+### Fixed
+- Verkostungs-Datum erlaubt keine Zukunft mehr (Fixes #85)
+- Tabellenkopf im Bestand bleibt korrekt sticky (Fixes #112)
+- Foto rendert nicht (CSRF) plus zwei Layout-Bugs im Detail-Panel (Fixes #126)
+- Diverse Review-Fixes: CSV-Export gegen Formel-Injection abgesichert, durchgängige UTC-Zeitzonen-Behandlung, vollständige englische l10n
+
+### Removed
+- Eigenständige Weine-View — in den Bestand als Stammdaten-Tab gefaltet (Fixes #95)
+- Jahrgänge-Tab — in den Wein × Jahrgang-View integriert (Fixes #132)
+
 ## [0.3.0] - 2026-05-20
 
 ### Added
@@ -121,7 +151,8 @@ Erste offizielle Veröffentlichung — Weinverwaltung End-to-End.
 - 88 PHPUnit-Tests + 24 Vitest-Tests (112 gesamt)
 - Pre-Commit-Hook für OCP-only API-Enforcement
 
-[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/cpcMomentum/vinarium/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/cpcMomentum/vinarium/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/cpcMomentum/vinarium/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/cpcMomentum/vinarium/compare/v0.1.1...v0.1.2

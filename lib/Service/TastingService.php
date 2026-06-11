@@ -48,7 +48,11 @@ class TastingService {
 
 		$tasting = new Tasting();
 		$tasting->setBottleId($bottleId);
-		$tastedAt = new DateTime($data['tastedAt'] ?? 'now', new \DateTimeZone('UTC'));
+		try {
+			$tastedAt = new DateTime($data['tastedAt'] ?? 'now', new \DateTimeZone('UTC'));
+		} catch (\Exception $e) {
+			throw new ValidationException('Invalid tasting date');
+		}
 		$this->assertTastedAtNotInFuture($tastedAt);
 		$tasting->setTastedAt($tastedAt);
 
@@ -158,7 +162,11 @@ class TastingService {
 		$tasting = $this->get($id, $userId);
 
 		if (isset($data['tastedAt'])) {
-			$tastedAt = new DateTime($data['tastedAt'], new \DateTimeZone('UTC'));
+			try {
+				$tastedAt = new DateTime($data['tastedAt'], new \DateTimeZone('UTC'));
+			} catch (\Exception $e) {
+				throw new ValidationException('Invalid tasting date');
+			}
 			$this->assertTastedAtNotInFuture($tastedAt);
 			$tasting->setTastedAt($tastedAt);
 		}
