@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<title>Vinarium #132 v3 — Konsistent gruppiert (Solo vs. Multi)</title>
+<style>
+:root {
+  --color-main-background: #fff;
+  --color-main-text: #222;
+  --color-text-maxcontrast: #6c6c6c;
+  --color-border: #d2d4d7;
+  --color-background-hover: #f3f4f6;
+  --color-background-dark: #ededef;
+  --color-primary-element: #0082c9;
+  --color-success: #1e6b2a;
+  --color-success-light: #e6f4e8;
+  --color-warning: #b87600;
+  --color-warning-light: #fff5e0;
+  --color-error: #8a2828;
+  --color-error-light: #fce8e8;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  color: var(--color-main-text);
+  background: #ecedf0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.demo-bar { background: #2d2d2d; color: white; padding: 14px 22px; }
+.demo-bar h1 { margin: 0 0 4px 0; font-size: 15px; }
+.demo-bar p { margin: 0; font-size: 12px; color: #bbb; }
+
+.section { padding: 22px 22px 0; }
+.section h3 { margin: 0 0 8px; font-size: 14px; font-weight: 700; }
+.section .desc { margin: 0 0 14px; font-size: 12.5px; color: var(--color-text-maxcontrast); }
+
+.list-card {
+  background: white; border: 1px solid var(--color-border); border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 22px;
+}
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th { text-align: left; padding: 10px 14px; color: var(--color-text-maxcontrast); font-weight: 600; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid var(--color-border); background: #fafafa; }
+th.r { text-align: right; }
+td { padding: 9px 14px; border-bottom: 1px solid #eee; vertical-align: middle; }
+td.r { text-align: right; }
+tbody tr:hover { background: var(--color-background-hover); cursor: pointer; }
+tbody tr.wine-head:hover { background: #f1f4f7; }
+
+.dot-color { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #762228; margin-right: 8px; vertical-align: middle; }
+.dot-color.white { background: #ead884; }
+
+/* ======= Variant X: Block-Header (grau, deutlich) ======= */
+.variant-x tr.wine-head td {
+  background: #f7f8fa;
+  padding-top: 14px; padding-bottom: 6px;
+  font-weight: 700;
+  border-top: 1px solid var(--color-border);
+  border-bottom: none;
+}
+.variant-x tr.wine-head td .subline { font-weight: 400; font-size: 12px; color: var(--color-text-maxcontrast); margin-left: 8px; }
+.variant-x tr.vintage-row td:first-child { padding-left: 36px; }
+.variant-x tr.vintage-row td:first-child::before { content: '↳'; color: var(--color-text-maxcontrast); font-size: 11px; margin-right: 6px; }
+
+/* ======= Variant Y: dezenter Trenn-Header (kein Hintergrund) ======= */
+.variant-y tr.wine-head td {
+  padding-top: 12px; padding-bottom: 4px;
+  font-weight: 700;
+  border-top: 1px solid var(--color-border);
+  border-bottom: none;
+  background: white;
+}
+.variant-y tr.wine-head td .subline { font-weight: 400; font-size: 12px; color: var(--color-text-maxcontrast); margin-left: 8px; }
+.variant-y tr.vintage-row td:first-child { padding-left: 36px; color: var(--color-text-maxcontrast); }
+.variant-y tr.vintage-row td:first-child::before { content: '·'; color: var(--color-text-maxcontrast); margin-right: 8px; font-weight: 700; }
+
+/* Trinkfenster-Chip (Variant I from v2) */
+.tw {
+  display: inline-flex; align-items: center;
+  padding: 2px 9px; border-radius: 11px;
+  font-size: 12.5px; font-weight: 500;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.tw.future { background: var(--color-warning-light); color: var(--color-warning); }
+.tw.active { background: var(--color-success-light); color: var(--color-success); }
+.tw.past { background: var(--color-error-light); color: var(--color-error); }
+
+/* Rating bar */
+.rat {
+  display: inline-flex; align-items: center; gap: 6px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.rat__val { font-weight: 700; font-size: 12.5px; color: var(--color-primary-element); min-width: 24px; text-align: right; }
+.rat__bar {
+  display: inline-block;
+  width: 60px; height: 6px;
+  background: var(--color-background-dark); border-radius: 3px; overflow: hidden;
+}
+.rat__bar i {
+  display: block; height: 100%;
+  background: var(--color-primary-element); border-radius: 3px;
+}
+.muted { color: var(--color-text-maxcontrast); }
+</style>
+</head>
+<body>
+
+<div class="demo-bar">
+  <h1>#132 Mockup v3 — Konsistent gruppiert: Wein-Header immer, auch bei Solo</h1>
+  <p>Jeder Wein hat einen Header + mind. eine Jahrgangs-Zeile. Keine Aufklapp-Mechanik. Frage: <b>Variant X</b> (grauer Block-Header, deutlich) oder <b>Variant Y</b> (Header ohne Hintergrund, nur Trenner — dezenter)?</p>
+</div>
+
+<!-- ===== Variant X ===== -->
+<div class="section">
+  <h3>X · Block-Header (grauer Hintergrund pro Wein)</h3>
+  <p class="desc">Header optisch klar abgesetzt. Solo-Weine bekommen denselben Stil — Konsistenz vor Kompaktheit.</p>
+</div>
+
+<div class="list-card variant-x" style="margin-left:22px;margin-right:22px;">
+  <table>
+    <thead>
+      <tr>
+        <th>Wein / Jahrgang</th>
+        <th>Appellation</th>
+        <th>Trinkfenster</th>
+        <th class="r">Alkohol</th>
+        <th class="r">Bewertung</th>
+        <th class="r">Flaschen</th>
+        <th class="r"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Solo wine, but still has header -->
+      <tr class="wine-head"><td colspan="7"><span class="dot-color"></span>La Social <span class="subline">Bodegas Telmo Rodriguez · Rot</span></td></tr>
+      <tr class="vintage-row">
+        <td>2021</td>
+        <td>Ribera del Duero DO</td>
+        <td><span class="tw active">2024 – 2030</span></td>
+        <td class="r">14,5 %</td>
+        <td class="r"><span class="rat"><span class="rat__val">8.3</span><span class="rat__bar"><i style="width:83%"></i></span></span></td>
+        <td class="r">5</td>
+        <td class="r muted">⋯</td>
+      </tr>
+
+      <!-- Multi -->
+      <tr class="wine-head"><td colspan="7"><span class="dot-color"></span>Castillon Côtes de Bordeaux <span class="subline">Chateau Clos Louie · Rot</span></td></tr>
+      <tr class="vintage-row">
+        <td>2020</td>
+        <td>Castillon Côtes de Bordeaux AOC</td>
+        <td><span class="tw active">2022 – 2028</span></td>
+        <td class="r">13,5 %</td>
+        <td class="r"><span class="muted">—</span></td>
+        <td class="r">7</td>
+        <td class="r muted">⋯</td>
+      </tr>
+      <tr class="vintage-row">
+        <td>2018</td>
+        <td>Castillon Côtes de Bordeaux AOC</td>
+        <td><span class="tw past">2020 – 2024</span></td>
+        <td class="r">13,5 %</td>
+        <td class="r"><span class="rat"><span class="rat__val">8.8</span><span class="rat__bar"><i style="width:88%"></i></span></span></td>
+        <td class="r">3</td>
+        <td class="r muted">⋯</td>
+      </tr>
+
+      <!-- Multi -->
+      <tr class="wine-head"><td colspan="7"><span class="dot-color"></span>Morgon Cuvée Marcel <span class="subline">Domaine Marcel Lapierre · Rot</span></td></tr>
+      <tr class="vintage-row">
+        <td>2020</td>
+        <td>Morgon AOC</td>
+        <td><span class="tw active">2022 – 2027</span></td>
+        <td class="r">13,0 %</td>
+        <td class="r"><span class="muted">—</span></td>
+        <td class="r">3</td>
+        <td class="r muted">⋯</td>
+      </tr>
+      <tr class="vintage-row">
+        <td>2019</td>
+        <td>Morgon AOC</td>
+        <td><span class="tw active">2021 – 2026</span></td>
+        <td class="r">13,0 %</td>
+        <td class="r"><span class="rat"><span class="rat__val">8.3</span><span class="rat__bar"><i style="width:83%"></i></span></span></td>
+        <td class="r">2</td>
+        <td class="r muted">⋯</td>
+      </tr>
+
+      <!-- Solo -->
+      <tr class="wine-head"><td colspan="7"><span class="dot-color white"></span>Grande Cuvée Édition 170 <span class="subline">Krug · Champagne</span></td></tr>
+      <tr class="vintage-row">
+        <td>2020</td>
+        <td>Champagne AOC</td>
+        <td><span class="tw active">jederzeit</span></td>
+        <td class="r">12,0 %</td>
+        <td class="r"><span class="rat"><span class="rat__val">9.3</span><span class="rat__bar"><i style="width:93%"></i></span></span></td>
+        <td class="r">1</td>
+        <td class="r muted">⋯</td>
+      </tr>
+
+      <!-- Solo with future window -->
+      <tr class="wine-head"><td colspan="7"><span class="dot-color"></span>Sassicaia <span class="subline">Tenuta San Guido · Rot</span></td></tr>
+      <tr class="vintage-row">
+        <td>2017</td>
+        <td>Toskana IGT</td>
+        <td><span class="tw future">ab 2027</span></td>
+        <td class="r">14,0 %</td>
+        <td class="r"><span class="muted">—</span></td>
+        <td class="r">2</td>
+        <td class="r muted">⋯</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ===== Variant Y ===== -->
+<div class="section">
+  <h3>Y · Dezent (Header ohne Hintergrund, nur Trenner)</h3>
+  <p class="desc">Header trägt nur Wein-Name + Producer in fett, Trennlinie oben. Sub-Zeilen sind klar untergeordnet aber ohne Block-Effekt.</p>
+</div>
+
+<div class="list-card variant-y" style="margin-left:22px;margin-right:22px;">
+  <table>
+    <thead>
+      <tr>
+        <th>Wein / Jahrgang</th>
+        <th>Appellation</th>
+        <th>Trinkfenster</th>
+        <th class="r">Alkohol</th>
+        <th class="r">Bewertung</th>
+        <th class="r">Flaschen</th>
+        <th class="r"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="wine-head"><td colspan="7"><span class="dot-color"></span>La Social <span class="subline">Bodegas Telmo Rodriguez · Rot</span></td></tr>
+      <tr class="vintage-row">
+        <td>2021</td>
+        <td>Ribera del Duero DO</td>
+        <td><span class="tw active">2024 – 2030</span></td>
+        <td class="r">14,5 %</td>
+        <td class="r"><span class="rat"><span class="rat__val">8.3</span><span class="rat__bar"><i style="width:83%"></i></span></span></td>
+        <td class="r">5</td>
+        <td class="r muted">⋯</td>
+      </tr>
+
+      <tr class="wine-head"><td colspan="7"><span class="dot-color"></span>Castillon Côtes de Bordeaux <span class="subline">Chateau Clos Louie · Rot</span></td></tr>
+      <tr class="vintage-row">
+        <td>2020</td>
+        <td>Castillon Côtes de Bordeaux AOC</td>
+        <td><span class="tw active">2022 – 2028</span></td>
+        <td class="r">13,5 %</td>
+        <td class="r"><span class="muted">—</span></td>
+        <td class="r">7</td>
+        <td class="r muted">⋯</td>
+      </tr>
+      <tr class="vintage-row">
+        <td>2018</td>
+        <td>Castillon Côtes de Bordeaux AOC</td>
+        <td><span class="tw past">2020 – 2024</span></td>
+        <td class="r">13,5 %</td>
+        <td class="r"><span class="rat"><span class="rat__val">8.8</span><span class="rat__bar"><i style="width:88%"></i></span></span></td>
+        <td class="r">3</td>
+        <td class="r muted">⋯</td>
+      </tr>
+
+      <tr class="wine-head"><td colspan="7"><span class="dot-color"></span>Morgon Cuvée Marcel <span class="subline">Domaine Marcel Lapierre · Rot</span></td></tr>
+      <tr class="vintage-row">
+        <td>2020</td>
+        <td>Morgon AOC</td>
+        <td><span class="tw active">2022 – 2027</span></td>
+        <td class="r">13,0 %</td>
+        <td class="r"><span class="muted">—</span></td>
+        <td class="r">3</td>
+        <td class="r muted">⋯</td>
+      </tr>
+      <tr class="vintage-row">
+        <td>2019</td>
+        <td>Morgon AOC</td>
+        <td><span class="tw active">2021 – 2026</span></td>
+        <td class="r">13,0 %</td>
+        <td class="r"><span class="rat"><span class="rat__val">8.3</span><span class="rat__bar"><i style="width:83%"></i></span></span></td>
+        <td class="r">2</td>
+        <td class="r muted">⋯</td>
+      </tr>
+
+      <tr class="wine-head"><td colspan="7"><span class="dot-color white"></span>Grande Cuvée Édition 170 <span class="subline">Krug · Champagne</span></td></tr>
+      <tr class="vintage-row">
+        <td>2020</td>
+        <td>Champagne AOC</td>
+        <td><span class="tw active">jederzeit</span></td>
+        <td class="r">12,0 %</td>
+        <td class="r"><span class="rat"><span class="rat__val">9.3</span><span class="rat__bar"><i style="width:93%"></i></span></span></td>
+        <td class="r">1</td>
+        <td class="r muted">⋯</td>
+      </tr>
+
+      <tr class="wine-head"><td colspan="7"><span class="dot-color"></span>Sassicaia <span class="subline">Tenuta San Guido · Rot</span></td></tr>
+      <tr class="vintage-row">
+        <td>2017</td>
+        <td>Toskana IGT</td>
+        <td><span class="tw future">ab 2027</span></td>
+        <td class="r">14,0 %</td>
+        <td class="r"><span class="muted">—</span></td>
+        <td class="r">2</td>
+        <td class="r muted">⋯</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div style="padding: 0 22px 30px; color: #555; font-size: 13px;">
+  <p><b>Konsistent gruppiert</b>: jeder Wein hat denselben Aufbau (Header + Jahrgangs-Zeilen). Bei Solo-Weinen wirkt der Header in <b>X</b> mehr wie ein Block-Element, in <b>Y</b> mehr wie eine einfache Überschrift.</p>
+  <p>Mein Vote: <b>Y</b> — leichter, weniger „Block-Block-Block" beim Scrollen, dennoch klare Wein-Trennung durch die Trennlinien.</p>
+</div>
+
+</body>
+</html>

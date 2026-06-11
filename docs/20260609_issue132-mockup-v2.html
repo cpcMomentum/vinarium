@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<title>Vinarium #132 v2 — Trinkfenster-Varianten + Hybrid-Liste</title>
+<style>
+:root {
+  --color-main-background: #fff;
+  --color-main-text: #222;
+  --color-text-maxcontrast: #6c6c6c;
+  --color-border: #d2d4d7;
+  --color-background-hover: #f3f4f6;
+  --color-background-dark: #ededef;
+  --color-primary-element: #0082c9;
+  --color-primary-element-light: #e8f0fe;
+  --color-success: #1e6b2a;
+  --color-success-light: #e6f4e8;
+  --color-warning: #b87600;
+  --color-warning-light: #fff5e0;
+  --color-error: #8a2828;
+  --color-error-light: #fce8e8;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  color: var(--color-main-text);
+  background: #ecedf0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.demo-bar { background: #2d2d2d; color: white; padding: 14px 22px; }
+.demo-bar h1 { margin: 0 0 4px 0; font-size: 15px; }
+.demo-bar p { margin: 0; font-size: 12px; color: #bbb; }
+
+.section { padding: 22px 22px 0; }
+.section h3 { margin: 0 0 12px; font-size: 14px; font-weight: 700; }
+.section .desc { margin: 0 0 16px; font-size: 12.5px; color: var(--color-text-maxcontrast); }
+
+/* ===== Trinkfenster-Varianten ===== */
+.tw-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 22px;
+}
+.tw-card {
+  background: white; border: 1px solid var(--color-border); border-radius: 8px;
+  padding: 14px 16px;
+}
+.tw-card h4 { margin: 0 0 10px; font-size: 12.5px; font-weight: 700; }
+.tw-card .tw-sample { display: flex; align-items: center; gap: 12px; padding: 5px 0; font-size: 13px; }
+.tw-card .label { color: var(--color-text-maxcontrast); font-size: 11.5px; min-width: 96px; }
+
+/* Variant I: colored chip with range only */
+.tw-chip-color {
+  display: inline-flex; align-items: center;
+  padding: 2px 9px; border-radius: 11px;
+  font-size: 12.5px; font-weight: 500;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.tw-chip-color.future { background: var(--color-warning-light); color: var(--color-warning); }
+.tw-chip-color.active { background: var(--color-success-light); color: var(--color-success); }
+.tw-chip-color.past { background: var(--color-error-light); color: var(--color-error); }
+
+/* Variant II: small dot + range */
+.tw-dot { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.tw-dot .dot {
+  width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+}
+.tw-dot .dot.future { background: var(--color-warning); }
+.tw-dot .dot.active { background: var(--color-success); }
+.tw-dot .dot.past { background: var(--color-error); }
+
+/* Variant III: pill with fixed-width label + range */
+.tw-pill-fixed {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+.tw-pill-fixed .badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 90px; padding: 2px 6px; border-radius: 10px;
+  font-size: 10.5px; font-weight: 600;
+  white-space: nowrap;
+}
+.tw-pill-fixed .badge.future { background: var(--color-warning-light); color: var(--color-warning); }
+.tw-pill-fixed .badge.active { background: var(--color-success-light); color: var(--color-success); }
+.tw-pill-fixed .badge.past { background: var(--color-error-light); color: var(--color-error); }
+
+/* ===== Liste ===== */
+.list-card {
+  background: white; border: 1px solid var(--color-border); border-radius: 8px;
+  overflow: hidden;
+  margin: 22px;
+}
+table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+th { text-align: left; padding: 10px 14px; color: var(--color-text-maxcontrast); font-weight: 600; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid var(--color-border); background: #fafafa; }
+th.r { text-align: right; }
+td { padding: 10px 14px; border-bottom: 1px solid #eee; vertical-align: middle; }
+td.r { text-align: right; }
+tbody tr:hover { background: var(--color-background-hover); cursor: pointer; }
+
+.dot-color { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #762228; margin-right: 8px; vertical-align: middle; }
+.dot-color.white { background: #ead884; }
+.dot-color.rose { background: #c8757b; }
+
+/* Grouped — wine header row */
+tr.wine-head td {
+  background: #f7f8fa;
+  padding-top: 14px; padding-bottom: 6px;
+  font-weight: 700;
+  border-top: 1px solid var(--color-border);
+  border-bottom: none;
+}
+tr.wine-head td .subline { font-weight: 400; font-size: 12px; color: var(--color-text-maxcontrast); margin-left: 8px; }
+tr.vintage-row td:first-child { padding-left: 36px; }
+tr.vintage-row td:first-child::before { content: '↳'; color: var(--color-text-maxcontrast); font-size: 11px; margin-right: 6px; }
+
+/* Single-vintage wine row (flat — no header) */
+tr.solo-wine td { border-top: 1px solid var(--color-border); }
+
+/* Rating bar (copied from InventoryView .rat) */
+.rat {
+  display: inline-flex; align-items: center; gap: 6px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.rat__val { font-weight: 700; font-size: 12.5px; color: var(--color-primary-element); min-width: 24px; text-align: right; }
+.rat__bar {
+  display: inline-block;
+  width: 60px; height: 6px;
+  background: var(--color-background-dark); border-radius: 3px; overflow: hidden;
+}
+.rat__bar i {
+  display: block; height: 100%;
+  background: var(--color-primary-element); border-radius: 3px;
+}
+</style>
+</head>
+<body>
+
+<div class="demo-bar">
+  <h1>#132 Mockup v2 — drei Trinkfenster-Pattern + Hybrid-Liste + Bewertungs-Balken</h1>
+  <p>Oben: Welches Trinkfenster-Pattern findest du am besten? Unten: Liste mit der Hybrid-Logik (Weine mit 1 Jahrgang = flache Zeile, mit mehreren = Gruppen-Header + Sub-Zeilen) und Bewertung als Balken wie im Bestand.</p>
+</div>
+
+<!-- ===== Trinkfenster-Varianten ===== -->
+<div class="section">
+  <h3>Trinkfenster — drei Varianten</h3>
+  <p class="desc">Alle gleichmäßig dimensioniert, kein „springen" durch unterschiedlich lange Labels.</p>
+  <div class="tw-row">
+
+    <div class="tw-card">
+      <h4>I · Nur Farbe + Zeitraum</h4>
+      <div class="tw-sample"><span class="label">noch nicht offen</span><span class="tw-chip-color future">ab 2027</span></div>
+      <div class="tw-sample"><span class="label">trinkbereit</span><span class="tw-chip-color active">2024 – 2030</span></div>
+      <div class="tw-sample"><span class="label">trinkbereit (offen)</span><span class="tw-chip-color active">jederzeit</span></div>
+      <div class="tw-sample"><span class="label">Höhepunkt vorbei</span><span class="tw-chip-color past">2020 – 2024</span></div>
+    </div>
+
+    <div class="tw-card">
+      <h4>II · Kleiner Punkt + Zeitraum</h4>
+      <div class="tw-sample"><span class="label">noch nicht offen</span><span class="tw-dot"><span class="dot future"></span>ab 2027</span></div>
+      <div class="tw-sample"><span class="label">trinkbereit</span><span class="tw-dot"><span class="dot active"></span>2024 – 2030</span></div>
+      <div class="tw-sample"><span class="label">trinkbereit (offen)</span><span class="tw-dot"><span class="dot active"></span>jederzeit</span></div>
+      <div class="tw-sample"><span class="label">Höhepunkt vorbei</span><span class="tw-dot"><span class="dot past"></span>2020 – 2024</span></div>
+    </div>
+
+    <div class="tw-card">
+      <h4>III · Pille (fest 90 px) + Zeitraum</h4>
+      <div class="tw-sample"><span class="label">noch nicht offen</span><span class="tw-pill-fixed"><span class="badge future">noch zu jung</span>ab 2027</span></div>
+      <div class="tw-sample"><span class="label">trinkbereit</span><span class="tw-pill-fixed"><span class="badge active">trinkbereit</span>2024 – 2030</span></div>
+      <div class="tw-sample"><span class="label">trinkbereit (offen)</span><span class="tw-pill-fixed"><span class="badge active">trinkbereit</span>jederzeit</span></div>
+      <div class="tw-sample"><span class="label">Höhepunkt vorbei</span><span class="tw-pill-fixed"><span class="badge past">Höhepunkt</span>2020 – 2024</span></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== Hybrid-Liste mit Variante I (mein Vorschlag) ===== -->
+<div class="section">
+  <h3>Liste — Hybrid: 1 Jahrgang = flach, mehrere = gruppiert (mit Pattern I)</h3>
+  <p class="desc">Bewertung als Balken (gleich wie Bestand). Klick auf eine Zeile öffnet den Editor.</p>
+</div>
+
+<div class="list-card">
+  <table>
+    <thead>
+      <tr>
+        <th>Wein / Jahrgang</th>
+        <th>Weingut</th>
+        <th>Trinkfenster</th>
+        <th class="r">Alkohol</th>
+        <th class="r">Bewertung</th>
+        <th class="r">Flaschen</th>
+        <th class="r"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Solo: nur 1 Jahrgang → flache Zeile, kein Header -->
+      <tr class="solo-wine">
+        <td><span class="dot-color"></span><strong>La Social</strong> <span style="color:var(--color-text-maxcontrast);">· 2021</span></td>
+        <td>Bodegas Telmo Rodriguez</td>
+        <td><span class="tw-chip-color active">2024 – 2030</span></td>
+        <td class="r">14,5 %</td>
+        <td class="r"><span class="rat"><span class="rat__val">8.3</span><span class="rat__bar"><i style="width:83%"></i></span></span></td>
+        <td class="r">5</td>
+        <td class="r" style="color:var(--color-text-maxcontrast);">⋯</td>
+      </tr>
+
+      <!-- Multi: Wein mit 2 Jahrgängen → Header + Sub-Zeilen -->
+      <tr class="wine-head"><td colspan="7"><span class="dot-color"></span>Castillon Côtes de Bordeaux <span class="subline">Chateau Clos Louie</span></td></tr>
+      <tr class="vintage-row">
+        <td>2020</td>
+        <td>Castillon Côtes de Bordeaux AOC</td>
+        <td><span class="tw-chip-color active">2022 – 2028</span></td>
+        <td class="r">13,5 %</td>
+        <td class="r"><span class="rat"><span class="rat__val">—</span></span></td>
+        <td class="r">7</td>
+        <td class="r" style="color:var(--color-text-maxcontrast);">⋯</td>
+      </tr>
+      <tr class="vintage-row">
+        <td>2018</td>
+        <td>Castillon Côtes de Bordeaux AOC</td>
+        <td><span class="tw-chip-color past">2020 – 2024</span></td>
+        <td class="r">13,5 %</td>
+        <td class="r"><span class="rat"><span class="rat__val">8.8</span><span class="rat__bar"><i style="width:88%"></i></span></span></td>
+        <td class="r">3</td>
+        <td class="r" style="color:var(--color-text-maxcontrast);">⋯</td>
+      </tr>
+
+      <!-- Multi: Wein mit 2 Jahrgängen -->
+      <tr class="wine-head"><td colspan="7"><span class="dot-color"></span>Morgon Cuvée Marcel <span class="subline">Domaine Marcel Lapierre</span></td></tr>
+      <tr class="vintage-row">
+        <td>2020</td>
+        <td>Morgon AOC</td>
+        <td><span class="tw-chip-color active">2022 – 2027</span></td>
+        <td class="r">13,0 %</td>
+        <td class="r"><span class="rat"><span class="rat__val">—</span></span></td>
+        <td class="r">3</td>
+        <td class="r" style="color:var(--color-text-maxcontrast);">⋯</td>
+      </tr>
+      <tr class="vintage-row">
+        <td>2019</td>
+        <td>Morgon AOC</td>
+        <td><span class="tw-chip-color active">2021 – 2026</span></td>
+        <td class="r">13,0 %</td>
+        <td class="r"><span class="rat"><span class="rat__val">8.3</span><span class="rat__bar"><i style="width:83%"></i></span></span></td>
+        <td class="r">2</td>
+        <td class="r" style="color:var(--color-text-maxcontrast);">⋯</td>
+      </tr>
+
+      <!-- Solo -->
+      <tr class="solo-wine">
+        <td><span class="dot-color white"></span><strong>Grande Cuvée Édition 170</strong> <span style="color:var(--color-text-maxcontrast);">· 2020</span></td>
+        <td>Krug</td>
+        <td><span class="tw-chip-color active">jederzeit</span></td>
+        <td class="r">12,0 %</td>
+        <td class="r"><span class="rat"><span class="rat__val">9.3</span><span class="rat__bar"><i style="width:93%"></i></span></span></td>
+        <td class="r">1</td>
+        <td class="r" style="color:var(--color-text-maxcontrast);">⋯</td>
+      </tr>
+
+      <!-- Solo with future window -->
+      <tr class="solo-wine">
+        <td><span class="dot-color"></span><strong>Sassicaia</strong> <span style="color:var(--color-text-maxcontrast);">· 2017</span></td>
+        <td>Tenuta San Guido</td>
+        <td><span class="tw-chip-color future">ab 2027</span></td>
+        <td class="r">14,0 %</td>
+        <td class="r"><span class="rat"><span class="rat__val">—</span></span></td>
+        <td class="r">2</td>
+        <td class="r" style="color:var(--color-text-maxcontrast);">⋯</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div style="padding: 0 22px 30px; color: #555; font-size: 13px;">
+  <p><b>Trinkfenster-Empfehlung</b>: <b>I · Nur Farbe + Zeitraum</b> — die Farbe trägt die Bedeutung, der Zeitraum ist die eigentliche Info. Pille immer gleiche Grundform, nur Inhalt wechselt. Kein Bedarf für Label-Text. Tooltip beim Hover erklärt die Farbe für Neulinge.</p>
+  <p><b>Liste-Empfehlung</b>: <b>Hybrid</b>. Wenn nur 1 Jahrgang → flache Zeile (kein redundanter Header). Wenn 2+ Jahrgänge → Header-Zeile mit Wein-Name + Producer, darunter die Jahrgänge eingerückt. Löst dein Bedenken auf, dass die meisten Weine wohl nur einen Jahrgang haben.</p>
+  <p><b>Bewertung als Balken</b>: identisch zum Bestand (Wert + 60-px-Balken in Primary-Farbe).</p>
+</div>
+
+</body>
+</html>
