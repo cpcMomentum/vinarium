@@ -7,6 +7,16 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-06-19
+
+### Added
+- **„Würde ich wieder kaufen"-Flag** bei Verkostungen — eigenständiges Empfehlungs-Signal (ja / nein / keine Angabe), unabhängig von der Bewertung; filigraner ✓/✗-Toggle im Entkork-Dialog, Badge im Verkostungs-Detail (Fixes #143)
+
+### Fixed
+- Kauf-Wizard Schritt 4: irreführendes Button-Label „📷 Foto aufnehmen" → „Foto hinzufügen" (am Desktop ist es ein Datei-Upload), konsistent mit den übrigen Foto-Buttons (Fixes #142)
+- `l10n/de.json` und `l10n/en.json` waren durch ein gerades Anführungszeichen kein valides JSON — auf deutsches schließendes Anführungszeichen korrigiert (Fixes #146)
+- CI: Bot-Review nutzt die korrekte PR-Nummer und eine breitere Lese-Allowlist
+
 ## [0.4.0] - 2026-06-11
 
 Großes UI-Redesign über alle Ansichten („v4-Konzept") plus neue Detail- und Foto-Funktionen.
@@ -151,7 +161,8 @@ Erste offizielle Veröffentlichung — Weinverwaltung End-to-End.
 - 88 PHPUnit-Tests + 24 Vitest-Tests (112 gesamt)
 - Pre-Commit-Hook für OCP-only API-Enforcement
 
-[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/cpcMomentum/vinarium/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/cpcMomentum/vinarium/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/cpcMomentum/vinarium/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/cpcMomentum/vinarium/compare/v0.1.2...v0.2.0
