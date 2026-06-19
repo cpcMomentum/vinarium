@@ -83,7 +83,7 @@ OC.L10N.register(
     "verteilt auf {n} Regal": ["spread across {n} shelf", "spread across {n} shelves"],
     "Trinkfenster läuft bald ab": "Drinking window closing soon",
     "Alle ansehen ›": "View all ›",
-    "Keine Weine mit demnächst ablaufendem Trinkfenster. Trage „Trinken bis" am Jahrgang ein, damit hier Vorschläge erscheinen.": "No wines with an upcoming drinking window. Add a \"Drink until\" year to a vintage to see suggestions here.",
+    "Keine Weine mit demnächst ablaufendem Trinkfenster. Trage „Trinken bis“ am Jahrgang ein, damit hier Vorschläge erscheinen.": "No wines with an upcoming drinking window. Add a \"Drink until\" year to a vintage to see suggestions here.",
     "bis {y}": "until {y}",
     "alle ›": "all ›",
     "Noch keine Aktivität.": "No activity yet.",
