@@ -109,7 +109,6 @@ OC.L10N.register(
     "{f} Flaschen · {w} Weine · {p} Weingüter": "{f} Flaschen · {w} Weine · {p} Weingüter",
     "Etiketten-Foto": "Etiketten-Foto",
     "optional — wird allen Flaschen dieses Kaufs zugeordnet": "optional — wird allen Flaschen dieses Kaufs zugeordnet",
-    "📷 Foto aufnehmen": "📷 Foto aufnehmen",
     "Foto ersetzen": "Foto ersetzen",
     "Entfernen": "Entfernen",
     "Kauf": "Kauf",
