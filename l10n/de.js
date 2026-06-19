@@ -79,7 +79,7 @@ OC.L10N.register(
     "verteilt auf {n} Regal": ["verteilt auf {n} Regal", "verteilt auf {n} Regale"],
     "Trinkfenster läuft bald ab": "Trinkfenster läuft bald ab",
     "Alle ansehen ›": "Alle ansehen ›",
-    "Keine Weine mit demnächst ablaufendem Trinkfenster. Trage „Trinken bis" am Jahrgang ein, damit hier Vorschläge erscheinen.": "Keine Weine mit demnächst ablaufendem Trinkfenster. Trage „Trinken bis" am Jahrgang ein, damit hier Vorschläge erscheinen.",
+    "Keine Weine mit demnächst ablaufendem Trinkfenster. Trage „Trinken bis“ am Jahrgang ein, damit hier Vorschläge erscheinen.": "Keine Weine mit demnächst ablaufendem Trinkfenster. Trage „Trinken bis“ am Jahrgang ein, damit hier Vorschläge erscheinen.",
     "bis {y}": "bis {y}",
     "alle ›": "alle ›",
     "Noch keine Aktivität.": "Noch keine Aktivität.",
