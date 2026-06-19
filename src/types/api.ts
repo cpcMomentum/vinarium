@@ -90,6 +90,7 @@ export interface Tasting {
 	notes: string | null
 	occasion: string | null
 	companions: string | null
+	wouldRebuy: boolean | null
 	photoFileIds: number[] | null
 }
 
