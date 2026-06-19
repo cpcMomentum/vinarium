@@ -33,6 +33,9 @@ class TastingService {
 			$row['photo_file_ids'] = isset($row['photo_file_ids']) && $row['photo_file_ids'] !== null
 				? json_decode((string)$row['photo_file_ids'], true) ?? []
 				: [];
+			$row['would_rebuy'] = isset($row['would_rebuy']) && $row['would_rebuy'] !== null
+				? (bool)$row['would_rebuy']
+				: null;
 			return $row;
 		}, $rows);
 	}
@@ -66,6 +69,9 @@ class TastingService {
 		$tasting->setNotes($data['notes'] ?? null);
 		$tasting->setOccasion($data['occasion'] ?? null);
 		$tasting->setCompanions($data['companions'] ?? null);
+		if (array_key_exists('wouldRebuy', $data)) {
+			$tasting->setWouldRebuy($data['wouldRebuy'] === null ? null : (bool)$data['wouldRebuy']);
+		}
 
 		return $this->tastingMapper->insert($tasting);
 	}
@@ -115,6 +121,7 @@ class TastingService {
 			'notes' => $row['notes'],
 			'occasion' => $row['occasion'],
 			'companions' => $row['companions'],
+			'would_rebuy' => isset($row['would_rebuy']) && $row['would_rebuy'] !== null ? (bool)$row['would_rebuy'] : null,
 			'photo_file_ids' => $photoFileIds,
 			'wine_id' => (int)$row['wine_id'],
 			'wine_name' => $row['wine_name'],
@@ -189,6 +196,9 @@ class TastingService {
 		}
 		if (array_key_exists('companions', $data)) {
 			$tasting->setCompanions($data['companions']);
+		}
+		if (array_key_exists('wouldRebuy', $data)) {
+			$tasting->setWouldRebuy($data['wouldRebuy'] === null ? null : (bool)$data['wouldRebuy']);
 		}
 
 		return $this->tastingMapper->update($tasting);

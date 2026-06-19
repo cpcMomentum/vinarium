@@ -29,6 +29,8 @@ use OCP\DB\Types;
  * @method void setCompanions(?string $companions)
  * @method ?array getPhotoFileIds()
  * @method void setPhotoFileIds(?array $photoFileIds)
+ * @method ?bool getWouldRebuy()
+ * @method void setWouldRebuy(?bool $wouldRebuy)
  */
 class Tasting extends Entity implements JsonSerializable {
 	protected ?int $bottleId = null;
@@ -38,6 +40,7 @@ class Tasting extends Entity implements JsonSerializable {
 	protected ?string $occasion = null;
 	protected ?string $companions = null;
 	protected ?array $photoFileIds = null;
+	protected ?bool $wouldRebuy = null;
 
 	public function __construct() {
 		$this->addType('bottleId', Types::INTEGER);
@@ -47,6 +50,7 @@ class Tasting extends Entity implements JsonSerializable {
 		$this->addType('occasion', Types::STRING);
 		$this->addType('companions', Types::STRING);
 		$this->addType('photoFileIds', Types::JSON);
+		$this->addType('wouldRebuy', Types::BOOLEAN);
 	}
 
 	public function jsonSerialize(): array {
@@ -59,6 +63,7 @@ class Tasting extends Entity implements JsonSerializable {
 			'occasion' => $this->getOccasion(),
 			'companions' => $this->getCompanions(),
 			'photoFileIds' => $this->getPhotoFileIds(),
+			'wouldRebuy' => $this->getWouldRebuy(),
 		];
 	}
 }

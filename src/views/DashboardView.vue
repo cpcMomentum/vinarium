@@ -63,7 +63,7 @@
 					<a class="hero__all" @click.prevent="goToInventoryDrinkSoon">{{ t('vinarium', 'alle ›') }}</a>
 				</header>
 				<p v-if="topDrinkSoon.length === 0" class="hero__empty">
-					{{ t('vinarium', 'Keine Weine mit demnächst ablaufendem Trinkfenster. Trage „Trinken bis" am Jahrgang ein, damit hier Vorschläge erscheinen.') }}
+					{{ t('vinarium', 'Keine Weine mit demnächst ablaufendem Trinkfenster. Trage „Trinken bis“ am Jahrgang ein, damit hier Vorschläge erscheinen.') }}
 				</p>
 				<div v-else class="hero__cards">
 					<article

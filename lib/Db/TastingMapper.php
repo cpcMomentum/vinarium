@@ -35,7 +35,7 @@ class TastingMapper extends QBMapper {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select(
 			't.id', 't.bottle_id', 't.tasted_at', 't.rating', 't.notes', 't.occasion', 't.companions',
-			't.photo_file_ids',
+			't.photo_file_ids', 't.would_rebuy',
 			'w.name AS wine_name', 'w.color AS wine_color',
 			'v.year', 'p.name AS producer_name',
 		)
@@ -67,7 +67,7 @@ class TastingMapper extends QBMapper {
 		$qb = $this->db->getQueryBuilder();
 		$qb->select(
 			't.id', 't.bottle_id', 't.tasted_at', 't.rating', 't.notes', 't.occasion', 't.companions',
-			't.photo_file_ids',
+			't.photo_file_ids', 't.would_rebuy',
 			'w.id AS wine_id', 'w.name AS wine_name', 'w.color AS wine_color',
 			'v.id AS vintage_id', 'v.year AS year',
 			'p.id AS producer_id', 'p.name AS producer_name',

@@ -23,6 +23,11 @@
 						<span class="sep">·</span>
 						<span class="rating">⭐ {{ Number(detail.rating).toFixed(1) }}</span>
 					</template>
+					<template v-if="detail.would_rebuy !== null">
+						<span class="sep">·</span>
+						<span v-if="detail.would_rebuy" class="rebuy-badge rebuy-badge--yes">{{ t('vinarium', 'Wieder kaufen') }}</span>
+						<span v-else class="rebuy-badge rebuy-badge--no">{{ t('vinarium', 'Eher nicht') }}</span>
+					</template>
 					<template v-if="detail.occasion">
 						<span class="sep">·</span>
 						<span class="occasion">{{ detail.occasion }}</span>
@@ -375,4 +380,14 @@ function truncate(text: string, max = 60): string {
 	object-fit: contain;
 	border-radius: var(--border-radius);
 }
+.rebuy-badge {
+	display: inline-flex;
+	align-items: center;
+	padding: 1px 8px;
+	border-radius: 12px;
+	font-size: 0.8rem;
+	font-weight: 600;
+}
+.rebuy-badge--yes { background: #eaf5ee; color: #2f7d49; }
+.rebuy-badge--no { background: #fbecea; color: #b03b33; }
 </style>

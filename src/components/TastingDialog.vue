@@ -13,6 +13,26 @@
 						<span class="rating-value">{{ form.rating !== null ? form.rating.toFixed(1) : '—' }}</span>
 					</div>
 				</label>
+				<div class="field">
+					<span>{{ t('vinarium', 'Würde ich wieder kaufen?') }} <em class="hint-inline">{{ t('vinarium', '(optional)') }}</em></span>
+					<div class="rebuy">
+						<button
+							type="button"
+							class="rebuy__opt"
+							:class="{ 'rebuy__opt--yes': form.wouldRebuy === true }"
+							:aria-pressed="form.wouldRebuy === true"
+							:title="t('vinarium', 'Ja, wieder kaufen')"
+							@click="form.wouldRebuy = form.wouldRebuy === true ? null : true">✓</button>
+						<button
+							type="button"
+							class="rebuy__opt"
+							:class="{ 'rebuy__opt--no': form.wouldRebuy === false }"
+							:aria-pressed="form.wouldRebuy === false"
+							:title="t('vinarium', 'Nein, eher nicht')"
+							@click="form.wouldRebuy = form.wouldRebuy === false ? null : false">✗</button>
+						<span class="rebuy__state">{{ form.wouldRebuy === true ? t('vinarium', 'Wieder kaufen') : form.wouldRebuy === false ? t('vinarium', 'Eher nicht') : t('vinarium', 'keine Angabe') }}</span>
+					</div>
+				</div>
 				<label class="field"><span>{{ t('vinarium', 'Notizen') }}</span><textarea v-model="form.notes" class="input" rows="3" :placeholder="t('vinarium', 'Wie schmeckt der Wein?')" /></label>
 				<label class="field"><span>{{ t('vinarium', 'Anlass') }}</span><input v-model="form.occasion" class="input" :placeholder="t('vinarium', 'z. B. Geburtstagsessen')" /></label>
 				<label class="field"><span>{{ t('vinarium', 'Begleitung') }}</span><input v-model="form.companions" class="input" :placeholder="t('vinarium', 'z. B. Anna, Max')" /></label>
@@ -98,6 +118,7 @@ const submitError = ref<string | null>(null)
 const form = ref({
 	tastedAt: todayIso.value,
 	rating: 7.0 as number | null,
+	wouldRebuy: null as boolean | null,
 	notes: '',
 	occasion: '',
 	companions: '',
@@ -114,6 +135,7 @@ watch(() => props.open, (isOpen) => {
 		form.value = {
 			tastedAt: props.tasting.tasted_at.substring(0, 10),
 			rating: props.tasting.rating ?? 7.0,
+			wouldRebuy: props.tasting.would_rebuy ?? null,
 			notes: props.tasting.notes ?? '',
 			occasion: props.tasting.occasion ?? '',
 			companions: props.tasting.companions ?? '',
@@ -123,6 +145,7 @@ watch(() => props.open, (isOpen) => {
 		form.value = {
 			tastedAt: todayIso.value,
 			rating: 7.0,
+			wouldRebuy: null,
 			notes: '',
 			occasion: '',
 			companions: '',
@@ -191,6 +214,7 @@ async function submit() {
 			await updateTasting(props.tasting.id, {
 				tastedAt: form.value.tastedAt,
 				rating: form.value.rating,
+				wouldRebuy: form.value.wouldRebuy,
 				notes: form.value.notes || null,
 				occasion: form.value.occasion || null,
 				companions: form.value.companions || null,
@@ -200,6 +224,7 @@ async function submit() {
 				...props.tasting,
 				tasted_at: form.value.tastedAt,
 				rating: form.value.rating,
+				would_rebuy: form.value.wouldRebuy,
 				notes: form.value.notes || null,
 				occasion: form.value.occasion || null,
 				companions: form.value.companions || null,
@@ -210,6 +235,7 @@ async function submit() {
 			const result = await consumeWithTasting(props.bottleId, {
 				tastedAt: form.value.tastedAt,
 				rating: form.value.rating,
+				wouldRebuy: form.value.wouldRebuy,
 				notes: form.value.notes || null,
 				occasion: form.value.occasion || null,
 				companions: form.value.companions || null,
@@ -240,6 +266,25 @@ async function submit() {
 .rating-row { display: flex; align-items: center; gap: 1rem; }
 .rating-slider { flex: 1; }
 .rating-value { font-size: 1.2rem; font-weight: 600; min-width: 40px; text-align: center; }
+.hint-inline { font-style: normal; color: var(--color-text-maxcontrast); font-size: 0.78rem; }
+.rebuy { display: flex; align-items: center; gap: 0.5rem; }
+.rebuy__opt {
+	width: 30px; height: 30px;
+	flex: none;
+	padding: 0;
+	border: 1px solid var(--color-border);
+	border-radius: 50%;
+	background: transparent !important;
+	color: var(--color-text-maxcontrast) !important;
+	font-size: 14px; line-height: 1;
+	display: inline-flex; align-items: center; justify-content: center;
+	cursor: pointer;
+	transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+.rebuy__opt:hover { border-color: var(--color-border-dark) !important; }
+.rebuy__opt--yes, .rebuy__opt--yes:focus { background: #eaf5ee !important; border-color: #2f7d49 !important; color: #2f7d49 !important; }
+.rebuy__opt--no, .rebuy__opt--no:focus { background: #fbecea !important; border-color: #b03b33 !important; color: #b03b33 !important; }
+.rebuy__state { font-size: 0.82rem; color: var(--color-text-maxcontrast); margin-left: 0.25rem; }
 .actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1.5rem; }
 .submit-error {
 	margin: 1rem 0 0;

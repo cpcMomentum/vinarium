@@ -137,7 +137,7 @@
 									@change="onPhotoSelected"
 								/>
 								<CameraIcon :size="18" />
-								<span>{{ photoFile ? t('vinarium', 'Foto ersetzen') : t('vinarium', '📷 Foto aufnehmen') }}</span>
+								<span>{{ photoFile ? t('vinarium', 'Foto ersetzen') : t('vinarium', 'Foto hinzufügen') }}</span>
 							</label>
 							<NcButton v-if="photoFile" variant="tertiary" @click="clearPhoto">
 								{{ t('vinarium', 'Entfernen') }}
