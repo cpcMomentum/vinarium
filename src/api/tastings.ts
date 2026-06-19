@@ -15,6 +15,7 @@ export interface TastingListItem {
 	notes: string | null
 	occasion: string | null
 	companions: string | null
+	would_rebuy: boolean | null
 	photo_file_ids: number[]
 	wine_name: string
 	wine_color: string
@@ -28,6 +29,7 @@ export interface TastingCreate {
 	notes?: string | null
 	occasion?: string | null
 	companions?: string | null
+	wouldRebuy?: boolean | null
 }
 
 export interface ConsumeResult {
@@ -52,6 +54,7 @@ export interface TastingDetail {
 	notes: string | null
 	occasion: string | null
 	companions: string | null
+	would_rebuy: boolean | null
 	photo_file_ids: number[]
 	wine_id: number
 	wine_name: string
