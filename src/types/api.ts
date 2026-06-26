@@ -153,6 +153,16 @@ export interface PurchaseListItem {
 	producer_name: string
 }
 
+export type SearchResultType = 'producer' | 'wine' | 'vintage'
+
+export interface SearchResult {
+	type: SearchResultType
+	id: number
+	label: string
+	sub: string
+	count: number | null
+}
+
 export interface ApiError {
 	status: number
 	message: string

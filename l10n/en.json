@@ -76,7 +76,8 @@
         "Aktivität": "Activity",
         "Flaschen": "bottles",
         "Weine, Weingüter, Jahrgänge suchen…": "Search wines, producers, vintages…",
-        "Suche folgt in einem späteren Update": "Search will be added in a future update",
+        "Suche läuft …": "Searching …",
+        "Keine Treffer": "No results",
         "+ Kauf erfassen": "+ Record purchase",
         "+ Kauf": "+ Purchase",
         "verteilt auf {n} Regal": [
