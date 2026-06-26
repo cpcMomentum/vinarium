@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
@@ -59,8 +59,7 @@ describe('PurchaseWizardModal', () => {
 
 	it('fetchProducers is triggered on open', async () => {
 		mount(PurchaseWizardModal, { props: { open: true } })
-		await nextTick()
-		await nextTick()
+		await flushPromises()
 		expect(producersApi.listProducers).toHaveBeenCalled()
 	})
 
@@ -72,8 +71,7 @@ describe('PurchaseWizardModal', () => {
 
 	it('calls listVendors on open', async () => {
 		mount(PurchaseWizardModal, { props: { open: true } })
-		await nextTick()
-		await nextTick()
+		await flushPromises()
 		expect(purchasesApi.listVendors).toHaveBeenCalled()
 	})
 })
