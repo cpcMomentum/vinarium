@@ -333,7 +333,9 @@ function syncUrl() {
 	const query: Record<string, string> = {}
 	if (typeof route.query.tab === 'string') query.tab = route.query.tab
 	if (filterColor.value) query.color = filterColor.value
-	if (filterStatus.value) query.status = filterStatus.value
+	// Always write status so the URL encodes the current state accurately.
+	// Empty string = all bottles; absent param = 'in_storage' default (used by deep links).
+	query.status = filterStatus.value
 	if (filterYear.value != null) query.year = String(filterYear.value)
 	if (filterProducerId.value != null) query.producer = String(filterProducerId.value)
 	if (filterDrinkUntil.value != null) query.drink_until = String(filterDrinkUntil.value)
