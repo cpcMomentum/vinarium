@@ -267,6 +267,7 @@ OC.L10N.register(
     "Rebsorten": "Grape Varieties",
     "Alkohol": "Alcohol",
     "Trinkfenster": "Drinking Window",
+    "läuft bis {y}": "expires by {y}",
     "Aktueller Platz": "Current Position",
     "Platz": "Position",
     "Flasche auswählen um Details zu sehen.": "Select a bottle to see details.",
