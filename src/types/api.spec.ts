@@ -91,6 +91,7 @@ describe('api types', () => {
 			notes: null,
 			occasion: null,
 			companions: null,
+			wouldRebuy: null,
 			photoFileIds: [123, 456],
 		}
 		expect(tasting.photoFileIds).toEqual([123, 456])
