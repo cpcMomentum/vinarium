@@ -32,6 +32,7 @@ Native Nextcloud-App zur privaten Weinverwaltung. Bestand, Lagerposition und Ver
 
     <bugs>https://github.com/cpcMomentum/vinarium/issues</bugs>
     <repository type="git">https://github.com/cpcMomentum/vinarium.git</repository>
+    <donation>https://ko-fi.com/AxDe888</donation>
 
     <screenshot>https://raw.githubusercontent.com/cpcMomentum/vinarium/main/screenshots/01-dashboard.png</screenshot>
     <screenshot>https://raw.githubusercontent.com/cpcMomentum/vinarium/main/screenshots/02-inventory.png</screenshot>
