@@ -450,7 +450,9 @@ async function onWizardClose() {
 }
 
 function goToInventoryDrinkSoon() {
-	router.push({ path: '/inventory' })
+	// Deep-Link in den Bestand, gefiltert auf „Trinkfenster läuft bald ab"
+	// (gleiche Schwelle wie die Dashboard-Card: laufendes Jahr + 1).
+	router.push({ path: '/inventory', query: { drink_until: String(currentYear + 1) } })
 }
 
 function goToTastings() {

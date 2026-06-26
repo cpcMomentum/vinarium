@@ -264,6 +264,7 @@ OC.L10N.register(
     "Rebsorten": "Rebsorten",
     "Alkohol": "Alkohol",
     "Trinkfenster": "Trinkfenster",
+    "läuft bis {y}": "läuft bis {y}",
     "Aktueller Platz": "Aktueller Platz",
     "Platz": "Platz",
     "Flasche auswählen um Details zu sehen.": "Flasche auswählen um Details zu sehen.",

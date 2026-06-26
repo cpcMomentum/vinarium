@@ -50,6 +50,13 @@
 					<option v-for="p in wineStore.producers" :key="p.id" :value="p.id">{{ p.name }}</option>
 				</select>
 			</label>
+			<label>
+				{{ t('vinarium', 'Trinkfenster') }}
+				<select v-model.number="filterDrinkUntil" class="input" @change="applyFilter">
+					<option :value="null">{{ t('vinarium', 'alle') }}</option>
+					<option v-for="y in drinkUntilOptions" :key="y" :value="y">{{ t('vinarium', 'läuft bis {y}', { y }) }}</option>
+				</select>
+			</label>
 			<button class="reset" @click="resetFilter">{{ t('vinarium', 'Filter zurücksetzen') }}</button>
 		</section>
 
@@ -237,10 +244,13 @@ const eventBottleId = ref<number | null>(null)
 const eventMode = ref<'gift' | 'lost'>('gift')
 const restoreError = ref<string | null>(null)
 const wizardOpen = ref(false)
+const currentYear = new Date().getFullYear()
 const filterColor = ref<WineColor | ''>('')
 const filterStatus = ref<BottleStatus | ''>('in_storage')
 const filterYear = ref<number | null>(null)
 const filterProducerId = ref<number | null>(null)
+const filterDrinkUntil = ref<number | null>(null)
+const drinkUntilOptions = [currentYear, currentYear + 1, currentYear + 2]
 const stats = ref<DashboardStats | null>(null)
 const detailBottleId = ref<number | null>(null)
 
@@ -282,9 +292,58 @@ function setTab(tab: SubTab) {
 	router.replace({ query: { ...route.query, tab: target } })
 }
 
+// --- Filter ↔ URL-Query (#90) ---
+const STATUS_KEYS = Object.keys(BOTTLE_STATUS_LABELS) as BottleStatus[]
+
+function intParam(v: unknown): number | null {
+	return typeof v === 'string' && /^\d+$/.test(v) ? Number(v) : null
+}
+
+// Liest die Filter-Query-Parameter und initialisiert die Filter-Refs.
+// Ohne jeglichen Filter-Parameter bleibt der Default-Status „in_storage".
+function initFiltersFromQuery() {
+	const q = route.query
+	filterColor.value = typeof q.color === 'string' && (WINE_COLORS as readonly string[]).includes(q.color)
+		? q.color as WineColor : ''
+	// Status folgt dem View-Default „im Bestand", sofern nicht explizit in der URL
+	// gesetzt (so zeigt der „Bald trinken"-Deep-Link nur Flaschen im Bestand).
+	if (typeof q.status === 'string') {
+		filterStatus.value = STATUS_KEYS.includes(q.status as BottleStatus) ? q.status as BottleStatus : ''
+	} else {
+		filterStatus.value = 'in_storage'
+	}
+	filterYear.value = intParam(q.year)
+	filterProducerId.value = intParam(q.producer)
+	filterDrinkUntil.value = intParam(q.drink_until)
+}
+
+function currentFilter(): BottleFilter {
+	return {
+		color: filterColor.value || undefined,
+		status: filterStatus.value || undefined,
+		year: filterYear.value ?? undefined,
+		producerId: filterProducerId.value ?? undefined,
+		drinkUntilYearBefore: filterDrinkUntil.value ?? undefined,
+	}
+}
+
+// Schreibt die aktiven Filter als Query-Parameter in die URL (Deep-Link-fähig),
+// behält den aktiven Tab bei.
+function syncUrl() {
+	const query: Record<string, string> = {}
+	if (typeof route.query.tab === 'string') query.tab = route.query.tab
+	if (filterColor.value) query.color = filterColor.value
+	if (filterStatus.value) query.status = filterStatus.value
+	if (filterYear.value != null) query.year = String(filterYear.value)
+	if (filterProducerId.value != null) query.producer = String(filterProducerId.value)
+	if (filterDrinkUntil.value != null) query.drink_until = String(filterDrinkUntil.value)
+	router.replace({ query })
+}
+
 onMounted(async () => {
+	initFiltersFromQuery()
 	await Promise.all([
-		store.fetchBottles({ status: 'in_storage' }),
+		store.fetchBottles(currentFilter()),
 		wineStore.fetchAll(),
 	])
 	loadStats()
@@ -324,12 +383,8 @@ async function loadStats() {
 }
 
 async function applyFilter() {
-	await store.fetchBottles({
-		color: filterColor.value || undefined,
-		status: filterStatus.value || undefined,
-		year: filterYear.value ?? undefined,
-		producerId: filterProducerId.value ?? undefined,
-	})
+	syncUrl()
+	await store.fetchBottles(currentFilter())
 }
 
 async function resetFilter() {
@@ -337,6 +392,8 @@ async function resetFilter() {
 	filterStatus.value = ''
 	filterYear.value = null
 	filterProducerId.value = null
+	filterDrinkUntil.value = null
+	syncUrl()
 	await store.fetchBottles({})
 }
 
@@ -494,6 +551,7 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 /* Filter-Bar als helle Card */
 .filters {
 	display: flex;
+	flex-wrap: wrap;
 	gap: 1rem;
 	align-items: end;
 	margin-bottom: 0;
