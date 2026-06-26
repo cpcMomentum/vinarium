@@ -15,6 +15,7 @@
 						type="text"
 						role="combobox"
 						aria-autocomplete="list"
+						aria-controls="search-results-listbox"
 						:aria-expanded="searchOpen"
 						:placeholder="t('vinarium', 'Weine, Weingüter, Jahrgänge suchen…')"
 						@input="onSearchInput"
@@ -23,7 +24,7 @@
 					/>
 					<kbd class="searchbox__hint">⌘K</kbd>
 				</div>
-				<div v-if="searchOpen" class="search-dd" role="listbox">
+				<div v-if="searchOpen" id="search-results-listbox" class="search-dd" role="listbox">
 					<div v-if="searchLoading" class="search-dd__msg">{{ t('vinarium', 'Suche läuft …') }}</div>
 					<template v-else-if="flatResults.length">
 						<template v-for="group in groupedResults" :key="group.type">
@@ -282,10 +283,16 @@ function subText(item: SearchResult): string {
 }
 
 function onSearchInput() {
-	searchOpen.value = true
+	const q = searchQuery.value.trim()
 	if (debounceTimer) {
 		clearTimeout(debounceTimer)
 	}
+	if (q.length < MIN_SEARCH_LEN) {
+		searchOpen.value = false
+		searchResults.value = []
+		return
+	}
+	searchOpen.value = true
 	debounceTimer = window.setTimeout(performSearch, 200)
 }
 
