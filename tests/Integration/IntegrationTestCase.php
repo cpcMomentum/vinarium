@@ -18,6 +18,12 @@ abstract class IntegrationTestCase extends TestCase {
 
 	protected function setUp(): void {
 		parent::setUp();
+		// Integrationstests brauchen eine laufende Nextcloud-Instanz mit echter
+		// DB (IDBConnection-Transaktion). Container-frei gegen die ocp-Stubs fehlt
+		// die private OC-Klasse — dann ueberspringen (laufen im Container weiter).
+		if (!class_exists('OC')) {
+			$this->markTestSkipped('Benoetigt eine laufende Nextcloud-Instanz mit Datenbank.');
+		}
 		$this->db = Server::get(IDBConnection::class);
 		$this->db->beginTransaction();
 	}
