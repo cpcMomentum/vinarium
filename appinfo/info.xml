@@ -41,7 +41,7 @@ Native Nextcloud-App zur privaten Weinverwaltung. Bestand, Lagerposition und Ver
     <screenshot>https://raw.githubusercontent.com/cpcMomentum/vinarium/main/screenshots/05-tastings.png</screenshot>
 
     <dependencies>
-        <nextcloud min-version="32" max-version="33"/>
+        <nextcloud min-version="32" max-version="34"/>
         <php min-version="8.2"/>
     </dependencies>
 
