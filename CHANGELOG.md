@@ -7,6 +7,17 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-07-06
+
+### Added
+- **Nextcloud 34 wird unterstützt** (max-version 33 → 34)
+- **Dashboard-Volltextsuche** über Weingüter, Weine und Jahrgänge — Relevanz-sortiertes Dropdown mit Tastatursteuerung (⌘K, ↑↓, Enter, Esc), Klick springt in den Bestand; Jahrgang-Treffer zeigen die Flaschenzahl im Bestand (Fixes #103)
+- **Bestand: Filter in der URL** — alle Filter (Farbe, Status, Jahrgang, Weingut, Trinkfenster) sind deep-link-fähig und überleben ein Neuladen; neuer Filter „Trinkfenster läuft bis" als Preset-Auswahl; Dashboard-Kachel „Bald trinken → alle" verlinkt direkt auf den passend gefilterten Bestand (Fixes #90)
+- Spenden-Link (Ko-fi) in den App-Metadaten
+
+### Changed
+- Test- und CI-Härtung: stabilere Frontend-Tests (flushPromises statt nextTick), Typecheck-Fixtures repariert, Release-bewusstes Bot-Review, Dependabot auf Security-Updates reduziert
+
 ## [0.4.1] - 2026-06-19
 
 ### Added
@@ -161,7 +172,8 @@ Erste offizielle Veröffentlichung — Weinverwaltung End-to-End.
 - 88 PHPUnit-Tests + 24 Vitest-Tests (112 gesamt)
 - Pre-Commit-Hook für OCP-only API-Enforcement
 
-[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.4.2...HEAD
+[0.4.2]: https://github.com/cpcMomentum/vinarium/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/cpcMomentum/vinarium/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/cpcMomentum/vinarium/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/cpcMomentum/vinarium/compare/v0.2.0...v0.3.0
