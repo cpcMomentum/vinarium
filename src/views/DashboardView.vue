@@ -4,16 +4,50 @@
 		<div class="dash-toolbar">
 			<h2>{{ t('vinarium', 'Dashboard') }}</h2>
 			<div class="sp"></div>
-			<div class="searchbox" role="search">
-				<span class="searchbox__icon" aria-hidden="true">
-					<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/></svg>
-				</span>
-				<input
-					type="search"
-					:placeholder="t('vinarium', 'Weine, Weingüter, Jahrgänge suchen…')"
-					disabled
-					:title="t('vinarium', 'Suche folgt in einem späteren Update')"
-				/>
+			<div ref="searchWrap" class="searchbox-wrap">
+				<div class="searchbox" role="search">
+					<span class="searchbox__icon" aria-hidden="true">
+						<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M9.5,3A6.5,6.5 0 0,1 16,9.5C16,11.11 15.41,12.59 14.44,13.73L14.71,14H15.5L20.5,19L19,20.5L14,15.5V14.71L13.73,14.44C12.59,15.41 11.11,16 9.5,16A6.5,6.5 0 0,1 3,9.5A6.5,6.5 0 0,1 9.5,3M9.5,5C7,5 5,7 5,9.5C5,12 7,14 9.5,14C12,14 14,12 14,9.5C14,7 12,5 9.5,5Z"/></svg>
+					</span>
+					<input
+						ref="searchInput"
+						v-model="searchQuery"
+						type="text"
+						role="combobox"
+						aria-autocomplete="list"
+						aria-controls="search-results-listbox"
+						:aria-expanded="searchOpen"
+						:placeholder="t('vinarium', 'Weine, Weingüter, Jahrgänge suchen…')"
+						@input="onSearchInput"
+						@focus="onSearchFocus"
+						@keydown="onSearchKeydown"
+					/>
+					<kbd class="searchbox__hint">⌘K</kbd>
+				</div>
+				<div v-if="searchOpen" id="search-results-listbox" class="search-dd" role="listbox">
+					<div v-if="searchLoading" class="search-dd__msg">{{ t('vinarium', 'Suche läuft …') }}</div>
+					<template v-else-if="flatResults.length">
+						<template v-for="group in groupedResults" :key="group.type">
+							<template v-if="group.items.length">
+								<div class="search-dd__group">{{ group.label }}</div>
+								<button
+									v-for="item in group.items"
+									:key="item.type + '-' + item.id"
+									type="button"
+									role="option"
+									:aria-selected="flatIndex(item) === activeIndex"
+									:class="['search-dd__item', { 'search-dd__item--active': flatIndex(item) === activeIndex }]"
+									@click="selectResult(item)"
+									@mouseenter="activeIndex = flatIndex(item)"
+								>
+									<span class="search-dd__label">{{ item.label }}</span>
+									<span v-if="subText(item)" class="search-dd__sub">{{ subText(item) }}</span>
+								</button>
+							</template>
+						</template>
+					</template>
+					<div v-else class="search-dd__msg">{{ t('vinarium', 'Keine Treffer') }}</div>
+				</div>
 			</div>
 			<NcButton variant="primary" @click="onAddPurchase">
 				{{ t('vinarium', '+ Kauf erfassen') }}
@@ -182,12 +216,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { fetchStats, type DashboardStats, type ActivityType } from '@/api/dashboard'
-import { WINE_COLOR_LABELS, WINE_COLORS, type WineColor } from '@/types/api'
+import { search } from '@/api/search'
+import { WINE_COLOR_LABELS, WINE_COLORS, type SearchResult, type SearchResultType, type WineColor } from '@/types/api'
 import { cssColorFor } from '@/utils/wineColors'
 import PurchaseWizardModal from '@/components/PurchaseWizardModal.vue'
 
@@ -206,7 +241,160 @@ async function loadStats() {
 	}
 }
 
-onMounted(loadStats)
+/* ---- Volltextsuche (#103) ---- */
+const MIN_SEARCH_LEN = 2
+const searchWrap = ref<HTMLElement | null>(null)
+const searchInput = ref<HTMLInputElement | null>(null)
+const searchQuery = ref('')
+const searchResults = ref<SearchResult[]>([])
+const searchOpen = ref(false)
+const searchLoading = ref(false)
+const activeIndex = ref(0)
+let debounceTimer: number | undefined
+
+const GROUP_ORDER: SearchResultType[] = ['producer', 'wine', 'vintage']
+const GROUP_LABELS: Record<SearchResultType, string> = {
+	producer: t('vinarium', 'Weingüter'),
+	wine: t('vinarium', 'Weine'),
+	vintage: t('vinarium', 'Jahrgänge'),
+}
+
+const groupedResults = computed(() =>
+	GROUP_ORDER.map((type) => ({
+		type,
+		label: GROUP_LABELS[type],
+		items: searchResults.value.filter((r) => r.type === type),
+	})),
+)
+
+// Flat list in display order — drives ↑/↓/Enter keyboard navigation.
+const flatResults = computed(() => groupedResults.value.flatMap((g) => g.items))
+
+function flatIndex(item: SearchResult): number {
+	return flatResults.value.findIndex((r) => r.type === item.type && r.id === item.id)
+}
+
+function subText(item: SearchResult): string {
+	if (item.type === 'vintage' && item.count !== null) {
+		const bottles = n('vinarium', '{count} Flasche', '{count} Flaschen', item.count, { count: item.count })
+		return item.sub ? `${item.sub} · ${bottles}` : bottles
+	}
+	return item.sub
+}
+
+function onSearchInput() {
+	const q = searchQuery.value.trim()
+	if (debounceTimer) {
+		clearTimeout(debounceTimer)
+	}
+	if (q.length < MIN_SEARCH_LEN) {
+		searchOpen.value = false
+		searchResults.value = []
+		return
+	}
+	searchOpen.value = true
+	debounceTimer = window.setTimeout(performSearch, 200)
+}
+
+async function performSearch() {
+	const q = searchQuery.value.trim()
+	if (q.length < MIN_SEARCH_LEN) {
+		searchResults.value = []
+		searchLoading.value = false
+		return
+	}
+	searchLoading.value = true
+	try {
+		searchResults.value = await search(q)
+		activeIndex.value = 0
+	} catch (e) {
+		console.error('Search error:', e)
+		searchResults.value = []
+	} finally {
+		searchLoading.value = false
+	}
+}
+
+function onSearchFocus() {
+	if (searchQuery.value.trim().length >= MIN_SEARCH_LEN) {
+		searchOpen.value = true
+	}
+}
+
+function closeSearch() {
+	searchOpen.value = false
+}
+
+function onSearchKeydown(e: KeyboardEvent) {
+	if (e.key === 'Escape') {
+		// Prevent the native "clear search input" action, which would fire an
+		// input event and immediately reopen the dropdown.
+		e.preventDefault()
+		closeSearch()
+		searchInput.value?.blur()
+		return
+	}
+	const len = flatResults.value.length
+	if (e.key === 'ArrowDown') {
+		e.preventDefault()
+		searchOpen.value = true
+		if (len > 0) {
+			activeIndex.value = Math.min(activeIndex.value + 1, len - 1)
+		}
+	} else if (e.key === 'ArrowUp') {
+		e.preventDefault()
+		if (len > 0) {
+			activeIndex.value = Math.max(activeIndex.value - 1, 0)
+		}
+	} else if (e.key === 'Enter') {
+		const item = flatResults.value[activeIndex.value]
+		if (item) {
+			e.preventDefault()
+			selectResult(item)
+		}
+	}
+}
+
+const TYPE_TAB: Record<SearchResultType, string> = {
+	producer: 'weinguter',
+	wine: 'weine',
+	vintage: 'weine',
+}
+
+function selectResult(item: SearchResult) {
+	closeSearch()
+	searchQuery.value = ''
+	searchResults.value = []
+	searchInput.value?.blur()
+	router.push({ path: '/inventory', query: { tab: TYPE_TAB[item.type] } })
+}
+
+function onGlobalKeydown(e: KeyboardEvent) {
+	if (e.key.toLowerCase() === 'k' && (e.metaKey || e.ctrlKey)) {
+		e.preventDefault()
+		searchInput.value?.focus()
+	}
+}
+
+function onDocClick(e: MouseEvent) {
+	if (searchWrap.value && !searchWrap.value.contains(e.target as Node)) {
+		closeSearch()
+	}
+}
+
+onMounted(() => {
+	loadStats()
+	window.addEventListener('keydown', onGlobalKeydown)
+	document.addEventListener('click', onDocClick)
+})
+
+onUnmounted(() => {
+	window.removeEventListener('keydown', onGlobalKeydown)
+	document.removeEventListener('click', onDocClick)
+	if (debounceTimer) {
+		clearTimeout(debounceTimer)
+	}
+})
 
 const categorySegments = computed(() => {
 	if (!stats.value) return []
@@ -262,7 +450,9 @@ async function onWizardClose() {
 }
 
 function goToInventoryDrinkSoon() {
-	router.push({ path: '/inventory' })
+	// Deep-Link in den Bestand, gefiltert auf „Trinkfenster läuft bald ab"
+	// (gleiche Schwelle wie die Dashboard-Card: laufendes Jahr + 1).
+	router.push({ path: '/inventory', query: { drink_until: String(currentYear + 1) } })
 }
 
 function goToTastings() {
@@ -304,6 +494,10 @@ function goToActivity() {
 }
 .dash-toolbar .sp { flex: 1; }
 
+.searchbox-wrap {
+	position: relative;
+	min-width: 260px;
+}
 .searchbox {
 	display: flex;
 	align-items: center;
@@ -313,7 +507,9 @@ function goToActivity() {
 	border-radius: var(--border-radius-element, 8px);
 	padding: 0 12px;
 	height: 40px;
-	min-width: 260px;
+}
+.searchbox:focus-within {
+	border-color: var(--color-primary-element, #0082c9);
 }
 .searchbox__icon { color: var(--color-text-maxcontrast); display: inline-flex; }
 .searchbox input {
@@ -322,9 +518,72 @@ function goToActivity() {
 	background: transparent;
 	font-size: 14px;
 	outline: none;
+	color: var(--color-main-text);
+	min-width: 0;
+}
+.searchbox__hint {
+	font-size: 11px;
+	color: var(--color-text-maxcontrast);
+	background: var(--color-background-dark, #e9eaec);
+	border-radius: 4px;
+	padding: 1px 5px;
+	flex-shrink: 0;
+}
+
+/* Suche-Dropdown */
+.search-dd {
+	position: absolute;
+	top: calc(100% + 6px);
+	left: 0;
+	right: 0;
+	z-index: 50;
+	background: var(--color-main-background, #fff);
+	border: 1px solid var(--color-border, #d2d4d7);
+	border-radius: 10px;
+	box-shadow: 0 6px 24px rgba(0, 0, 0, 0.14);
+	padding: 6px;
+	max-height: 60vh;
+	overflow-y: auto;
+}
+.search-dd__msg {
+	padding: 12px 10px;
+	color: var(--color-text-maxcontrast);
+	font-size: 13.5px;
+	text-align: center;
+}
+.search-dd__group {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--color-text-maxcontrast);
+	padding: 8px 10px 4px;
+}
+.search-dd__item {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 1px;
+	width: 100%;
+	border: none;
+	background: transparent;
+	text-align: left;
+	padding: 7px 10px;
+	border-radius: 8px;
+	cursor: pointer;
+}
+.search-dd__item--active {
+	background: var(--color-background-hover, #ededed);
+}
+.search-dd__label {
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--color-main-text);
+}
+.search-dd__sub {
+	font-size: 12.5px;
 	color: var(--color-text-maxcontrast);
 }
-.searchbox input:disabled { cursor: not-allowed; }
 
 /* Bestand-Hero */
 .stock {

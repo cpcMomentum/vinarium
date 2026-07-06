@@ -20,7 +20,7 @@ Native Nextcloud-App zur privaten Weinverwaltung. Bestand, Lagerposition und Ver
 - **Filter & Suche** — nach Farbe, Region, Jahrgang, Trinkfenster
     ]]></description>
 
-    <version>0.4.1</version>
+    <version>0.4.2</version>
     <licence>AGPL-3.0-or-later</licence>
 
     <author mail="axel.deffner@cpcmomentum.com" homepage="https://github.com/cpcMomentum">Axel Deffner</author>
@@ -32,6 +32,7 @@ Native Nextcloud-App zur privaten Weinverwaltung. Bestand, Lagerposition und Ver
 
     <bugs>https://github.com/cpcMomentum/vinarium/issues</bugs>
     <repository type="git">https://github.com/cpcMomentum/vinarium.git</repository>
+    <donation>https://ko-fi.com/AxDe888</donation>
 
     <screenshot>https://raw.githubusercontent.com/cpcMomentum/vinarium/main/screenshots/01-dashboard.png</screenshot>
     <screenshot>https://raw.githubusercontent.com/cpcMomentum/vinarium/main/screenshots/02-inventory.png</screenshot>
@@ -40,7 +41,7 @@ Native Nextcloud-App zur privaten Weinverwaltung. Bestand, Lagerposition und Ver
     <screenshot>https://raw.githubusercontent.com/cpcMomentum/vinarium/main/screenshots/05-tastings.png</screenshot>
 
     <dependencies>
-        <nextcloud min-version="32" max-version="33"/>
+        <nextcloud min-version="32" max-version="34"/>
         <php min-version="8.2"/>
     </dependencies>
 

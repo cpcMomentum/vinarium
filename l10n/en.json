@@ -76,7 +76,8 @@
         "Aktivität": "Activity",
         "Flaschen": "bottles",
         "Weine, Weingüter, Jahrgänge suchen…": "Search wines, producers, vintages…",
-        "Suche folgt in einem späteren Update": "Search will be added in a future update",
+        "Suche läuft …": "Searching …",
+        "Keine Treffer": "No results",
         "+ Kauf erfassen": "+ Record purchase",
         "+ Kauf": "+ Purchase",
         "verteilt auf {n} Regal": [
@@ -271,6 +272,7 @@
         "Rebsorten": "Grape Varieties",
         "Alkohol": "Alcohol",
         "Trinkfenster": "Drinking Window",
+        "läuft bis {y}": "expires by {y}",
         "Aktueller Platz": "Current Position",
         "Platz": "Position",
         "Flasche auswählen um Details zu sehen.": "Select a bottle to see details.",

@@ -192,12 +192,29 @@ class BottleServiceTest extends IntegrationTestCase {
 		$this->assertCount(3, $whites);
 	}
 
+	public function testFilteredByDrinkUntilYear(): void {
+		$userId = $this->uniqueId('user');
+		[, $soonId] = $this->seedPurchase(2, Wine::COLOR_RED, $userId, 2026);
+		$this->service->createBottlesForPurchase($soonId, $userId);
+		[, $laterId] = $this->seedPurchase(3, Wine::COLOR_RED, $userId, 2030);
+		$this->service->createBottlesForPurchase($laterId, $userId);
+
+		// drink_until_year <= 2027 → only the 2026 batch
+		$soon = $this->service->getFilteredBottles($userId, ['drinkUntilYearBefore' => 2027]);
+		$this->assertCount(2, $soon);
+
+		// <= 2031 → both batches
+		$all = $this->service->getFilteredBottles($userId, ['drinkUntilYearBefore' => 2031]);
+		$this->assertCount(5, $all);
+	}
+
 	/** @return array{0: string, 1: int} [userId, purchaseId] */
-	private function seedPurchase(int $quantity, string $color = Wine::COLOR_RED, ?string $reuseUser = null): array {
+	private function seedPurchase(int $quantity, string $color = Wine::COLOR_RED, ?string $reuseUser = null, ?int $drinkUntilYear = null): array {
 		$userId = $reuseUser ?? $this->uniqueId('user');
 		$producer = $this->producerService->create($userId, 'P-' . substr($userId, -4));
 		$wine = $this->wineService->create($userId, $producer->getId(), 'W', $color);
-		$vintage = $this->vintageService->create($userId, $wine->getId(), 2020);
+		$vintageData = $drinkUntilYear !== null ? ['drinkUntilYear' => $drinkUntilYear] : [];
+		$vintage = $this->vintageService->create($userId, $wine->getId(), 2020, $vintageData);
 		$purchase = $this->purchaseService->create($userId, $vintage->getId(), [
 			'quantity' => $quantity,
 			'bottleSizeMl' => 750,
