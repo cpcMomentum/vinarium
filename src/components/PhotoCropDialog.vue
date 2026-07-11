@@ -1,5 +1,5 @@
 <template>
-	<NcModal v-if="open" :name="t('vinarium', 'Foto zuschneiden')" @close="cancel">
+	<NcModal v-if="open" :name="t('vinarium', 'Foto zuschneiden')" @keydown.esc="e => escCloses(e, cancel)" @close="cancel">
 		<div class="crop-dialog">
 			<p class="crop-dialog__hint">
 				{{ t('vinarium', 'Wähle den Etiketten-Ausschnitt — fixes Hochformat-Verhältnis.') }}
@@ -32,6 +32,7 @@
 </template>
 
 <script setup lang="ts">
+import { escCloses } from '@/utils/modalEsc'
 import { ref, watch } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import NcModal from '@nextcloud/vue/components/NcModal'

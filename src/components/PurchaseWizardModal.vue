@@ -1,5 +1,5 @@
 <template>
-	<NcModal v-if="open" :name="titles[step]" @close="cancel">
+	<NcModal v-if="open" :name="titles[step]" @keydown.esc="e => escCloses(e, cancel)" @close="cancel">
 		<div class="wizard">
 			<h2 class="wizard__title">{{ titles[step] }}</h2>
 			<div class="wizard__stepper">
@@ -171,6 +171,7 @@
 </template>
 
 <script setup lang="ts">
+import { escCloses } from '@/utils/modalEsc'
 import { computed, ref, watch } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import NcModal from '@nextcloud/vue/components/NcModal'
