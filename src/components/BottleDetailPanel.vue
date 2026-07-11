@@ -3,6 +3,7 @@
 		v-if="open"
 		:name="modalTitle"
 		size="large"
+		@keydown.esc="e => escCloses(e, () => $emit('close'))"
 		@close="$emit('close')"
 	>
 		<div class="bd-modal">
@@ -242,6 +243,7 @@
 </template>
 
 <script setup lang="ts">
+import { escCloses } from '@/utils/modalEsc'
 import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import NcModal from '@nextcloud/vue/components/NcModal'
