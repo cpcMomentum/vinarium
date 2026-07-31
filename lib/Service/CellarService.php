@@ -156,7 +156,11 @@ class CellarService {
 	 * @return Shelf[] the shelves in their new order
 	 */
 	public function reorderShelves(int $cellarId, string $userId, array $shelfIds): array {
-		$cellar = $this->cellarMapper->find($cellarId);
+		try {
+			$cellar = $this->cellarMapper->find($cellarId);
+		} catch (DoesNotExistException $e) {
+			throw new NotFoundException("Cellar {$cellarId} not found", 0, $e);
+		}
 		if ($cellar->getOwnerUserId() !== $userId) {
 			throw new PermissionDeniedException('Cellar not owned by user');
 		}
