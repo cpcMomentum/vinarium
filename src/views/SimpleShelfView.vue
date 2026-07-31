@@ -18,7 +18,7 @@
 			<aside class="parkzone-col">
 				<section
 					:class="['parkzone', { 'parkzone--drag-over': parkzoneDragOver }]"
-					@dragover.prevent="parkzoneDragOver = true"
+					@dragover.prevent="onParkzoneDragOver"
 					@dragleave="onParkzoneDragLeave"
 					@drop.prevent="onDropToParkzone"
 				>
@@ -68,7 +68,6 @@
 							v-if="renamingShelfId !== entry.shelf.id && shelves.length > 1"
 							class="shelf-tab__grip"
 							draggable="true"
-							role="button"
 							:title="t('vinarium', 'Ziehen, um die Reihenfolge zu ändern')"
 							:aria-label="t('vinarium', 'Ziehen, um die Reihenfolge zu ändern')"
 							@dragstart="onShelfDragStart(entry.shelf.id, $event)"
@@ -437,6 +436,13 @@ function onDragStart(bottleId: number, event: DragEvent) {
 	event.dataTransfer!.setData('text/plain', String(bottleId))
 }
 function onDragEnd() { draggedBottleId.value = null }
+
+function onParkzoneDragOver() {
+	// Waehrend eines Regal-Drags nicht hervorheben: der Drop wird ohnehin
+	// ignoriert, ein Highlight wuerde eine Ablage versprechen, die es nicht gibt.
+	if (draggedShelfId.value !== null) return
+	parkzoneDragOver.value = true
+}
 
 function onShelfDragStart(shelfId: number, event: DragEvent) {
 	draggedShelfId.value = shelfId
