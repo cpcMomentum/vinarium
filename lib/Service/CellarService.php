@@ -23,6 +23,7 @@ use OCA\Vinarium\Db\SlotMapper;
 use OCA\Vinarium\Db\BottleMapper;
 use OCA\Vinarium\Exception\NotFoundException;
 use OCA\Vinarium\Exception\PermissionDeniedException;
+use OCA\Vinarium\Exception\ValidationException;
 use OCP\AppFramework\Db\DoesNotExistException;
 use OCP\IDBConnection;
 use Throwable;
@@ -141,6 +142,61 @@ class CellarService {
 		}
 		$shelf->setName($name);
 		return $this->shelfMapper->update($shelf);
+	}
+
+	/**
+	 * Rewrites the shelf order of a cellar from a complete list of shelf ids.
+	 *
+	 * Takes the full target order rather than a single moved shelf: reordering
+	 * touches several sort_order values at once, and applying them one PATCH at
+	 * a time would leave duplicate or gapped values behind if a request failed
+	 * midway. Renumbering happens in one transaction, densely from 0.
+	 *
+	 * @param list<int> $shelfIds the cellar's shelves in their new order
+	 * @return Shelf[] the shelves in their new order
+	 */
+	public function reorderShelves(int $cellarId, string $userId, array $shelfIds): array {
+		$cellar = $this->cellarMapper->find($cellarId);
+		if ($cellar->getOwnerUserId() !== $userId) {
+			throw new PermissionDeniedException('Cellar not owned by user');
+		}
+
+		$existing = $this->shelfMapper->findByCellar($cellarId);
+		$existingIds = array_map(static fn (Shelf $s): int => $s->getId(), $existing);
+
+		// The list has to be a permutation of exactly this cellar's shelves.
+		// Anything else — a foreign id, a missing one, a duplicate — would
+		// silently drop or reorder shelves the caller never saw.
+		$given = array_map('intval', $shelfIds);
+		if (count($given) !== count(array_unique($given))) {
+			throw new ValidationException('Duplicate shelf id in order');
+		}
+		sort($given);
+		$expected = $existingIds;
+		sort($expected);
+		if ($given !== $expected) {
+			throw new ValidationException('Shelf order must list exactly the shelves of this cellar');
+		}
+
+		$byId = [];
+		foreach ($existing as $shelf) {
+			$byId[$shelf->getId()] = $shelf;
+		}
+
+		$this->db->beginTransaction();
+		try {
+			$ordered = [];
+			foreach ($shelfIds as $position => $shelfId) {
+				$shelf = $byId[(int)$shelfId];
+				$shelf->setSortOrder($position);
+				$ordered[] = $this->shelfMapper->update($shelf);
+			}
+			$this->db->commit();
+			return $ordered;
+		} catch (Throwable $e) {
+			$this->db->rollBack();
+			throw $e;
+		}
 	}
 
 	/** Destroys a shelf and all its compartments, levels and slots. Bottles go to Parkzone. */

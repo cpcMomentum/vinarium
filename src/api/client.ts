@@ -48,6 +48,15 @@ export async function apiPatch<T, B = unknown>(path: string, body: B): Promise<T
 	}
 }
 
+export async function apiPut<T, B = unknown>(path: string, body: B): Promise<T> {
+	try {
+		const { data } = await axios.put<T>(apiUrl(path), body)
+		return data
+	} catch (e) {
+		throw wrapError(e)
+	}
+}
+
 export async function apiDelete<T = void>(path: string): Promise<T> {
 	try {
 		const { data } = await axios.delete<T>(apiUrl(path))

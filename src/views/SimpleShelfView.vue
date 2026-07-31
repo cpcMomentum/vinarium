@@ -55,8 +55,25 @@
 					<div
 						v-for="entry in shelves"
 						:key="entry.shelf.id"
-						:class="['shelf-tab', { active: activeShelfId === entry.shelf.id }]"
+						:class="['shelf-tab', {
+							active: activeShelfId === entry.shelf.id,
+							'shelf-tab--dragging': draggedShelfId === entry.shelf.id,
+							'shelf-tab--drop-target': dropTargetShelfId === entry.shelf.id,
+						}]"
+						@dragover.prevent="onShelfDragOver(entry.shelf.id)"
+						@dragleave="onShelfDragLeave(entry.shelf.id)"
+						@drop.prevent="onShelfDrop(entry.shelf.id)"
 					>
+						<span
+							v-if="renamingShelfId !== entry.shelf.id && shelves.length > 1"
+							class="shelf-tab__grip"
+							draggable="true"
+							role="button"
+							:title="t('vinarium', 'Ziehen, um die Reihenfolge zu ändern')"
+							:aria-label="t('vinarium', 'Ziehen, um die Reihenfolge zu ändern')"
+							@dragstart="onShelfDragStart(entry.shelf.id, $event)"
+							@dragend="onShelfDragEnd"
+						>⠿</span>
 						<input
 							v-if="renamingShelfId === entry.shelf.id"
 							:ref="setRenameInput"
@@ -279,7 +296,7 @@ import BottleEventDialog from '@/components/BottleEventDialog.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import type { BottleListItem, CompartmentWithLevels, Level, Slot, WineColor } from '@/types/api'
 import type { CellarResponse } from '@/api/cellar'
-import { addCompartment, destroyCompartment, destroyShelf, fetchCellar, fetchSlots, updateCompartment, updateShelf } from '@/api/cellar'
+import { addCompartment, destroyCompartment, destroyShelf, fetchCellar, fetchSlots, reorderShelves, updateCompartment, updateShelf } from '@/api/cellar'
 import { useBottleStore } from '@/stores/bottleStore'
 import { cssColorFor, cssSlotGradient } from '@/utils/wineColors'
 import { getBottlePhotoUrl } from '@/api/bottles'
@@ -293,6 +310,14 @@ const activeShelfId = ref<number | null>(null)
 const selectedBottleId = ref<number | null>(null)
 const detailBottleId = ref<number | null>(null)
 const draggedBottleId = ref<number | null>(null)
+
+// Regal-Umsortierung (#191). Eigener Drag-Kontext neben dem Flaschen-Drag:
+// solange draggedShelfId gesetzt ist, ignorieren die Slot- und Parkzonen-
+// Drops — sonst würde ein Regal-Drag über einem Slot die zuletzt *angeklickte*
+// Flasche verschieben (onDrop fällt auf selectedBottleId zurück).
+const cellarId = ref<number | null>(null)
+const draggedShelfId = ref<number | null>(null)
+const dropTargetShelfId = ref<number | null>(null)
 const parkzoneDragOver = ref(false)
 const errorMsg = ref('')
 
@@ -413,6 +438,55 @@ function onDragStart(bottleId: number, event: DragEvent) {
 }
 function onDragEnd() { draggedBottleId.value = null }
 
+function onShelfDragStart(shelfId: number, event: DragEvent) {
+	draggedShelfId.value = shelfId
+	event.dataTransfer!.effectAllowed = 'move'
+	// Eigener MIME-Typ, damit ein Regal-Drag nicht als Flaschen-Drag durchgeht.
+	event.dataTransfer!.setData('application/x-vinarium-shelf', String(shelfId))
+}
+
+function onShelfDragEnd() {
+	draggedShelfId.value = null
+	dropTargetShelfId.value = null
+}
+
+function onShelfDragOver(shelfId: number) {
+	if (draggedShelfId.value === null || draggedShelfId.value === shelfId) return
+	dropTargetShelfId.value = shelfId
+}
+
+function onShelfDragLeave(shelfId: number) {
+	if (dropTargetShelfId.value === shelfId) dropTargetShelfId.value = null
+}
+
+async function onShelfDrop(targetShelfId: number) {
+	const sourceId = draggedShelfId.value
+	dropTargetShelfId.value = null
+	if (sourceId === null || sourceId === targetShelfId || cellarId.value === null) return
+
+	const order = shelves.value.map(e => e.shelf.id)
+	const from = order.indexOf(sourceId)
+	const to = order.indexOf(targetShelfId)
+	if (from < 0 || to < 0) return
+	order.splice(to, 0, ...order.splice(from, 1))
+
+	// Optimistisch umsortieren, damit der Tab sofort sitzt; bei Fehler zurück.
+	const previous = [...shelves.value]
+	shelves.value = order
+		.map(id => previous.find(e => e.shelf.id === id))
+		.filter((e): e is typeof previous[number] => e !== undefined)
+
+	errorMsg.value = ''
+	try {
+		await reorderShelves(cellarId.value, order)
+	} catch (e: any) {
+		shelves.value = previous
+		errorMsg.value = e?.message ?? t('vinarium', 'Reihenfolge konnte nicht gespeichert werden')
+	} finally {
+		draggedShelfId.value = null
+	}
+}
+
 function onDragOver(slotId: number, event: DragEvent) {
 	(event.currentTarget as HTMLElement).classList.add('drag-over')
 }
@@ -423,6 +497,9 @@ function onDragLeave(event: DragEvent) {
 }
 
 async function onDrop(slotId: number) {
+	// Regal-Drag laeuft: nicht als Flaschen-Drop auswerten. Ohne diesen Guard
+	// wuerde der Fallback auf selectedBottleId eine unbeteiligte Flasche bewegen.
+	if (draggedShelfId.value !== null) return
 	const bottleId = draggedBottleId.value ?? selectedBottleId.value
 	if (!bottleId) return
 	const target = bottleInSlot(slotId)
@@ -445,6 +522,7 @@ async function onDrop(slotId: number) {
 
 async function onDropToParkzone() {
 	parkzoneDragOver.value = false
+	if (draggedShelfId.value !== null) return
 	const bottleId = draggedBottleId.value ?? selectedBottleId.value
 	if (!bottleId) return
 	const bottle = store.bottles.find(b => b.id === bottleId)
@@ -704,6 +782,7 @@ async function reload() {
 	errorMsg.value = ''
 	try {
 		const data = await fetchCellar()
+		cellarId.value = data.cellar.id
 		shelves.value = data.shelves
 		if (activeShelfId.value === null || !shelves.value.find(e => e.shelf.id === activeShelfId.value)) {
 			activeShelfId.value = shelves.value[0]?.shelf.id ?? null
@@ -913,6 +992,25 @@ async function loadAllSlots() {
 	background: var(--color-primary-element, #0082c9);
 	border-color: var(--color-primary-element, #0082c9);
 	color: #fff;
+}
+/* Regal-Umsortierung (#191): nur der Griff startet den Drag — der Tab selbst
+   bleibt klickbar und ein Flaschen-Drag greift hier nicht mit. */
+.shelf-tab__grip {
+	display: inline-flex;
+	align-items: center;
+	padding: 0 2px 0 8px;
+	cursor: grab;
+	opacity: 0.35;
+	font-size: 14px;
+	line-height: 1;
+	user-select: none;
+}
+.shelf-tab:hover .shelf-tab__grip { opacity: 0.7; }
+.shelf-tab__grip:active { cursor: grabbing; }
+.shelf-tab--dragging { opacity: 0.4; }
+.shelf-tab--drop-target {
+	border-color: var(--color-primary-element, #0082c9);
+	box-shadow: inset 3px 0 0 0 var(--color-primary-element, #0082c9);
 }
 .shelf-tab__label {
 	display: inline-flex;

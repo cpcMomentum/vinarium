@@ -137,6 +137,8 @@ OC.L10N.register(
     "Laden...": "Loading...",
     "Noch keine Verkostungen erfasst.": "No tastings recorded yet.",
     "Bewertung": "Rating",
+    "Ziehen, um die Reihenfolge zu ändern": "Drag to reorder",
+    "Reihenfolge konnte nicht gespeichert werden": "Could not save the new order",
     "Aktionen": "Actions",
     "Anlass": "Occasion",
     "Notizen": "Notes",

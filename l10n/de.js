@@ -134,6 +134,8 @@ OC.L10N.register(
     "Laden...": "Laden...",
     "Noch keine Verkostungen erfasst.": "Noch keine Verkostungen erfasst.",
     "Bewertung": "Bewertung",
+    "Ziehen, um die Reihenfolge zu ändern": "Ziehen, um die Reihenfolge zu ändern",
+    "Reihenfolge konnte nicht gespeichert werden": "Reihenfolge konnte nicht gespeichert werden",
     "Aktionen": "Aktionen",
     "Anlass": "Anlass",
     "Notizen": "Notizen",
