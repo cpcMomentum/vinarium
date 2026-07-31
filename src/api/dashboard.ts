@@ -18,6 +18,11 @@ export interface ActivityEvent {
 		producer_name?: string
 		tasting_id?: number
 		bottle_id?: number
+		// Nur der Aktivitaets-Stream (#92) liefert diese Felder; die
+		// Dashboard-Card laesst sie weg. Deshalb alle optional.
+		purchase_id?: number
+		rating?: number | null
+		event_note?: string | null
 	}
 }
 
