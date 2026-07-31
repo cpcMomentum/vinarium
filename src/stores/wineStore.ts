@@ -172,7 +172,14 @@ export const useWineStore = defineStore('wine', () => {
 	}
 
 	async function fetchVintageStock(): Promise<void> {
-		vintageStock.value = await apiFetchVintageStock()
+		try {
+			vintageStock.value = await apiFetchVintageStock()
+		} catch (e) {
+			// Non-critical enrichment of the wines tab; callers fire this
+			// without awaiting, so a failed refresh must not surface as an
+			// unhandled rejection.
+			console.error('Vintage stock refresh failed:', e)
+		}
 	}
 
 	async function fetchAll(): Promise<void> {
