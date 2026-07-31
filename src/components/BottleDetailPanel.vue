@@ -186,12 +186,12 @@
 						<label><span>{{ t('vinarium', 'Jahr') }}</span><input v-model.number="form.year" type="number" required /></label>
 						<label><span>{{ t('vinarium', 'Alkohol (%)') }}</span><input v-model.number="form.alcohol_percent" type="number" step="0.1" /></label>
 						<label class="bd-full"><span>{{ t('vinarium', 'Rebsorten') }}</span><input v-model="form.grape_varieties" /></label>
-					<label><span>{{ t('vinarium', 'Süße') }}</span>
-						<select v-model="form.sweetness">
-							<option value="">{{ t('vinarium', '— nicht angegeben —') }}</option>
-							<option v-for="s in SWEETNESS_VALUES" :key="s" :value="s">{{ t('vinarium', SWEETNESS_LABELS[s]) }}</option>
-						</select>
-					</label>
+						<label><span>{{ t('vinarium', 'Süße') }}</span>
+							<select v-model="form.sweetness">
+								<option value="">{{ t('vinarium', '— nicht angegeben —') }}</option>
+								<option v-for="s in SWEETNESS_VALUES" :key="s" :value="s">{{ t('vinarium', SWEETNESS_LABELS[s]) }}</option>
+							</select>
+						</label>
 						<label><span>{{ t('vinarium', 'Trinken ab') }}</span><input v-model.number="form.drink_from_year" type="number" /></label>
 						<label><span>{{ t('vinarium', 'Trinken bis') }}</span><input v-model.number="form.drink_until_year" type="number" /></label>
 						<label><span>{{ t('vinarium', 'Externe Bewertung') }}</span><input v-model.number="form.external_rating" type="number" step="0.1" /></label>
