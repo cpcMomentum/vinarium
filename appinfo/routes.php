@@ -86,6 +86,9 @@ return [
 		['name' => 'dashboard#stats',     'url' => '/api/v1/dashboard/stats', 'verb' => 'GET'],
 		['name' => 'dashboard#exportCsv', 'url' => '/api/v1/export/csv',     'verb' => 'GET'],
 
+		// Activity (chronological stream over purchases / tastings / gifts / losses)
+		['name' => 'activity#index', 'url' => '/api/v1/activity', 'verb' => 'GET'],
+
 		// Search (full-text over producers / wines / vintages)
 		['name' => 'search#index', 'url' => '/api/v1/search', 'verb' => 'GET'],
 	],

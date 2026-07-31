@@ -460,8 +460,7 @@ function goToTastings() {
 }
 
 function goToActivity() {
-	// Aktivitätslog-View: noch nicht implementiert (#92) — fallback auf Tastings
-	router.push({ path: '/tastings' })
+	router.push({ path: '/activity' })
 }
 </script>
 

@@ -8,6 +8,7 @@ import DashboardView from '@/views/DashboardView.vue'
 import InventoryView from '@/views/InventoryView.vue'
 import SimpleShelfView from '@/views/SimpleShelfView.vue'
 import TastingsView from '@/views/TastingsView.vue'
+import ActivityView from '@/views/ActivityView.vue'
 
 const routes: RouteRecordRaw[] = [
 	{ path: '/', name: 'dashboard', component: DashboardView },
@@ -16,6 +17,7 @@ const routes: RouteRecordRaw[] = [
 	{ path: '/wines', redirect: { path: '/inventory', query: { tab: 'stammdaten' } } },
 	{ path: '/shelf', name: 'shelf', component: SimpleShelfView },
 	{ path: '/tastings', name: 'tastings', component: TastingsView },
+	{ path: '/activity', name: 'activity', component: ActivityView },
 ]
 
 export const router = createRouter({
