@@ -23,7 +23,7 @@ const fakeWine = (id: number, producerId: number): Wine => ({
 	id, producerId, name: 'W', color: 'red', appellation: null, notes: null, barcode: null,
 })
 const fakeVintage = (id: number, wineId: number): Vintage => ({
-	id, wineId, year: 2020, alcoholPercent: null, grapeVarieties: null,
+	id, wineId, year: 2020, alcoholPercent: null, grapeVarieties: null, sweetness: null,
 	drinkFromYear: null, drinkUntilYear: null,
 	externalRating: null, externalRatingSource: null, description: null, referenceUrl: null,
 })

@@ -14,6 +14,7 @@ import { useBottleStore } from '@/stores/bottleStore'
 
 const fakeListItem = (id: number, slotId: number | null = null): BottleListItem => ({
 	id, purchase_id: 1, slot_id: slotId, status: 'in_storage', photo_file_id: null, notes: null,
+	sweetness: null,
 	wine_id: 1, vintage_id: 1, producer_id: 1,
 	year: 2020, wine_name: 'W', wine_color: 'red', producer_name: 'P', drink_until_year: null,
 	slot_level: null, slot_row: null, slot_column: null, compartment_label: null,

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import type { Vintage } from '@/types/api'
+import type { Sweetness, Vintage } from '@/types/api'
 import { apiDelete, apiGet, apiPatch, apiPost } from './client'
 
 export interface VintageCreate {
@@ -18,6 +18,7 @@ export interface VintageCreate {
 		externalRatingSource?: string | null
 		description?: string | null
 		referenceUrl?: string | null
+		sweetness?: Sweetness | null
 	}
 }
 

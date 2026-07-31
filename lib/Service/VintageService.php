@@ -102,6 +102,30 @@ class VintageService {
 		if (array_key_exists('referenceUrl', $data)) {
 			$vintage->setReferenceUrl($data['referenceUrl'] !== null ? (string)$data['referenceUrl'] : null);
 		}
+		if (array_key_exists('sweetness', $data)) {
+			$vintage->setSweetness($this->parseSweetness($data['sweetness']));
+		}
+	}
+
+	/**
+	 * NULL and the empty string both mean "not specified" — the select in the
+	 * UI submits an empty value for its placeholder option. Anything else has
+	 * to be one of the known levels; an unknown string would otherwise sit in
+	 * the database and render as a missing label.
+	 */
+	private function parseSweetness(mixed $value): ?string {
+		if ($value === null || $value === '') {
+			return null;
+		}
+		$sweetness = (string)$value;
+		if (!in_array($sweetness, Vintage::SWEETNESS_VALUES, true)) {
+			throw new ValidationException(sprintf(
+				'Invalid sweetness "%s" (allowed: %s)',
+				$sweetness,
+				implode(', ', Vintage::SWEETNESS_VALUES),
+			));
+		}
+		return $sweetness;
 	}
 
 	private function parseYear(mixed $value): int {
