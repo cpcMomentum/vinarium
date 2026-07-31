@@ -29,6 +29,13 @@ export const listVintagesByWine = (wineId: number): Promise<Vintage[]> =>
 export const getVintage = (id: number): Promise<Vintage> =>
 	apiGet<Vintage>(`/vintages/${id}`)
 
+/**
+ * Bottles still in storage, keyed by vintage id. Vintages without stock are
+ * omitted, so callers must treat a missing key as 0.
+ */
+export const fetchVintageStock = (): Promise<Record<number, number>> =>
+	apiGet<Record<number, number>>('/vintages/stock')
+
 export const createVintage = (payload: VintageCreate): Promise<Vintage> =>
 	apiPost<Vintage, VintageCreate>('/vintages', payload)
 

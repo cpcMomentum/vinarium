@@ -26,6 +26,7 @@ import { listAllPurchases as apiListPurchases, updatePurchase as apiUpdatePurcha
 import {
 	createVintage as apiCreateVintage,
 	deleteVintage as apiDeleteVintage,
+	fetchVintageStock as apiFetchVintageStock,
 	listVintagesByWine as apiListVintagesByWine,
 	updateVintage as apiUpdateVintage,
 	type VintageCreate,
@@ -37,12 +38,19 @@ export const useWineStore = defineStore('wine', () => {
 	const wines = ref<Wine[]>([])
 	const vintages = ref<Vintage[]>([])
 	const purchases = ref<PurchaseListItem[]>([])
+	/**
+	 * Bottles in storage per vintage. Comes from a dedicated, unfiltered
+	 * endpoint — deriving it from the bottle list would undercount whenever an
+	 * inventory filter is active (#189).
+	 */
+	const vintageStock = ref<Record<number, number>>({})
 	const loading = ref(false)
 	let _loadPromise: Promise<void> | null = null
 
 	const producerById = computed(() => (id: number) => producers.value.find(p => p.id === id))
 	const winesByProducer = computed(() => (producerId: number) => wines.value.filter(w => w.producerId === producerId))
 	const vintagesByWine = computed(() => (wineId: number) => vintages.value.filter(v => v.wineId === wineId))
+	const stockByVintage = computed(() => (vintageId: number) => vintageStock.value[vintageId] ?? 0)
 
 	async function fetchProducers(): Promise<void> {
 		loading.value = true
@@ -163,10 +171,14 @@ export const useWineStore = defineStore('wine', () => {
 		vintages.value = vintages.value.filter(v => v.id !== id)
 	}
 
+	async function fetchVintageStock(): Promise<void> {
+		vintageStock.value = await apiFetchVintageStock()
+	}
+
 	async function fetchAll(): Promise<void> {
 		if (_loadPromise) return _loadPromise
 		_loadPromise = (async () => {
-			await Promise.all([fetchProducers(), fetchPurchases()])
+			await Promise.all([fetchProducers(), fetchPurchases(), fetchVintageStock()])
 			await Promise.all(producers.value.map(p => fetchWinesByProducer(p.id)))
 			await Promise.all(wines.value.map(w => fetchVintagesByWine(w.id)))
 		})().finally(() => { _loadPromise = null })
@@ -178,13 +190,14 @@ export const useWineStore = defineStore('wine', () => {
 		wines.value = []
 		vintages.value = []
 		purchases.value = []
+		vintageStock.value = {}
 		loading.value = false
 		_loadPromise = null
 	}
 
 	return {
-		producers, wines, vintages, purchases, loading,
-		producerById, winesByProducer, vintagesByWine,
+		producers, wines, vintages, purchases, vintageStock, loading,
+		producerById, winesByProducer, vintagesByWine, stockByVintage, fetchVintageStock,
 		fetchProducers, createProducer, updateProducer, deleteProducer,
 		fetchWinesByProducer, createWine, updateWine, deleteWine,
 		fetchVintagesByWine, createVintage, updateVintage, deleteVintage,

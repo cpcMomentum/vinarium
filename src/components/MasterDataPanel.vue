@@ -64,6 +64,7 @@
 							<th>{{ t('vinarium', 'Trinkfenster') }}</th>
 							<th class="r">{{ t('vinarium', 'Alkohol') }}</th>
 							<th class="r">{{ t('vinarium', 'Bewertung') }}</th>
+							<th class="r" :title="t('vinarium', 'Flaschen, die aktuell noch im Keller liegen.')">{{ t('vinarium', 'Im Bestand') }}</th>
 							<th class="r" :title="t('vinarium', 'Summe aller gekauften Flaschen — enthält auch entkorkte, verschenkte oder verlorene.')">{{ t('vinarium', 'Gekauft') }}</th>
 							<th class="r"></th>
 						</tr>
@@ -71,7 +72,7 @@
 					<tbody>
 						<template v-for="{ wine: w, vintages: wVintages } in winesWithVintages" :key="w.id">
 							<tr class="wine-head" @click="editEntity('wine', w.id)">
-								<td colspan="6">
+								<td colspan="7">
 									<span class="dot" :style="{ background: cssColorFor(w.color) }"></span>
 									<strong>{{ w.name }}</strong>
 									<span class="subline">
@@ -113,7 +114,12 @@
 									</span>
 									<span v-else class="muted">—</span>
 								</td>
-								<td class="r">{{ bottleCountForVintage(v.id) }}</td>
+								<td class="r">
+									<span class="stock" :class="{ 'stock--empty': store.stockByVintage(v.id) === 0 }">
+										{{ store.stockByVintage(v.id) }}
+									</span>
+								</td>
+								<td class="r muted">{{ bottleCountForVintage(v.id) }}</td>
 								<td class="r" @click.stop>
 									<NcActions :aria-label="t('vinarium', 'Aktionen')">
 										<NcActionButton @click="editEntity('vintage', v.id)">
@@ -333,6 +339,8 @@ async function performDelete() {
 		else if (type === 'vintage') await store.deleteVintage(id)
 		else if (type === 'purchase') await store.deletePurchase(id)
 		deletePendingId.value = null
+		// Loeschen kann Flaschen mitnehmen — Bestandszahlen neu holen (#189).
+		store.fetchVintageStock()
 	} catch (e: any) {
 		deleteError.value = e?.message ?? t('vinarium', 'Löschen fehlgeschlagen')
 	}
@@ -484,6 +492,11 @@ async function performDelete() {
 }
 
 .muted { color: var(--color-text-maxcontrast); }
+
+/* Bestand ist der Wert, den man in einer Bestandsliste sucht — die Kaufhistorie
+   daneben bleibt bewusst gedaempft (#189). */
+.stock { font-weight: 600; }
+.stock--empty { font-weight: 400; color: var(--color-text-maxcontrast); }
 
 .master-data__tabs {
 	display: inline-flex;

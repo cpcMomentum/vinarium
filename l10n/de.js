@@ -134,6 +134,7 @@ OC.L10N.register(
     "Laden...": "Laden...",
     "Noch keine Verkostungen erfasst.": "Noch keine Verkostungen erfasst.",
     "Bewertung": "Bewertung",
+    "Flaschen, die aktuell noch im Keller liegen.": "Flaschen, die aktuell noch im Keller liegen.",
     "Aktionen": "Aktionen",
     "Anlass": "Anlass",
     "Notizen": "Notizen",

@@ -137,6 +137,7 @@ OC.L10N.register(
     "Laden...": "Loading...",
     "Noch keine Verkostungen erfasst.": "No tastings recorded yet.",
     "Bewertung": "Rating",
+    "Flaschen, die aktuell noch im Keller liegen.": "Bottles still in the cellar.",
     "Aktionen": "Actions",
     "Anlass": "Occasion",
     "Notizen": "Notes",

@@ -406,6 +406,7 @@ function openTasting(bottleId: number) {
 
 async function onConsumed() {
 	await store.fetchBottles(store.filter)
+	wineStore.fetchVintageStock()
 	loadStats()
 }
 
@@ -417,6 +418,7 @@ function openEvent(bottleId: number, mode: 'gift' | 'lost') {
 
 async function onEventDone() {
 	await store.fetchBottles(store.filter)
+	wineStore.fetchVintageStock()
 	loadStats()
 }
 
@@ -427,6 +429,7 @@ async function onPhotoChanged() {
 async function onWizardComplete(_payload: { purchaseId: number; bottleCount: number }) {
 	wizardOpen.value = false
 	await store.fetchBottles(store.filter)
+	wineStore.fetchVintageStock()
 	loadStats()
 }
 
@@ -442,6 +445,7 @@ async function doRestore(id: number) {
 	restoreError.value = null
 	try {
 		await store.restoreBottle(id)
+		wineStore.fetchVintageStock()
 	} catch (e: any) {
 		restoreError.value = e?.message ?? t('vinarium', 'Zurücksetzen fehlgeschlagen')
 	}
