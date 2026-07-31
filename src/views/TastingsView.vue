@@ -76,7 +76,7 @@
 					<td>
 						<span class="dot" :style="{ background: cssColorFor(tasting.wine_color) }" />
 						{{ tasting.wine_name }}
-						<span v-if="tasting.sweetness" class="chip-swt">{{ t('vinarium', SWEETNESS_LABELS[tasting.sweetness]) }}</span>
+						<span v-if="tasting.sweetness" class="chip--swt">{{ t('vinarium', SWEETNESS_LABELS[tasting.sweetness]) }}</span>
 					</td>
 					<td>{{ tasting.year }}</td>
 					<td>
@@ -475,7 +475,7 @@ onMounted(async () => {
 .photo-badge__icon { flex-shrink: 0; }
 
 /* Süße als dezente Zusatzinfo am Weinnamen (#89) */
-.chip-swt {
+.chip--swt {
 	font-size: 11px;
 	font-weight: 500;
 	border-radius: var(--border-radius-element, 8px);
