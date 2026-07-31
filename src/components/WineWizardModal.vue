@@ -92,7 +92,7 @@
 			<div class="wizard__actions">
 				<NcButton @click="cancel">{{ t('vinarium', 'Abbrechen') }}</NcButton>
 				<NcButton v-if="step > 1" :disabled="saving" @click="step--">{{ t('vinarium', 'Zurück') }}</NcButton>
-				<NcButton v-if="step < 3" variant="primary" :disabled="!canAdvance || saving" @click="step++">
+				<NcButton v-if="step < 3" variant="primary" :disabled="!canAdvance || saving" @click="advance">
 					{{ t('vinarium', 'Weiter') }}
 				</NcButton>
 				<NcButton v-if="step === 3" variant="primary" :disabled="!canComplete || saving" @click="complete">
@@ -215,6 +215,12 @@ watch(() => props.open, (isOpen) => {
 	if (isOpen) reset()
 })
 
+function advance() {
+	// Nothing is persisted until the wizard is completed; just move forward.
+	errorMsg.value = ''
+	step.value++
+}
+
 function cancel() {
 	emit('close')
 }
@@ -237,6 +243,9 @@ async function complete() {
 				notes: form1.value.notes.trim() || null,
 			})
 			resolvedProducerId = producer.id
+			// Sofort übernehmen: schlägt der nachfolgende Wein-Request fehl, würde ein
+			// erneuter Klick auf "Fertig" sonst ein zweites, identisches Weingut anlegen.
+			producerId.value = producer.id
 		}
 
 		const wine = await store.createWine({
