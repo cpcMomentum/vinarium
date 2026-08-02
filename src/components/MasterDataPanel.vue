@@ -232,6 +232,10 @@ type EntityType = 'producer' | 'wine' | 'vintage' | 'purchase'
 type PanelTab = 'producers' | 'wines' | 'purchases'
 
 const props = defineProps<{ entityType?: PanelTab }>()
+// Die Zaehler in den Tabs und der Kopfzeile stammen aus /dashboard/stats, das
+// nur die Elternansicht laedt. Ohne dieses Signal bleiben sie nach Anlegen
+// oder Loeschen stehen, bis die Seite neu geladen wird.
+const emit = defineEmits<(e: 'data-changed') => void>()
 
 const store = useWineStore()
 const internalTab = ref<PanelTab>('producers')
@@ -248,6 +252,7 @@ const editType = ref<EntityType>('producer')
  */
 function onWineCreated() {
 	wineWizardOpen.value = false
+	emit('data-changed')
 }
 const editId = ref<number | null>(null)
 
@@ -359,6 +364,7 @@ async function performDelete() {
 		deletePendingId.value = null
 		// Loeschen kann Flaschen mitnehmen — Bestandszahlen neu holen (#189).
 		store.fetchVintageStock()
+		emit('data-changed')
 	} catch (e: any) {
 		deleteError.value = e?.message ?? t('vinarium', 'Löschen fehlgeschlagen')
 	}
