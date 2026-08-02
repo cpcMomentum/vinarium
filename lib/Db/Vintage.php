@@ -34,6 +34,8 @@ use OCP\DB\Types;
  * @method void setDescription(?string $description)
  * @method ?string getReferenceUrl()
  * @method void setReferenceUrl(?string $referenceUrl)
+ * @method ?string getSweetness()
+ * @method void setSweetness(?string $sweetness)
  */
 class Vintage extends Entity implements JsonSerializable {
 	protected ?int $wineId = null;
@@ -46,6 +48,10 @@ class Vintage extends Entity implements JsonSerializable {
 	protected ?string $externalRatingSource = null;
 	protected ?string $description = null;
 	protected ?string $referenceUrl = null;
+	protected ?string $sweetness = null;
+
+	/** Sweetness levels following the EU labelling terms; NULL = not specified. */
+	public const SWEETNESS_VALUES = ['dry', 'off_dry', 'medium_sweet', 'sweet'];
 
 	public function __construct() {
 		$this->addType('wineId', Types::INTEGER);
@@ -58,6 +64,7 @@ class Vintage extends Entity implements JsonSerializable {
 		$this->addType('externalRatingSource', Types::STRING);
 		$this->addType('description', Types::TEXT);
 		$this->addType('referenceUrl', Types::STRING);
+		$this->addType('sweetness', Types::STRING);
 	}
 
 	public function jsonSerialize(): array {
@@ -73,6 +80,7 @@ class Vintage extends Entity implements JsonSerializable {
 			'externalRatingSource' => $this->getExternalRatingSource(),
 			'description' => $this->getDescription(),
 			'referenceUrl' => $this->getReferenceUrl(),
+			'sweetness' => $this->getSweetness(),
 		];
 	}
 }

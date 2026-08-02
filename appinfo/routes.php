@@ -41,6 +41,8 @@ return [
 
 		// Vintages
 		['name' => 'vintage#index',   'url' => '/api/v1/vintages',      'verb' => 'GET'],
+		// Must stay above vintage#show: /vintages/{id} would match "stock" otherwise.
+		['name' => 'vintage#stock',   'url' => '/api/v1/vintages/stock', 'verb' => 'GET'],
 		['name' => 'vintage#show',    'url' => '/api/v1/vintages/{id}', 'verb' => 'GET'],
 		['name' => 'vintage#create',  'url' => '/api/v1/vintages',      'verb' => 'POST'],
 		['name' => 'vintage#update',  'url' => '/api/v1/vintages/{id}', 'verb' => 'PATCH'],
