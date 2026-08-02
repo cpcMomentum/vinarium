@@ -76,6 +76,7 @@
 					<td>
 						<span class="dot" :style="{ background: cssColorFor(tasting.wine_color) }" />
 						{{ tasting.wine_name }}
+						<span v-if="tasting.sweetness" class="chip--swt">{{ t('vinarium', SWEETNESS_LABELS[tasting.sweetness]) }}</span>
 					</td>
 					<td>{{ tasting.year }}</td>
 					<td>
@@ -170,7 +171,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import { fetchTastingStats, listAllTastings, type TastingDetail, type TastingListItem, type TastingStats } from '@/api/tastings'
 import { listBottles } from '@/api/bottles'
-import type { BottleListItem } from '@/types/api'
+import { SWEETNESS_LABELS, type BottleListItem } from '@/types/api'
 import TastingDialog from '@/components/TastingDialog.vue'
 import TastingDetailModal from '@/components/TastingDetailModal.vue'
 import { cssColorFor } from '@/utils/wineColors'
@@ -472,4 +473,16 @@ onMounted(async () => {
 	font-variant-numeric: tabular-nums;
 }
 .photo-badge__icon { flex-shrink: 0; }
+
+/* Süße als dezente Zusatzinfo am Weinnamen (#89) */
+.chip--swt {
+	font-size: 11px;
+	font-weight: 500;
+	border-radius: var(--border-radius-element, 8px);
+	padding: 2px 8px;
+	margin-left: 6px;
+	background: var(--color-background-dark);
+	color: var(--color-text-maxcontrast);
+	white-space: nowrap;
+}
 </style>

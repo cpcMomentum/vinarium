@@ -33,6 +33,13 @@
 				</select>
 			</label>
 			<label>
+				{{ t('vinarium', 'Süße') }}
+				<select v-model="filterSweetness" class="input" @change="applyFilter">
+					<option value="">{{ t('vinarium', 'alle') }}</option>
+					<option v-for="s in SWEETNESS_VALUES" :key="s" :value="s">{{ t('vinarium', SWEETNESS_LABELS[s]) }}</option>
+				</select>
+			</label>
+			<label>
 				{{ t('vinarium', 'Status') }}
 				<select v-model="filterStatus" class="input" @change="applyFilter">
 					<option value="">{{ t('vinarium', 'alle') }}</option>
@@ -95,7 +102,10 @@
 								</span>
 							</td>
 							<td>{{ b.producer_name }}</td>
-							<td>{{ b.wine_name }}</td>
+							<td>
+								{{ b.wine_name }}
+								<span v-if="b.sweetness" class="chip chip--swt">{{ t('vinarium', SWEETNESS_LABELS[b.sweetness]) }}</span>
+							</td>
 							<td>{{ b.year }}</td>
 							<td>
 								<span class="chip" :class="chipClass(b.status)">{{ t('vinarium', BOTTLE_STATUS_LABELS[b.status]) }}</span>
@@ -206,7 +216,7 @@ import BottleEventDialog from '@/components/BottleEventDialog.vue'
 import PurchaseWizardModal from '@/components/PurchaseWizardModal.vue'
 import MasterDataPanel from '@/components/MasterDataPanel.vue'
 import BottleDetailPanel from '@/components/BottleDetailPanel.vue'
-import { BOTTLE_STATUS_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleListItem, type BottleStatus, type WineColor } from '@/types/api'
+import { BOTTLE_STATUS_LABELS, SWEETNESS_LABELS, SWEETNESS_VALUES, WINE_COLORS, WINE_COLOR_LABELS, type BottleListItem, type BottleStatus, type Sweetness, type WineColor } from '@/types/api'
 import { useBottleStore } from '@/stores/bottleStore'
 import { useWineStore } from '@/stores/wineStore'
 import { fetchStats, type DashboardStats } from '@/api/dashboard'
@@ -250,6 +260,7 @@ const filterStatus = ref<BottleStatus | ''>('in_storage')
 const filterYear = ref<number | null>(null)
 const filterProducerId = ref<number | null>(null)
 const filterDrinkUntil = ref<number | null>(null)
+const filterSweetness = ref<Sweetness | ''>('')
 const drinkUntilOptions = [currentYear, currentYear + 1, currentYear + 2]
 const stats = ref<DashboardStats | null>(null)
 const detailBottleId = ref<number | null>(null)
@@ -315,6 +326,8 @@ function initFiltersFromQuery() {
 	filterYear.value = intParam(q.year)
 	filterProducerId.value = intParam(q.producer)
 	filterDrinkUntil.value = intParam(q.drink_until)
+	filterSweetness.value = typeof q.sweetness === 'string' && (SWEETNESS_VALUES as readonly string[]).includes(q.sweetness)
+		? q.sweetness as Sweetness : ''
 }
 
 function currentFilter(): BottleFilter {
@@ -324,6 +337,7 @@ function currentFilter(): BottleFilter {
 		year: filterYear.value ?? undefined,
 		producerId: filterProducerId.value ?? undefined,
 		drinkUntilYearBefore: filterDrinkUntil.value ?? undefined,
+		sweetness: filterSweetness.value || undefined,
 	}
 }
 
@@ -339,6 +353,7 @@ function syncUrl() {
 	if (filterYear.value != null) query.year = String(filterYear.value)
 	if (filterProducerId.value != null) query.producer = String(filterProducerId.value)
 	if (filterDrinkUntil.value != null) query.drink_until = String(filterDrinkUntil.value)
+	if (filterSweetness.value) query.sweetness = filterSweetness.value
 	router.replace({ query })
 }
 
@@ -395,6 +410,7 @@ async function resetFilter() {
 	filterYear.value = null
 	filterProducerId.value = null
 	filterDrinkUntil.value = null
+	filterSweetness.value = ''
 	syncUrl()
 	await store.fetchBottles({})
 }
@@ -657,6 +673,14 @@ function formatSlotLabel(b: { status: BottleStatus; slot_id: number | null; slot
 .chip--csm { background: #eeeeee; color: #5a5a5a; }
 .chip--gft { background: #fbf3e6; color: #9a6c25; }
 .chip--lst { background: #fbecea; color: #b03b33; }
+/* Süße ist eine Zusatzinfo neben dem Weinnamen, kein Status — daher
+   zurückhaltender als die Status-Chips (#89). */
+.chip--swt {
+	background: var(--color-background-dark);
+	color: var(--color-text-maxcontrast);
+	font-weight: 500;
+	margin-left: 6px;
+}
 
 /* Fallback-Tile, wenn keine Foto-URL existiert */
 .bottle-tile {

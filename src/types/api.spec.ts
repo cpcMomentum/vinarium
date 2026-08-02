@@ -55,6 +55,7 @@ describe('api types', () => {
 			year: 2022,
 			alcoholPercent: 12.5,
 			grapeVarieties: 'Merlot 70%, Cabernet Franc 30%',
+			sweetness: 'dry',
 			drinkFromYear: 2025,
 			drinkUntilYear: 2032,
 			externalRating: null,

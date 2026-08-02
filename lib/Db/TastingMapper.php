@@ -37,7 +37,7 @@ class TastingMapper extends QBMapper {
 			't.id', 't.bottle_id', 't.tasted_at', 't.rating', 't.notes', 't.occasion', 't.companions',
 			't.photo_file_ids', 't.would_rebuy',
 			'w.name AS wine_name', 'w.color AS wine_color',
-			'v.year', 'p.name AS producer_name',
+			'v.year', 'v.sweetness', 'p.name AS producer_name',
 		)
 			->from($this->tableName, 't')
 			->innerJoin('t', 'vinarium_bottle', 'b', 't.bottle_id = b.id')

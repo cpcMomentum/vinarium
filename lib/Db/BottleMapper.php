@@ -129,7 +129,7 @@ class BottleMapper extends QBMapper {
 			'v.id AS vintage_id', 'v.year',
 			'w.id AS wine_id', 'w.name AS wine_name', 'w.color AS wine_color',
 			'p.id AS producer_id', 'p.name AS producer_name',
-			'v.drink_until_year',
+			'v.drink_until_year', 'v.sweetness',
 			'sl.level AS slot_level', 'sl.row AS slot_row', 'sl.column AS slot_column',
 			'co.label AS compartment_label',
 		)
@@ -156,6 +156,9 @@ class BottleMapper extends QBMapper {
 		}
 		if (isset($filter['drinkUntilYearBefore'])) {
 			$qb->andWhere($qb->expr()->lte('v.drink_until_year', $qb->createNamedParameter((int)$filter['drinkUntilYearBefore'], IQueryBuilder::PARAM_INT)));
+		}
+		if (isset($filter['sweetness'])) {
+			$qb->andWhere($qb->expr()->eq('v.sweetness', $qb->createNamedParameter((string)$filter['sweetness'])));
 		}
 
 		$qb->orderBy('p.name', 'ASC')->addOrderBy('w.name', 'ASC')->addOrderBy('v.year', 'DESC');
@@ -311,7 +314,7 @@ class BottleMapper extends QBMapper {
 			'b.id', 'b.purchase_id', 'b.slot_id', 'b.status', 'b.photo_file_id', 'b.notes',
 			'b.event_date', 'b.event_recipient', 'b.event_note',
 			'v.id AS vintage_id', 'v.year', 'v.grape_varieties', 'v.drink_from_year', 'v.drink_until_year',
-			'v.alcohol_percent', 'v.external_rating', 'v.external_rating_source',
+			'v.alcohol_percent', 'v.external_rating', 'v.external_rating_source', 'v.sweetness',
 			'w.id AS wine_id', 'w.name AS wine_name', 'w.color AS wine_color', 'w.appellation',
 			'p.id AS producer_id', 'p.name AS producer_name', 'p.country', 'p.region', 'p.website',
 			'pu.purchased_at', 'pu.vendor', 'pu.unit_price', 'pu.currency', 'pu.bottle_size_ml',
