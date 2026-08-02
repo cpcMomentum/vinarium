@@ -54,6 +54,9 @@
 
 		<!-- Wines & Vintages combined: grouped wine × vintage view -->
 		<section v-else-if="activeTab === 'wines'" class="master-data__panel">
+			<div class="master-data__actions">
+				<NcButton variant="primary" @click="wineWizardOpen = true">{{ t('vinarium', '+ Wein') }}</NcButton>
+			</div>
 			<p v-if="store.wines.length === 0" class="master-data__empty">{{ t('vinarium', 'Noch keine Weine erfasst.') }}</p>
 			<div v-else class="md-card">
 				<table class="md-tbl md-wines-grouped">
@@ -185,6 +188,11 @@
 			</div>
 		</section>
 
+		<WineWizardModal
+			:open="wineWizardOpen"
+			@close="wineWizardOpen = false"
+			@complete="onWineCreated"
+		/>
 		<EntityEditModal
 			:open="editOpen"
 			:type="editType"
@@ -214,6 +222,7 @@ import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import EntityEditModal from '@/components/EntityEditModal.vue'
+import WineWizardModal from '@/components/WineWizardModal.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { BOTTLE_SIZE_LABELS, WINE_COLOR_LABELS, type BottleSizeMl, type Vintage } from '@/types/api'
 import { useWineStore } from '@/stores/wineStore'
@@ -229,8 +238,17 @@ const internalTab = ref<PanelTab>('producers')
 const activeTab = computed<PanelTab>(() => props.entityType ?? internalTab.value)
 const deleteError = ref<string | null>(null)
 
+const wineWizardOpen = ref(false)
 const editOpen = ref(false)
 const editType = ref<EntityType>('producer')
+
+/**
+ * Kein Nachladen nötig: createProducer / createWine / createVintage schieben
+ * das Ergebnis jeweils selbst in den Store, die gruppierte Liste rendert daraus.
+ */
+function onWineCreated() {
+	wineWizardOpen.value = false
+}
 const editId = ref<number | null>(null)
 
 const tabs = computed(() => [
