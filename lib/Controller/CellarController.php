@@ -13,6 +13,7 @@ use OCA\Vinarium\AppInfo\Application;
 use OCA\Vinarium\Db\SlotMapper;
 use OCA\Vinarium\Exception\NotFoundException;
 use OCA\Vinarium\Exception\PermissionDeniedException;
+use OCA\Vinarium\Exception\ValidationException;
 use OCA\Vinarium\Service\CellarService;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
@@ -101,6 +102,36 @@ class CellarController extends Controller {
 			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
 		} catch (PermissionDeniedException $e) {
 			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_FORBIDDEN);
+		}
+	}
+
+	/**
+	 * Rewrites the shelf order of a cellar. Expects the complete target order
+	 * as `shelfIds`, not a single moved shelf — see CellarService::reorderShelves.
+	 */
+	#[NoAdminRequired]
+	public function reorderShelves(int $cellarId): DataResponse {
+		if ($this->userId === null) {
+			return $this->unauthorized();
+		}
+		$shelfIds = $this->request->getParam('shelfIds');
+		if (!is_array($shelfIds)) {
+			return new DataResponse(['error' => 'shelfIds must be an array'], Http::STATUS_BAD_REQUEST);
+		}
+		foreach ($shelfIds as $shelfId) {
+			if (!is_numeric($shelfId)) {
+				return new DataResponse(['error' => 'shelfIds must contain only numbers'], Http::STATUS_BAD_REQUEST);
+			}
+		}
+		try {
+			$shelves = $this->cellarService->reorderShelves($cellarId, $this->userId, array_map('intval', array_values($shelfIds)));
+			return new DataResponse($shelves);
+		} catch (NotFoundException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_NOT_FOUND);
+		} catch (PermissionDeniedException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_FORBIDDEN);
+		} catch (ValidationException $e) {
+			return new DataResponse(['error' => $e->getMessage()], Http::STATUS_BAD_REQUEST);
 		}
 	}
 

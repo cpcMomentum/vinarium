@@ -15,6 +15,8 @@ return [
 		['name' => 'cellar#show',          'url' => '/api/v1/cellar',                                        'verb' => 'GET'],
 		['name' => 'cellar#create',        'url' => '/api/v1/cellar',                                        'verb' => 'POST'],
 		['name' => 'cellar#createShelf',   'url' => '/api/v1/cellar/shelves',                                'verb' => 'POST'],
+		// Nimmt die vollstaendige Zielreihenfolge entgegen, nicht ein einzelnes Regal.
+		['name' => 'cellar#reorderShelves', 'url' => '/api/v1/cellar/{cellarId}/shelves/order',              'verb' => 'PUT'],
 		['name' => 'cellar#updateShelf',   'url' => '/api/v1/cellar/shelves/{shelfId}',                     'verb' => 'PATCH'],
 		['name' => 'cellar#destroyShelf',  'url' => '/api/v1/cellar/shelves/{shelfId}',                     'verb' => 'DELETE'],
 		['name' => 'cellar#slots',              'url' => '/api/v1/compartments/{compartmentId}/slots',       'verb' => 'GET'],
