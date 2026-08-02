@@ -140,6 +140,7 @@ OC.L10N.register(
     "halbtrocken": "halbtrocken",
     "lieblich": "lieblich",
     "süß": "süß",
+    "Flaschen, die aktuell noch im Keller liegen.": "Flaschen, die aktuell noch im Keller liegen.",
     "Aktionen": "Aktionen",
     "Anlass": "Anlass",
     "Notizen": "Notizen",

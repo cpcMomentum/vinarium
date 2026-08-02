@@ -143,6 +143,7 @@ OC.L10N.register(
     "halbtrocken": "off-dry",
     "lieblich": "medium sweet",
     "süß": "sweet",
+    "Flaschen, die aktuell noch im Keller liegen.": "Bottles still in the cellar.",
     "Aktionen": "Actions",
     "Anlass": "Occasion",
     "Notizen": "Notes",

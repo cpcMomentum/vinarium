@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace OCA\Vinarium\Service;
 
+use OCA\Vinarium\Db\BottleMapper;
 use OCA\Vinarium\Db\Vintage;
 use OCA\Vinarium\Db\VintageMapper;
 use OCA\Vinarium\Exception\NotFoundException;
@@ -23,6 +24,7 @@ class VintageService {
 	public function __construct(
 		private readonly VintageMapper $vintageMapper,
 		private readonly WineService $wineService,
+		private readonly BottleMapper $bottleMapper,
 	) {
 	}
 
@@ -30,6 +32,18 @@ class VintageService {
 	public function listByWine(int $wineId, string $userId): array {
 		$this->wineService->get($wineId, $userId);
 		return $this->vintageMapper->findByWine($wineId);
+	}
+
+	/**
+	 * Number of bottles still in storage per vintage, for the whole cellar.
+	 *
+	 * Vintages without any bottle in storage are absent from the map rather
+	 * than carrying a zero — the caller treats a missing key as 0.
+	 *
+	 * @return array<int, int> vintage id => bottles in storage
+	 */
+	public function stockByVintage(string $userId): array {
+		return $this->bottleMapper->countInStorageByVintage($userId);
 	}
 
 	public function get(int $id, string $userId): Vintage {

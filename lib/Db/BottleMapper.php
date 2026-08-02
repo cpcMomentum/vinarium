@@ -67,6 +67,37 @@ class BottleMapper extends QBMapper {
 		return $this->findEntities($qb);
 	}
 
+	/**
+	 * Counts the bottles still physically in storage, grouped by vintage.
+	 *
+	 * Deliberately owner-scoped and independent of any inventory filter: the
+	 * wines tab shows this next to the purchased total, and a count derived
+	 * from a filtered bottle list would silently understate the stock (#189).
+	 *
+	 * @return array<int, int> vintage id => number of bottles with status in_storage
+	 */
+	public function countInStorageByVintage(string $userId): array {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('pu.vintage_id')
+			->selectAlias($qb->func()->count('b.id'), 'bottle_count')
+			->from($this->tableName, 'b')
+			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
+			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->eq('b.status', $qb->createNamedParameter('in_storage')))
+			->groupBy('pu.vintage_id');
+
+		$result = $qb->executeQuery();
+		$counts = [];
+		while ($row = $result->fetch()) {
+			$counts[(int)$row['vintage_id']] = (int)$row['bottle_count'];
+		}
+		$result->closeCursor();
+		return $counts;
+	}
+
 	/** @return list<string> distinct gift recipients for the user */
 	public function findGiftRecipients(string $userId): array {
 		$qb = $this->db->getQueryBuilder();

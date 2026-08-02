@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace OCA\Vinarium\Tests\Unit\Service;
 
+use OCA\Vinarium\Db\BottleMapper;
 use OCA\Vinarium\Db\Vintage;
 use OCA\Vinarium\Db\VintageMapper;
 use OCA\Vinarium\Exception\ValidationException;
@@ -25,7 +26,13 @@ class VintageSweetnessTest extends TestCase {
 	protected function setUp(): void {
 		$this->vintageMapper = $this->createMock(VintageMapper::class);
 		$this->wineService = $this->createMock(WineService::class);
-		$this->service = new VintageService($this->vintageMapper, $this->wineService);
+		// BottleMapper wird nur von stockByVintage() gebraucht (#189) und bleibt
+		// hier ungenutzt — er muss aber uebergeben werden.
+		$this->service = new VintageService(
+			$this->vintageMapper,
+			$this->wineService,
+			$this->createMock(BottleMapper::class),
+		);
 	}
 
 	private function existingVintage(): Vintage {
