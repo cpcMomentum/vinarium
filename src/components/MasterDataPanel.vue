@@ -198,6 +198,7 @@
 			:type="editType"
 			:entity-id="editId"
 			@close="closeEdit"
+			@saved="onEntitySaved"
 		/>
 		<ConfirmDialog
 			:open="deleteConfirmOpen"
@@ -322,6 +323,12 @@ function editEntity(type: EntityType, id: number) {
 function closeEdit() {
 	editOpen.value = false
 	editId.value = null
+}
+
+// Neuanlage ueber EntityEditModal (aktuell nur Weingut per "+ Weingut") aendert
+// ebenfalls die Zaehler in Kopfzeile/Tabs — gleiches Signal wie beim Wein-Wizard.
+function onEntitySaved() {
+	emit('data-changed')
 }
 
 const deleteConfirmOpen = ref(false)
