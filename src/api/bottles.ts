@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import type { Bottle, BottleFilter, BottleListItem } from '@/types/api'
+import type { Bottle, BottleFilter, BottleListItem, Sweetness } from '@/types/api'
 import { apiDelete, apiGet, apiPatch, apiUrl } from './client'
 
 function buildQuery(filter: BottleFilter): string {
@@ -13,6 +13,7 @@ function buildQuery(filter: BottleFilter): string {
 	if (filter.year !== undefined) params.set('year', String(filter.year))
 	if (filter.producerId !== undefined) params.set('producerId', String(filter.producerId))
 	if (filter.drinkUntilYearBefore !== undefined) params.set('drinkUntilYearBefore', String(filter.drinkUntilYearBefore))
+	if (filter.sweetness) params.set('sweetness', filter.sweetness)
 	const q = params.toString()
 	return q ? `?${q}` : ''
 }
@@ -41,6 +42,7 @@ export interface BottleDetail {
 	alcohol_percent: number | null
 	external_rating: number | null
 	external_rating_source: string | null
+	sweetness: Sweetness | null
 	purchased_at: string
 	vendor: string | null
 	unit_price: number | null

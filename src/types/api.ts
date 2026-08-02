@@ -20,6 +20,23 @@ export const WINE_COLOR_LABELS: Record<WineColor, string> = {
 	fortified: 'Likörwein',
 }
 
+/**
+ * Süße-Grad nach den EU-Bezeichnungen. Orthogonal zur Wein-Art: ein Riesling
+ * ist „Weiß" und kann trocken oder edelsüß sein (#89). null = nicht angegeben.
+ */
+export type Sweetness = 'dry' | 'off_dry' | 'medium_sweet' | 'sweet'
+
+export const SWEETNESS_VALUES: readonly Sweetness[] = [
+	'dry', 'off_dry', 'medium_sweet', 'sweet',
+] as const
+
+export const SWEETNESS_LABELS: Record<Sweetness, string> = {
+	dry: 'trocken',
+	off_dry: 'halbtrocken',
+	medium_sweet: 'lieblich',
+	sweet: 'süß',
+}
+
 export type BottleStatus = 'in_storage' | 'consumed' | 'gifted' | 'lost'
 
 export type SlotRow = 'front' | 'back'
@@ -56,6 +73,7 @@ export interface Vintage {
 	externalRatingSource: string | null
 	description: string | null
 	referenceUrl: string | null
+	sweetness: Sweetness | null
 }
 
 export interface Purchase {
@@ -203,6 +221,7 @@ export interface BottleListItem {
 	wine_color: WineColor
 	producer_name: string
 	drink_until_year: number | null
+	sweetness: Sweetness | null
 	slot_level: number | null
 	slot_row: string | null
 	slot_column: number | null
@@ -219,4 +238,5 @@ export interface BottleFilter {
 	year?: number
 	producerId?: number
 	drinkUntilYearBefore?: number
+	sweetness?: Sweetness
 }

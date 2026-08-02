@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import type { Vintage } from '@/types/api'
+import type { Sweetness, Vintage } from '@/types/api'
 import { apiDelete, apiGet, apiPatch, apiPost } from './client'
 
 export interface VintageCreate {
@@ -18,6 +18,7 @@ export interface VintageCreate {
 		externalRatingSource?: string | null
 		description?: string | null
 		referenceUrl?: string | null
+		sweetness?: Sweetness | null
 	}
 }
 
@@ -28,6 +29,13 @@ export const listVintagesByWine = (wineId: number): Promise<Vintage[]> =>
 
 export const getVintage = (id: number): Promise<Vintage> =>
 	apiGet<Vintage>(`/vintages/${id}`)
+
+/**
+ * Bottles still in storage, keyed by vintage id. Vintages without stock are
+ * omitted, so callers must treat a missing key as 0.
+ */
+export const fetchVintageStock = (): Promise<Record<number, number>> =>
+	apiGet<Record<number, number>>('/vintages/stock')
 
 export const createVintage = (payload: VintageCreate): Promise<Vintage> =>
 	apiPost<Vintage, VintageCreate>('/vintages', payload)
