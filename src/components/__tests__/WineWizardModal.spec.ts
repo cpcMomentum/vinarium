@@ -81,6 +81,23 @@ describe('WineWizardModal', () => {
 		expect(wrapper.emitted('complete')?.[0]).toEqual([{ wineId: 10, vintageId: null }])
 	})
 
+	it('reicht die gewaehlte Suesse an den Jahrgang durch', async () => {
+		// Der Wein-Wizard entstand parallel zum Suesse-Feld und hatte es
+		// zunaechst nicht — hier festgehalten, damit es nicht wieder wegfaellt.
+		const wrapper = await mountAtVintageStep()
+
+		await wrapper.find('input[type="checkbox"]').setValue(true)
+		await wrapper.find('select').setValue('medium_sweet')
+		await wrapper.findAll('button').find(b => b.text().includes('Fertig'))!.trigger('click')
+		await flushPromises()
+
+		expect(vintagesApi.createVintage).toHaveBeenCalledWith(
+			expect.objectContaining({
+				data: expect.objectContaining({ sweetness: 'medium_sweet' }),
+			}),
+		)
+	})
+
 	it('legt Wein und Jahrgang an, wenn der Jahrgang aktiviert wurde', async () => {
 		const wrapper = await mountAtVintageStep()
 

@@ -106,7 +106,10 @@ const props = defineProps<{
 	type: EntityType
 	entityId: number | null
 }>()
-const emit = defineEmits<(e: 'close') => void>()
+const emit = defineEmits<{
+	(e: 'close'): void
+	(e: 'saved'): void
+}>()
 
 const store = useWineStore()
 const saving = ref(false)
@@ -261,6 +264,7 @@ async function save() {
 					website: producer.value.website,
 					notes: producer.value.notes,
 				})
+				emit('saved')
 			}
 		} else if (props.type === 'producer' && producer.value) {
 			await store.updateProducer(producer.value.id, {

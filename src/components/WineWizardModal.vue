@@ -71,6 +71,13 @@
 						<span>{{ t('vinarium', 'Rebsorten (jahrgangsspezifisch)') }}</span>
 						<input v-model="form3.grapeVarieties" class="input" :placeholder="t('vinarium', 'z. B. Merlot 70%, Cabernet Franc 30%')" />
 					</label>
+					<label class="field">
+						<span>{{ t('vinarium', 'Süße') }}</span>
+						<select v-model="form3.sweetness" class="input">
+							<option value="">{{ t('vinarium', '— nicht angegeben —') }}</option>
+							<option v-for="s in SWEETNESS_VALUES" :key="s" :value="s">{{ t('vinarium', SWEETNESS_LABELS[s]) }}</option>
+						</select>
+					</label>
 					<div class="field-row">
 						<label class="field"><span>{{ t('vinarium', 'Trinken ab (Jahr)') }}</span><input v-model.number="form3.drinkFromYear" type="number" min="1900" class="input" :placeholder="t('vinarium', 'z. B. 2025')" /></label>
 						<label class="field"><span>{{ t('vinarium', 'Trinken bis (Jahr)') }}</span><input v-model.number="form3.drinkUntilYear" type="number" min="1900" class="input" :placeholder="t('vinarium', 'z. B. 2032')" /></label>
@@ -109,7 +116,7 @@ import { computed, ref, watch } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import { WINE_COLORS, WINE_COLOR_LABELS, type WineColor } from '@/types/api'
+import { SWEETNESS_LABELS, SWEETNESS_VALUES, WINE_COLORS, WINE_COLOR_LABELS, type Sweetness, type WineColor } from '@/types/api'
 import { useWineStore } from '@/stores/wineStore'
 
 const props = defineProps<{ open: boolean }>()
@@ -149,6 +156,7 @@ const form3 = ref({
 	externalRatingSource: '',
 	referenceUrl: '',
 	description: '',
+	sweetness: '' as Sweetness | '',
 })
 
 // Beim Wechsel auf ein bestehendes Weingut dessen Stammdaten anzeigen (read-only),
@@ -208,6 +216,7 @@ function reset() {
 		year: new Date().getFullYear(), alcoholPercent: null, grapeVarieties: '',
 		drinkFromYear: null, drinkUntilYear: null,
 		externalRating: null, externalRatingSource: '', referenceUrl: '', description: '',
+		sweetness: '',
 	}
 }
 
@@ -273,6 +282,7 @@ async function complete() {
 					externalRatingSource: form3.value.externalRatingSource.trim() || null,
 					referenceUrl: form3.value.referenceUrl.trim() || null,
 					description: form3.value.description.trim() || null,
+					sweetness: form3.value.sweetness || null,
 				},
 			})
 			vintageId = vintage.id

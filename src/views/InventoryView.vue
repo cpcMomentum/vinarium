@@ -159,13 +159,13 @@
 
 		<!-- Stammdaten-Tabs -->
 		<div v-show="activeTab === 'producers'">
-			<MasterDataPanel entity-type="producers" />
+			<MasterDataPanel entity-type="producers" @data-changed="loadStats" />
 		</div>
 		<div v-show="activeTab === 'wines'">
-			<MasterDataPanel entity-type="wines" />
+			<MasterDataPanel entity-type="wines" @data-changed="loadStats" />
 		</div>
 		<div v-show="activeTab === 'purchases'">
-			<MasterDataPanel entity-type="purchases" />
+			<MasterDataPanel entity-type="purchases" @data-changed="loadStats" />
 		</div>
 
 		<!-- Detail-Modal mit Reitern + Prev/Next-Navigation -->
