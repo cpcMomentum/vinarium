@@ -67,6 +67,37 @@ class BottleMapper extends QBMapper {
 		return $this->findEntities($qb);
 	}
 
+	/**
+	 * Counts the bottles still physically in storage, grouped by vintage.
+	 *
+	 * Deliberately owner-scoped and independent of any inventory filter: the
+	 * wines tab shows this next to the purchased total, and a count derived
+	 * from a filtered bottle list would silently understate the stock (#189).
+	 *
+	 * @return array<int, int> vintage id => number of bottles with status in_storage
+	 */
+	public function countInStorageByVintage(string $userId): array {
+		$qb = $this->db->getQueryBuilder();
+		$qb->select('pu.vintage_id')
+			->selectAlias($qb->func()->count('b.id'), 'bottle_count')
+			->from($this->tableName, 'b')
+			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
+			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)))
+			->andWhere($qb->expr()->eq('b.status', $qb->createNamedParameter('in_storage')))
+			->groupBy('pu.vintage_id');
+
+		$result = $qb->executeQuery();
+		$counts = [];
+		while ($row = $result->fetch()) {
+			$counts[(int)$row['vintage_id']] = (int)$row['bottle_count'];
+		}
+		$result->closeCursor();
+		return $counts;
+	}
+
 	/** @return list<string> distinct gift recipients for the user */
 	public function findGiftRecipients(string $userId): array {
 		$qb = $this->db->getQueryBuilder();
@@ -98,7 +129,7 @@ class BottleMapper extends QBMapper {
 			'v.id AS vintage_id', 'v.year',
 			'w.id AS wine_id', 'w.name AS wine_name', 'w.color AS wine_color',
 			'p.id AS producer_id', 'p.name AS producer_name',
-			'v.drink_until_year',
+			'v.drink_until_year', 'v.sweetness',
 			'sl.level AS slot_level', 'sl.row AS slot_row', 'sl.column AS slot_column',
 			'co.label AS compartment_label',
 		)
@@ -125,6 +156,9 @@ class BottleMapper extends QBMapper {
 		}
 		if (isset($filter['drinkUntilYearBefore'])) {
 			$qb->andWhere($qb->expr()->lte('v.drink_until_year', $qb->createNamedParameter((int)$filter['drinkUntilYearBefore'], IQueryBuilder::PARAM_INT)));
+		}
+		if (isset($filter['sweetness'])) {
+			$qb->andWhere($qb->expr()->eq('v.sweetness', $qb->createNamedParameter((string)$filter['sweetness'])));
 		}
 
 		$qb->orderBy('p.name', 'ASC')->addOrderBy('w.name', 'ASC')->addOrderBy('v.year', 'DESC');
@@ -280,7 +314,7 @@ class BottleMapper extends QBMapper {
 			'b.id', 'b.purchase_id', 'b.slot_id', 'b.status', 'b.photo_file_id', 'b.notes',
 			'b.event_date', 'b.event_recipient', 'b.event_note',
 			'v.id AS vintage_id', 'v.year', 'v.grape_varieties', 'v.drink_from_year', 'v.drink_until_year',
-			'v.alcohol_percent', 'v.external_rating', 'v.external_rating_source',
+			'v.alcohol_percent', 'v.external_rating', 'v.external_rating_source', 'v.sweetness',
 			'w.id AS wine_id', 'w.name AS wine_name', 'w.color AS wine_color', 'w.appellation',
 			'p.id AS producer_id', 'p.name AS producer_name', 'p.country', 'p.region', 'p.website',
 			'pu.purchased_at', 'pu.vendor', 'pu.unit_price', 'pu.currency', 'pu.bottle_size_ml',

@@ -110,6 +110,7 @@ class PurchaseWizardService {
 			'externalRatingSource' => $this->nullableString($d, 'externalRatingSource'),
 			'referenceUrl' => $this->nullableString($d, 'referenceUrl'),
 			'description' => $this->nullableString($d, 'description'),
+			'sweetness' => $this->nullableString($d, 'sweetness'),
 		])->getId();
 	}
 

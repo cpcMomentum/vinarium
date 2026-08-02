@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-or-later
  */
 
-import type { Tasting } from '@/types/api'
+import type { Sweetness, Tasting } from '@/types/api'
 import { apiDelete, apiGet, apiPatch, apiPost } from './client'
 import { generateUrl } from '@nextcloud/router'
 
@@ -20,6 +20,7 @@ export interface TastingListItem {
 	wine_name: string
 	wine_color: string
 	year: number
+	sweetness: Sweetness | null
 	producer_name: string
 }
 

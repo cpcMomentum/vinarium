@@ -40,6 +40,7 @@ const makeVintage = (id: number, wineId: number, year: number) => ({
 	id, wineId, year, alcoholPercent: null, grapeVarieties: null,
 	drinkFromYear: null, drinkUntilYear: null, externalRating: null,
 	externalRatingSource: null, description: null, referenceUrl: null,
+	sweetness: null,
 })
 
 /** Führt den Wizard bis Schritt 3 mit einem bestehenden Weingut. */

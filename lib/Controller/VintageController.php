@@ -41,6 +41,20 @@ class VintageController extends Controller {
 		}
 	}
 
+	/**
+	 * Bottles in storage per vintage, as a map keyed by vintage id.
+	 *
+	 * Routed above show() in routes.php — otherwise /vintages/{id} swallows
+	 * the literal path segment "stock".
+	 */
+	#[NoAdminRequired]
+	public function stock(): DataResponse {
+		if ($this->userId === null) {
+			return new DataResponse(['error' => 'Not authenticated'], Http::STATUS_UNAUTHORIZED);
+		}
+		return new DataResponse($this->vintageService->stockByVintage($this->userId));
+	}
+
 	#[NoAdminRequired]
 	public function show(int $id): DataResponse {
 		if ($this->userId === null) {
