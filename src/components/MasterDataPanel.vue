@@ -54,6 +54,9 @@
 
 		<!-- Wines & Vintages combined: grouped wine × vintage view -->
 		<section v-else-if="activeTab === 'wines'" class="master-data__panel">
+			<div class="master-data__actions">
+				<NcButton variant="primary" @click="wineWizardOpen = true">{{ t('vinarium', '+ Wein') }}</NcButton>
+			</div>
 			<p v-if="store.wines.length === 0" class="master-data__empty">{{ t('vinarium', 'Noch keine Weine erfasst.') }}</p>
 			<div v-else class="md-card">
 				<table class="md-tbl md-wines-grouped">
@@ -64,6 +67,7 @@
 							<th>{{ t('vinarium', 'Trinkfenster') }}</th>
 							<th class="r">{{ t('vinarium', 'Alkohol') }}</th>
 							<th class="r">{{ t('vinarium', 'Bewertung') }}</th>
+							<th class="r" :title="t('vinarium', 'Flaschen, die aktuell noch im Keller liegen.')">{{ t('vinarium', 'Im Bestand') }}</th>
 							<th class="r" :title="t('vinarium', 'Summe aller gekauften Flaschen — enthält auch entkorkte, verschenkte oder verlorene.')">{{ t('vinarium', 'Gekauft') }}</th>
 							<th class="r"></th>
 						</tr>
@@ -71,7 +75,7 @@
 					<tbody>
 						<template v-for="{ wine: w, vintages: wVintages } in winesWithVintages" :key="w.id">
 							<tr class="wine-head" @click="editEntity('wine', w.id)">
-								<td colspan="6">
+								<td colspan="7">
 									<span class="dot" :style="{ background: cssColorFor(w.color) }"></span>
 									<strong>{{ w.name }}</strong>
 									<span class="subline">
@@ -113,7 +117,12 @@
 									</span>
 									<span v-else class="muted">—</span>
 								</td>
-								<td class="r">{{ bottleCountForVintage(v.id) }}</td>
+								<td class="r">
+									<span class="stock" :class="{ 'stock--empty': store.stockByVintage(v.id) === 0 }">
+										{{ store.stockByVintage(v.id) }}
+									</span>
+								</td>
+								<td class="r muted">{{ bottleCountForVintage(v.id) }}</td>
 								<td class="r" @click.stop>
 									<NcActions :aria-label="t('vinarium', 'Aktionen')">
 										<NcActionButton @click="editEntity('vintage', v.id)">
@@ -179,11 +188,17 @@
 			</div>
 		</section>
 
+		<WineWizardModal
+			:open="wineWizardOpen"
+			@close="wineWizardOpen = false"
+			@complete="onWineCreated"
+		/>
 		<EntityEditModal
 			:open="editOpen"
 			:type="editType"
 			:entity-id="editId"
 			@close="closeEdit"
+			@saved="onEntitySaved"
 		/>
 		<ConfirmDialog
 			:open="deleteConfirmOpen"
@@ -208,6 +223,7 @@ import NcActionButton from '@nextcloud/vue/components/NcActionButton'
 import Pencil from 'vue-material-design-icons/Pencil.vue'
 import Delete from 'vue-material-design-icons/Delete.vue'
 import EntityEditModal from '@/components/EntityEditModal.vue'
+import WineWizardModal from '@/components/WineWizardModal.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { BOTTLE_SIZE_LABELS, WINE_COLOR_LABELS, type BottleSizeMl, type Vintage } from '@/types/api'
 import { useWineStore } from '@/stores/wineStore'
@@ -217,14 +233,28 @@ type EntityType = 'producer' | 'wine' | 'vintage' | 'purchase'
 type PanelTab = 'producers' | 'wines' | 'purchases'
 
 const props = defineProps<{ entityType?: PanelTab }>()
+// Die Zaehler in den Tabs und der Kopfzeile stammen aus /dashboard/stats, das
+// nur die Elternansicht laedt. Ohne dieses Signal bleiben sie nach Anlegen
+// oder Loeschen stehen, bis die Seite neu geladen wird.
+const emit = defineEmits<(e: 'data-changed') => void>()
 
 const store = useWineStore()
 const internalTab = ref<PanelTab>('producers')
 const activeTab = computed<PanelTab>(() => props.entityType ?? internalTab.value)
 const deleteError = ref<string | null>(null)
 
+const wineWizardOpen = ref(false)
 const editOpen = ref(false)
 const editType = ref<EntityType>('producer')
+
+/**
+ * Kein Nachladen nötig: createProducer / createWine / createVintage schieben
+ * das Ergebnis jeweils selbst in den Store, die gruppierte Liste rendert daraus.
+ */
+function onWineCreated() {
+	wineWizardOpen.value = false
+	emit('data-changed')
+}
 const editId = ref<number | null>(null)
 
 const tabs = computed(() => [
@@ -295,6 +325,12 @@ function closeEdit() {
 	editId.value = null
 }
 
+// Neuanlage ueber EntityEditModal (aktuell nur Weingut per "+ Weingut") aendert
+// ebenfalls die Zaehler in Kopfzeile/Tabs — gleiches Signal wie beim Wein-Wizard.
+function onEntitySaved() {
+	emit('data-changed')
+}
+
 const deleteConfirmOpen = ref(false)
 const deletePendingType = ref<EntityType>('producer')
 const deletePendingId = ref<number | null>(null)
@@ -333,6 +369,9 @@ async function performDelete() {
 		else if (type === 'vintage') await store.deleteVintage(id)
 		else if (type === 'purchase') await store.deletePurchase(id)
 		deletePendingId.value = null
+		// Loeschen kann Flaschen mitnehmen — Bestandszahlen neu holen (#189).
+		store.fetchVintageStock()
+		emit('data-changed')
 	} catch (e: any) {
 		deleteError.value = e?.message ?? t('vinarium', 'Löschen fehlgeschlagen')
 	}
@@ -484,6 +523,11 @@ async function performDelete() {
 }
 
 .muted { color: var(--color-text-maxcontrast); }
+
+/* Bestand ist der Wert, den man in einer Bestandsliste sucht — die Kaufhistorie
+   daneben bleibt bewusst gedaempft (#189). */
+.stock { font-weight: 600; }
+.stock--empty { font-weight: 400; color: var(--color-text-maxcontrast); }
 
 .master-data__tabs {
 	display: inline-flex;

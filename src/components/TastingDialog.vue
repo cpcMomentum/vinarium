@@ -1,5 +1,5 @@
 <template>
-	<NcModal v-if="open" :name="editMode ? t('vinarium', 'Verkostung bearbeiten') : t('vinarium', 'Flasche öffnen + Verkostung')" @close="$emit('close')">
+	<NcModal v-if="open" :name="editMode ? t('vinarium', 'Verkostung bearbeiten') : t('vinarium', 'Flasche öffnen + Verkostung')" @keydown.esc="e => escCloses(e, () => $emit('close'))" @close="$emit('close')">
 		<div class="tasting-dialog">
 			<h2>{{ editMode ? t('vinarium', 'Verkostung bearbeiten') : t('vinarium', 'Flasche öffnen + Verkostung') }}</h2>
 			<p v-if="!editMode" class="muted">{{ t('vinarium', 'Die Flasche wird als „getrunken“ markiert und der Slot freigegeben.') }}</p>
@@ -82,6 +82,7 @@
 </template>
 
 <script setup lang="ts">
+import { escCloses } from '@/utils/modalEsc'
 import { computed, ref, watch } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import NcModal from '@nextcloud/vue/components/NcModal'

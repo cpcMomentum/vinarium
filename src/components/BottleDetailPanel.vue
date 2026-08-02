@@ -3,6 +3,7 @@
 		v-if="open"
 		:name="modalTitle"
 		size="large"
+		@keydown.esc="e => escCloses(e, () => $emit('close'))"
 		@close="$emit('close')"
 	>
 		<div class="bd-modal">
@@ -102,7 +103,7 @@
 								</dd>
 							</template>
 
-							<template v-if="detail.appellation || detail.grape_varieties || detail.alcohol_percent || detail.drink_from_year || detail.drink_until_year">
+							<template v-if="detail.appellation || detail.grape_varieties || detail.sweetness || detail.alcohol_percent || detail.drink_from_year || detail.drink_until_year">
 								<div class="bd-kv-group">{{ t('vinarium', 'Wein') }}</div>
 								<template v-if="detail.appellation">
 									<dt>{{ t('vinarium', 'Appellation') }}</dt>
@@ -111,6 +112,10 @@
 								<template v-if="detail.grape_varieties">
 									<dt>{{ t('vinarium', 'Rebsorten') }}</dt>
 									<dd>{{ detail.grape_varieties }}</dd>
+								</template>
+								<template v-if="detail.sweetness">
+									<dt>{{ t('vinarium', 'Süße') }}</dt>
+									<dd>{{ t('vinarium', SWEETNESS_LABELS[detail.sweetness]) }}</dd>
 								</template>
 								<template v-if="detail.alcohol_percent">
 									<dt>{{ t('vinarium', 'Alkohol') }}</dt>
@@ -181,6 +186,12 @@
 						<label><span>{{ t('vinarium', 'Jahr') }}</span><input v-model.number="form.year" type="number" required /></label>
 						<label><span>{{ t('vinarium', 'Alkohol (%)') }}</span><input v-model.number="form.alcohol_percent" type="number" step="0.1" /></label>
 						<label class="bd-full"><span>{{ t('vinarium', 'Rebsorten') }}</span><input v-model="form.grape_varieties" /></label>
+						<label><span>{{ t('vinarium', 'Süße') }}</span>
+							<select v-model="form.sweetness">
+								<option value="">{{ t('vinarium', '— nicht angegeben —') }}</option>
+								<option v-for="s in SWEETNESS_VALUES" :key="s" :value="s">{{ t('vinarium', SWEETNESS_LABELS[s]) }}</option>
+							</select>
+						</label>
 						<label><span>{{ t('vinarium', 'Trinken ab') }}</span><input v-model.number="form.drink_from_year" type="number" /></label>
 						<label><span>{{ t('vinarium', 'Trinken bis') }}</span><input v-model.number="form.drink_until_year" type="number" /></label>
 						<label><span>{{ t('vinarium', 'Externe Bewertung') }}</span><input v-model.number="form.external_rating" type="number" step="0.1" /></label>
@@ -242,6 +253,7 @@
 </template>
 
 <script setup lang="ts">
+import { escCloses } from '@/utils/modalEsc'
 import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import NcModal from '@nextcloud/vue/components/NcModal'
@@ -252,7 +264,7 @@ import { updateProducer } from '@/api/producers'
 import { updateWine } from '@/api/wines'
 import { updateVintage } from '@/api/vintages'
 import { updatePurchase } from '@/api/purchases'
-import { BOTTLE_SIZE_LABELS, BOTTLE_STATUS_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleSizeMl, type WineColor, type BottleStatus } from '@/types/api'
+import { BOTTLE_SIZE_LABELS, BOTTLE_STATUS_LABELS, SWEETNESS_LABELS, SWEETNESS_VALUES, WINE_COLORS, WINE_COLOR_LABELS, type BottleSizeMl, type WineColor, type BottleStatus } from '@/types/api'
 import { cssColorFor } from '@/utils/wineColors'
 import { formatDate } from '@/utils/date'
 
@@ -360,6 +372,7 @@ function prefillForm() {
 			year: d.year,
 			alcohol_percent: d.alcohol_percent,
 			grape_varieties: d.grape_varieties ?? '',
+			sweetness: d.sweetness ?? '',
 			drink_from_year: d.drink_from_year,
 			drink_until_year: d.drink_until_year,
 			external_rating: d.external_rating,
@@ -405,6 +418,7 @@ async function saveSection() {
 					drinkUntilYear: form.value.drink_until_year ?? null,
 					externalRating: form.value.external_rating ?? null,
 					externalRatingSource: form.value.external_rating_source || null,
+					sweetness: form.value.sweetness || null,
 				},
 			})
 		} else if (activeTab.value === 'purchase') {

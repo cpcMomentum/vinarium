@@ -7,6 +7,28 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-08-02
+
+### Added
+- **Weine-Tab zeigt „Im Bestand" neben „Gekauft"** — bisher stand dort nur die Summe aller je gekauften Flaschen, entkorkte, verschenkte und verlorene wurden nie abgezogen. Wer 12 gekauft und eine getrunken hatte, sah weiterhin 12. Die neue Spalte zählt die tatsächlich im Keller liegenden Flaschen und ist visuell führend; die Kaufhistorie steht gedämpft daneben (Fixes #189)
+- **Süße-Grad am Jahrgang** — neues optionales Feld (trocken / halbtrocken / lieblich / süß) an der Vintage, weil derselbe Wein je Jahrgang unterschiedlich ausgebaut sein kann. Erfassbar im Kauf-Wizard, im Jahrgangs-Edit und im Detail-Panel, filterbar im Bestand (auch als Deep-Link), angezeigt als Chip in Bestands- und Verkostungsliste (Fixes #89)
+- **Eigener Anlage-Wizard für Weine ohne Kauf** — „+ Wein" im Weine-Tab öffnet einen dreistufigen Wizard (Weingut / Wein / Jahrgang, Jahrgang überspringbar). Für geschenkte Flaschen, Altbestand aus der Zeit vor der App oder eine Wunschliste (Fixes #137)
+- **Regal-Reihenfolge per Drag & Drop** — Regale lassen sich über einen Griff im Tab umsortieren; die Reihenfolge wird atomar persistiert (Fixes #191)
+- **Aktivitätslog unter `#/activity`** — vollständige chronologische Übersicht über Käufe, Verkostungen, Geschenke und Verluste, mit Filter nach Art und Zeitraum sowie „Mehr laden". Der Dashboard-Link „Aktivität alle ›" führt jetzt dorthin statt ersatzweise auf die Verkostungen (Fixes #92)
+
+### Fixed
+- Esc schließt Modals auch dann, wenn der Fokus in einem Eingabefeld steht (Fixes #176)
+- `composer.lock` war nicht mehr deckungsgleich mit `composer.json`: `nextcloud/ocp` und `doctrine/dbal` fehlten, `composer install` brach ab und die PHP-Testsuite lief lokal nicht mehr
+- Zähler in Tabs und Kopfzeile des Bestands blieben nach dem Anlegen oder Löschen von Stammdaten stehen, bis die Seite neu geladen wurde
+
+### Changed
+- Zusätzlicher Endpoint `GET /api/v1/vintages/stock` liefert die Bestandszahlen als Aggregat — bewusst nicht aus der bereits geladenen Flaschenliste berechnet, die gefiltert ist und dadurch stillschweigend zu wenig angezeigt hätte
+- Neuer Endpoint `PUT /api/v1/cellar/{cellarId}/shelves/order` nimmt die vollständige Zielreihenfolge entgegen und nummeriert in einer Transaktion durch; fremde, fehlende oder doppelte IDs werden abgewiesen
+- Neuer Endpoint `GET /api/v1/activity` aggregiert Käufe, Verkostungen und Flaschen-Status-Ereignisse
+
+### Migration
+- `vinarium_vintage.sweetness` (nullable VARCHAR(16)) wird ergänzt. Kein Backfill — „nicht angegeben" ist für jede bestehende Zeile die zutreffende Aussage
+
 ## [0.4.2] - 2026-07-06
 
 ### Added
@@ -172,7 +194,8 @@ Erste offizielle Veröffentlichung — Weinverwaltung End-to-End.
 - 88 PHPUnit-Tests + 24 Vitest-Tests (112 gesamt)
 - Pre-Commit-Hook für OCP-only API-Enforcement
 
-[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.4.2...HEAD
+[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/cpcMomentum/vinarium/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/cpcMomentum/vinarium/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/cpcMomentum/vinarium/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/cpcMomentum/vinarium/compare/v0.3.0...v0.4.0

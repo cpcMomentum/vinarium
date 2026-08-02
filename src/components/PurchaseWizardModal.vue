@@ -1,5 +1,5 @@
 <template>
-	<NcModal v-if="open" :name="titles[step]" @close="cancel">
+	<NcModal v-if="open" :name="titles[step]" @keydown.esc="e => escCloses(e, cancel)" @close="cancel">
 		<div class="wizard">
 			<h2 class="wizard__title">{{ titles[step] }}</h2>
 			<div class="wizard__stepper">
@@ -72,6 +72,13 @@
 					<label class="field">
 						<span>{{ t('vinarium', 'Rebsorten (jahrgangsspezifisch)') }}</span>
 						<input v-model="form3.grapeVarieties" :disabled="isPicked3" class="input" :placeholder="t('vinarium', 'z. B. Merlot 70%, Cabernet Franc 30%')" />
+					</label>
+					<label class="field">
+						<span>{{ t('vinarium', 'Süße') }}</span>
+						<select v-model="form3.sweetness" :disabled="isPicked3" class="input">
+							<option value="">{{ t('vinarium', '— nicht angegeben —') }}</option>
+							<option v-for="s in SWEETNESS_VALUES" :key="s" :value="s">{{ t('vinarium', SWEETNESS_LABELS[s]) }}</option>
+						</select>
 					</label>
 					<div class="field-row">
 						<label class="field"><span>{{ t('vinarium', 'Trinken ab (Jahr)') }}</span><input v-model.number="form3.drinkFromYear" :disabled="isPicked3" type="number" min="1900" class="input" :placeholder="t('vinarium', 'z. B. 2025')" /></label>
@@ -171,11 +178,12 @@
 </template>
 
 <script setup lang="ts">
+import { escCloses } from '@/utils/modalEsc'
 import { computed, ref, watch } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import { BOTTLE_SIZES, BOTTLE_SIZE_LABELS, WINE_COLORS, WINE_COLOR_LABELS, type BottleSizeMl, type WineColor } from '@/types/api'
+import { BOTTLE_SIZES, BOTTLE_SIZE_LABELS, SWEETNESS_LABELS, SWEETNESS_VALUES, WINE_COLORS, WINE_COLOR_LABELS, type BottleSizeMl, type Sweetness, type WineColor } from '@/types/api'
 import { useWineStore } from '@/stores/wineStore'
 import { createPurchaseViaWizard, listVendors } from '@/api/purchases'
 import { uploadBottlePhoto } from '@/api/bottles'
@@ -242,10 +250,12 @@ const form3 = ref<{
 	year: number | null; alcoholPercent: number | null; grapeVarieties: string
 	drinkFromYear: number | null; drinkUntilYear: number | null
 	externalRating: number | null; externalRatingSource: string; referenceUrl: string; description: string
+	sweetness: Sweetness | ''
 }>({
 	year: new Date().getFullYear(), alcoholPercent: null, grapeVarieties: '',
 	drinkFromYear: null, drinkUntilYear: null,
 	externalRating: null, externalRatingSource: '', referenceUrl: '', description: '',
+	sweetness: '',
 })
 const form4 = ref<{
 	purchasedAt: string; vendor: string; unitPrice: number | null; currency: string
@@ -338,6 +348,7 @@ watch(vintageId, (id) => {
 				drinkFromYear: v.drinkFromYear, drinkUntilYear: v.drinkUntilYear,
 				externalRating: v.externalRating, externalRatingSource: v.externalRatingSource ?? '',
 				referenceUrl: v.referenceUrl ?? '', description: v.description ?? '',
+				sweetness: v.sweetness ?? '',
 			}
 		}
 	} else {
@@ -352,6 +363,7 @@ function resetForm3() {
 		year: new Date().getFullYear(), alcoholPercent: null, grapeVarieties: '',
 		drinkFromYear: null, drinkUntilYear: null,
 		externalRating: null, externalRatingSource: '', referenceUrl: '', description: '',
+		sweetness: '',
 	}
 }
 
@@ -403,6 +415,7 @@ async function complete() {
 					externalRatingSource: form3.value.externalRatingSource || null,
 					referenceUrl: form3.value.referenceUrl || null,
 					description: form3.value.description || null,
+					sweetness: form3.value.sweetness || null,
 				},
 			},
 			purchase: {

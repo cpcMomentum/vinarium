@@ -15,6 +15,8 @@ return [
 		['name' => 'cellar#show',          'url' => '/api/v1/cellar',                                        'verb' => 'GET'],
 		['name' => 'cellar#create',        'url' => '/api/v1/cellar',                                        'verb' => 'POST'],
 		['name' => 'cellar#createShelf',   'url' => '/api/v1/cellar/shelves',                                'verb' => 'POST'],
+		// Nimmt die vollstaendige Zielreihenfolge entgegen, nicht ein einzelnes Regal.
+		['name' => 'cellar#reorderShelves', 'url' => '/api/v1/cellar/{cellarId}/shelves/order',              'verb' => 'PUT'],
 		['name' => 'cellar#updateShelf',   'url' => '/api/v1/cellar/shelves/{shelfId}',                     'verb' => 'PATCH'],
 		['name' => 'cellar#destroyShelf',  'url' => '/api/v1/cellar/shelves/{shelfId}',                     'verb' => 'DELETE'],
 		['name' => 'cellar#slots',              'url' => '/api/v1/compartments/{compartmentId}/slots',       'verb' => 'GET'],
@@ -39,6 +41,8 @@ return [
 
 		// Vintages
 		['name' => 'vintage#index',   'url' => '/api/v1/vintages',      'verb' => 'GET'],
+		// Must stay above vintage#show: /vintages/{id} would match "stock" otherwise.
+		['name' => 'vintage#stock',   'url' => '/api/v1/vintages/stock', 'verb' => 'GET'],
 		['name' => 'vintage#show',    'url' => '/api/v1/vintages/{id}', 'verb' => 'GET'],
 		['name' => 'vintage#create',  'url' => '/api/v1/vintages',      'verb' => 'POST'],
 		['name' => 'vintage#update',  'url' => '/api/v1/vintages/{id}', 'verb' => 'PATCH'],
@@ -85,6 +89,9 @@ return [
 		// Dashboard + Export
 		['name' => 'dashboard#stats',     'url' => '/api/v1/dashboard/stats', 'verb' => 'GET'],
 		['name' => 'dashboard#exportCsv', 'url' => '/api/v1/export/csv',     'verb' => 'GET'],
+
+		// Activity (chronological stream over purchases / tastings / gifts / losses)
+		['name' => 'activity#index', 'url' => '/api/v1/activity', 'verb' => 'GET'],
 
 		// Search (full-text over producers / wines / vintages)
 		['name' => 'search#index', 'url' => '/api/v1/search', 'verb' => 'GET'],

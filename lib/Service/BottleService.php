@@ -254,6 +254,7 @@ class BottleService {
 			'alcohol_percent' => $row['alcohol_percent'] !== null ? (float)$row['alcohol_percent'] : null,
 			'external_rating' => $row['external_rating'] !== null ? (float)$row['external_rating'] : null,
 			'external_rating_source' => $row['external_rating_source'],
+			'sweetness' => $row['sweetness'],
 			'purchased_at' => $row['purchased_at'],
 			'vendor' => $row['vendor'],
 			'unit_price' => $row['unit_price'] !== null ? (float)$row['unit_price'] : null,

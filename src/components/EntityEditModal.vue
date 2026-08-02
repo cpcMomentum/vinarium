@@ -1,5 +1,5 @@
 <template>
-	<NcModal v-if="open" :name="title" @close="$emit('close')">
+	<NcModal v-if="open" :name="title" @keydown.esc="e => escCloses(e, () => $emit('close'))" @close="$emit('close')">
 		<div class="edit-modal">
 			<h2>{{ title }}</h2>
 
@@ -62,6 +62,13 @@
 					<span>{{ t('vinarium', 'Rebsorten (jahrgangsspezifisch)') }}</span>
 					<input v-model.lazy="vintageGrapeVarieties" class="input" :placeholder="t('vinarium', 'z. B. Merlot 70%, Cabernet Franc 30%')" />
 				</label>
+				<label class="field">
+					<span>{{ t('vinarium', 'Süße') }}</span>
+					<select v-model="vintageSweetness" class="input">
+						<option value="">{{ t('vinarium', '— nicht angegeben —') }}</option>
+						<option v-for="s in SWEETNESS_VALUES" :key="s" :value="s">{{ t('vinarium', SWEETNESS_LABELS[s]) }}</option>
+					</select>
+				</label>
 				<div class="field-row">
 					<label class="field"><span>{{ t('vinarium', 'Trinken ab (Jahr)') }}</span><input v-model.number="vintageDrinkFromYear" type="number" min="1900" class="input" :placeholder="t('vinarium', 'z. B. 2025')" /></label>
 					<label class="field"><span>{{ t('vinarium', 'Trinken bis (Jahr)') }}</span><input v-model.number="vintageDrinkUntilYear" type="number" min="1900" class="input" :placeholder="t('vinarium', 'z. B. 2032')" /></label>
@@ -83,11 +90,12 @@
 </template>
 
 <script setup lang="ts">
+import { escCloses } from '@/utils/modalEsc'
 import { computed, ref, watch } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import { WINE_COLORS, WINE_COLOR_LABELS, type Producer, type PurchaseListItem, type Vintage, type Wine } from '@/types/api'
+import { SWEETNESS_LABELS, SWEETNESS_VALUES, WINE_COLORS, WINE_COLOR_LABELS, type Producer, type PurchaseListItem, type Sweetness, type Vintage, type Wine } from '@/types/api'
 import { useWineStore } from '@/stores/wineStore'
 import { listVendors } from '@/api/purchases'
 
@@ -98,7 +106,10 @@ const props = defineProps<{
 	type: EntityType
 	entityId: number | null
 }>()
-const emit = defineEmits<(e: 'close') => void>()
+const emit = defineEmits<{
+	(e: 'close'): void
+	(e: 'saved'): void
+}>()
 
 const store = useWineStore()
 const saving = ref(false)
@@ -189,6 +200,10 @@ const vintageDescription = computed({
 	get: () => vintage.value?.description ?? '',
 	set: (v: string) => { if (vintage.value) vintage.value.description = v || null },
 })
+const vintageSweetness = computed({
+	get: () => vintage.value?.sweetness ?? '',
+	set: (v: Sweetness | '') => { if (vintage.value) vintage.value.sweetness = v || null },
+})
 
 const title = computed(() => {
 	const isCreate = props.entityId === null
@@ -249,6 +264,7 @@ async function save() {
 					website: producer.value.website,
 					notes: producer.value.notes,
 				})
+				emit('saved')
 			}
 		} else if (props.type === 'producer' && producer.value) {
 			await store.updateProducer(producer.value.id, {
@@ -288,6 +304,7 @@ async function save() {
 					externalRatingSource: vintage.value.externalRatingSource,
 					description: vintage.value.description,
 					referenceUrl: vintage.value.referenceUrl,
+					sweetness: vintage.value.sweetness,
 				},
 			})
 		}
