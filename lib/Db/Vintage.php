@@ -36,6 +36,10 @@ use OCP\DB\Types;
  * @method void setReferenceUrl(?string $referenceUrl)
  * @method ?string getSweetness()
  * @method void setSweetness(?string $sweetness)
+ * @method ?int getPhotoFrontFileId()
+ * @method void setPhotoFrontFileId(?int $photoFrontFileId)
+ * @method ?int getPhotoBackFileId()
+ * @method void setPhotoBackFileId(?int $photoBackFileId)
  */
 class Vintage extends Entity implements JsonSerializable {
 	protected ?int $wineId = null;
@@ -49,9 +53,18 @@ class Vintage extends Entity implements JsonSerializable {
 	protected ?string $description = null;
 	protected ?string $referenceUrl = null;
 	protected ?string $sweetness = null;
+	protected ?int $photoFrontFileId = null;
+	protected ?int $photoBackFileId = null;
 
 	/** Sweetness levels following the EU labelling terms; NULL = not specified. */
 	public const SWEETNESS_VALUES = ['dry', 'off_dry', 'medium_sweet', 'sweet'];
+
+	/**
+	 * The two sides of the label. Front doubles as the main image in lists and
+	 * tiles; back carries the details printed on the reverse (grape varieties,
+	 * vineyard, bottler).
+	 */
+	public const PHOTO_SIDES = ['front', 'back'];
 
 	public function __construct() {
 		$this->addType('wineId', Types::INTEGER);
@@ -65,6 +78,8 @@ class Vintage extends Entity implements JsonSerializable {
 		$this->addType('description', Types::TEXT);
 		$this->addType('referenceUrl', Types::STRING);
 		$this->addType('sweetness', Types::STRING);
+		$this->addType('photoFrontFileId', Types::INTEGER);
+		$this->addType('photoBackFileId', Types::INTEGER);
 	}
 
 	public function jsonSerialize(): array {
@@ -81,6 +96,8 @@ class Vintage extends Entity implements JsonSerializable {
 			'description' => $this->getDescription(),
 			'referenceUrl' => $this->getReferenceUrl(),
 			'sweetness' => $this->getSweetness(),
+			'photoFrontFileId' => $this->getPhotoFrontFileId(),
+			'photoBackFileId' => $this->getPhotoBackFileId(),
 		];
 	}
 }

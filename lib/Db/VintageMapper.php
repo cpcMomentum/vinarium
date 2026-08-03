@@ -40,4 +40,27 @@ class VintageMapper extends QBMapper {
 			->orderBy('year', 'DESC');
 		return $this->findEntities($qb);
 	}
+
+	/**
+	 * How many of the owner's vintages still point at the given photo file, on
+	 * either side. A result of 0 means the file in storage is orphaned and may be
+	 * physically deleted.
+	 */
+	public function countVintagesReferencingPhoto(int $fileId, string $userId): int {
+		$qb = $this->db->getQueryBuilder();
+		$param = $qb->createNamedParameter($fileId, IQueryBuilder::PARAM_INT);
+		$qb->select($qb->func()->count('v.id'))
+			->from($this->tableName, 'v')
+			->innerJoin('v', 'vinarium_wine', 'w', 'v.wine_id = w.id')
+			->innerJoin('w', 'vinarium_producer', 'p', 'w.producer_id = p.id')
+			->where($qb->expr()->orX(
+				$qb->expr()->eq('v.photo_front_file_id', $param),
+				$qb->expr()->eq('v.photo_back_file_id', $param)
+			))
+			->andWhere($qb->expr()->eq('p.owner_user_id', $qb->createNamedParameter($userId)));
+		$result = $qb->executeQuery();
+		$count = (int)$result->fetchOne();
+		$result->closeCursor();
+		return $count;
+	}
 }

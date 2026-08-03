@@ -131,7 +131,7 @@
 					<div class="photo-capture">
 						<div class="photo-capture__head">
 							<span class="photo-capture__label">{{ t('vinarium', 'Etiketten-Foto') }}</span>
-							<span class="photo-capture__hint">{{ t('vinarium', 'optional — wird allen Flaschen dieses Kaufs zugeordnet') }}</span>
+							<span class="photo-capture__hint">{{ t('vinarium', 'optional — Vorderseite; gilt für alle Flaschen dieses Jahrgangs') }}</span>
 						</div>
 						<div class="photo-capture__body">
 							<img v-if="photoPreviewUrl" :src="photoPreviewUrl" class="photo-capture__preview" alt="" />
@@ -159,6 +159,7 @@
 			<PhotoCropDialog
 				:open="cropOpen"
 				:file="cropSourceFile"
+				:aspect-ratio="null"
 				@close="onCropCancel"
 				@confirm="onCropConfirm"
 			/>
@@ -186,7 +187,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import { BOTTLE_SIZES, BOTTLE_SIZE_LABELS, SWEETNESS_LABELS, SWEETNESS_VALUES, WINE_COLORS, WINE_COLOR_LABELS, type BottleSizeMl, type Sweetness, type WineColor } from '@/types/api'
 import { useWineStore } from '@/stores/wineStore'
 import { createPurchaseViaWizard, listVendors } from '@/api/purchases'
-import { uploadBottlePhoto } from '@/api/bottles'
+import { uploadVintagePhoto } from '@/api/vintages'
 import CameraIcon from 'vue-material-design-icons/Camera.vue'
 import PhotoCropDialog from '@/components/PhotoCropDialog.vue'
 
@@ -430,13 +431,12 @@ async function complete() {
 		})
 		// Optionales Etiketten-Foto: für jede neu angelegte Flasche hochladen.
 		// Best-effort — Upload-Fehler dürfen den Wizard nicht blockieren, aber wir loggen sie.
-		if (photoFile.value && result.bottles.length > 0) {
-			const results = await Promise.allSettled(
-				result.bottles.map(b => uploadBottlePhoto(b.id, photoFile.value as File))
-			)
-			const failed = results.filter(r => r.status === 'rejected')
-			if (failed.length > 0) {
-				console.error(`Photo upload failed for ${failed.length}/${result.bottles.length} bottles:`, failed)
+		// Seit #190 ein einziger Upload an den Jahrgang statt einer Kopie je Flasche.
+		if (photoFile.value) {
+			try {
+				await uploadVintagePhoto(result.purchase.vintageId, 'front', photoFile.value as File)
+			} catch (e) {
+				console.error('Photo upload failed for vintage', result.purchase.vintageId, e)
 			}
 		}
 

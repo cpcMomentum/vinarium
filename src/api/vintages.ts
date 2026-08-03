@@ -4,7 +4,7 @@
  */
 
 import type { Sweetness, Vintage } from '@/types/api'
-import { apiDelete, apiGet, apiPatch, apiPost } from './client'
+import { apiDelete, apiGet, apiPatch, apiPost, apiUrl } from './client'
 
 export interface VintageCreate {
 	wineId: number
@@ -45,3 +45,33 @@ export const updateVintage = (id: number, data: VintageUpdate): Promise<Vintage>
 
 export const deleteVintage = (id: number): Promise<void> =>
 	apiDelete(`/vintages/${id}`)
+
+// --- Label photos ---
+
+/**
+ * The two sides of the label. Front doubles as the image shown in lists and
+ * tiles, back carries what is printed on the reverse.
+ */
+export type LabelSide = 'front' | 'back'
+
+export async function uploadVintagePhoto(
+	id: number,
+	side: LabelSide,
+	file: File,
+): Promise<{ fileId: number, side: LabelSide }> {
+	const axios = (await import('@nextcloud/axios')).default
+	const { generateUrl } = await import('@nextcloud/router')
+	const url = generateUrl(`/apps/vinarium/api/v1/vintages/${id}/photo/${side}`)
+	const form = new FormData()
+	form.append('photo', file)
+	const { data } = await axios.post<{ fileId: number, side: LabelSide }>(url, form, {
+		headers: { 'Content-Type': 'multipart/form-data' },
+	})
+	return data
+}
+
+export const deleteVintagePhoto = (id: number, side: LabelSide): Promise<void> =>
+	apiDelete(`/vintages/${id}/photo/${side}`)
+
+export const getVintagePhotoUrl = (id: number, side: LabelSide): string =>
+	apiUrl(`/vintages/${id}/photo/${side}`)

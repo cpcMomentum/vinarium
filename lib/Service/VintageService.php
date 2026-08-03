@@ -86,6 +86,63 @@ class VintageService {
 		return $this->vintageMapper->delete($vintage);
 	}
 
+	/**
+	 * Point one side of the label at a stored file and return the file id it
+	 * replaced, so the caller can clean up the previous file if it became orphaned.
+	 *
+	 * Photo references deliberately do not travel through update()/applyOptionalFields():
+	 * a file id there would let a client attach any file it can guess the id of.
+	 * They are only ever set here, right after this app wrote the file itself.
+	 */
+	public function setPhoto(int $id, string $userId, string $side, int $fileId): ?int {
+		$vintage = $this->get($id, $userId);
+		$previous = $this->readPhoto($vintage, $side);
+		$this->writePhoto($vintage, $side, $fileId);
+		$this->vintageMapper->update($vintage);
+		return $previous !== $fileId ? $previous : null;
+	}
+
+	/** Clear one side and return the file id that was referenced, if any. */
+	public function clearPhoto(int $id, string $userId, string $side): ?int {
+		$vintage = $this->get($id, $userId);
+		$previous = $this->readPhoto($vintage, $side);
+		if ($previous === null) {
+			return null;
+		}
+		$this->writePhoto($vintage, $side, null);
+		$this->vintageMapper->update($vintage);
+		return $previous;
+	}
+
+	public function getPhotoFileId(int $id, string $userId, string $side): ?int {
+		return $this->readPhoto($this->get($id, $userId), $side);
+	}
+
+	/** Number of vintages of the owner still referencing the given file id. */
+	public function countPhotoReferences(int $fileId, string $userId): int {
+		return $this->vintageMapper->countVintagesReferencingPhoto($fileId, $userId);
+	}
+
+	private function readPhoto(Vintage $vintage, string $side): ?int {
+		$this->assertValidSide($side);
+		return $side === 'front' ? $vintage->getPhotoFrontFileId() : $vintage->getPhotoBackFileId();
+	}
+
+	private function writePhoto(Vintage $vintage, string $side, ?int $fileId): void {
+		$this->assertValidSide($side);
+		if ($side === 'front') {
+			$vintage->setPhotoFrontFileId($fileId);
+			return;
+		}
+		$vintage->setPhotoBackFileId($fileId);
+	}
+
+	private function assertValidSide(string $side): void {
+		if (!in_array($side, Vintage::PHOTO_SIDES, true)) {
+			throw new \InvalidArgumentException('Ungültige Etikettenseite: ' . $side);
+		}
+	}
+
 	private function applyOptionalFields(Vintage $vintage, array $data): void {
 		if (array_key_exists('alcoholPercent', $data)) {
 			$vintage->setAlcoholPercent($data['alcoholPercent'] !== null ? (float)$data['alcoholPercent'] : null);

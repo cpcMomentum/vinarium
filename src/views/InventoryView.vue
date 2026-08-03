@@ -93,7 +93,7 @@
 							<td class="photo-cell">
 								<span class="bottle-tile" :class="'bottle-tile--' + b.wine_color" :title="t('vinarium', WINE_COLOR_LABELS[b.wine_color])">
 									<span
-										v-if="b.photo_file_id !== null"
+										v-if="b.photo_front_file_id !== null"
 										class="bottle-tile__photo-indicator"
 										:title="t('vinarium', 'Foto hinterlegt')"
 									>

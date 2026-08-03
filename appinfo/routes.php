@@ -43,6 +43,11 @@ return [
 		['name' => 'vintage#index',   'url' => '/api/v1/vintages',      'verb' => 'GET'],
 		// Must stay above vintage#show: /vintages/{id} would match "stock" otherwise.
 		['name' => 'vintage#stock',   'url' => '/api/v1/vintages/stock', 'verb' => 'GET'],
+		// Label photos: also above vintage#show, which would otherwise swallow the
+		// {id}/photo/{side} path segments.
+		['name' => 'vintage#uploadPhoto', 'url' => '/api/v1/vintages/{id}/photo/{side}', 'verb' => 'POST'],
+		['name' => 'vintage#deletePhoto', 'url' => '/api/v1/vintages/{id}/photo/{side}', 'verb' => 'DELETE'],
+		['name' => 'vintage#getPhoto',    'url' => '/api/v1/vintages/{id}/photo/{side}', 'verb' => 'GET'],
 		['name' => 'vintage#show',    'url' => '/api/v1/vintages/{id}', 'verb' => 'GET'],
 		['name' => 'vintage#create',  'url' => '/api/v1/vintages',      'verb' => 'POST'],
 		['name' => 'vintage#update',  'url' => '/api/v1/vintages/{id}', 'verb' => 'PATCH'],
@@ -60,9 +65,6 @@ return [
 
 		// Bottles
 		['name' => 'bottle#details',      'url' => '/api/v1/bottles/{id}/details',   'verb' => 'GET'],
-		['name' => 'bottle#uploadPhoto',  'url' => '/api/v1/bottles/{id}/photo',     'verb' => 'POST'],
-		['name' => 'bottle#deletePhoto',  'url' => '/api/v1/bottles/{id}/photo',     'verb' => 'DELETE'],
-		['name' => 'bottle#getPhoto',     'url' => '/api/v1/bottles/{id}/photo',     'verb' => 'GET'],
 		['name' => 'bottle#index',   'url' => '/api/v1/bottles',           'verb' => 'GET'],
 		['name' => 'bottle#parked',  'url' => '/api/v1/bottles/parked',    'verb' => 'GET'],
 		['name' => 'bottle#giftRecipients', 'url' => '/api/v1/bottles/gift-recipients', 'verb' => 'GET'],
