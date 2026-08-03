@@ -21,8 +21,6 @@ use OCP\DB\Types;
  * @method void setSlotId(?int $slotId)
  * @method string getStatus()
  * @method void setStatus(string $status)
- * @method ?int getPhotoFileId()
- * @method void setPhotoFileId(?int $photoFileId)
  * @method ?string getNotes()
  * @method void setNotes(?string $notes)
  * @method ?DateTime getEventDate()
@@ -46,7 +44,6 @@ class Bottle extends Entity implements JsonSerializable {
 	protected ?int $purchaseId = null;
 	protected ?int $slotId = null;
 	protected ?string $status = null;
-	protected ?int $photoFileId = null;
 	protected ?string $notes = null;
 	protected ?DateTime $eventDate = null;
 	protected ?string $eventRecipient = null;
@@ -56,7 +53,6 @@ class Bottle extends Entity implements JsonSerializable {
 		$this->addType('purchaseId', Types::INTEGER);
 		$this->addType('slotId', Types::INTEGER);
 		$this->addType('status', Types::STRING);
-		$this->addType('photoFileId', Types::INTEGER);
 		$this->addType('notes', Types::TEXT);
 		$this->addType('eventDate', Types::DATE);
 		$this->addType('eventRecipient', Types::STRING);
@@ -69,7 +65,6 @@ class Bottle extends Entity implements JsonSerializable {
 			'purchaseId' => $this->getPurchaseId(),
 			'slotId' => $this->getSlotId(),
 			'status' => $this->getStatus(),
-			'photoFileId' => $this->getPhotoFileId(),
 			'notes' => $this->getNotes(),
 			'eventDate' => $this->getEventDate()?->format('Y-m-d'),
 			'eventRecipient' => $this->getEventRecipient(),

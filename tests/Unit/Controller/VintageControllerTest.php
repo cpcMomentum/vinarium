@@ -13,6 +13,7 @@ use OCA\Vinarium\Controller\VintageController;
 use OCA\Vinarium\Db\Vintage;
 use OCA\Vinarium\Exception\NotFoundException;
 use OCA\Vinarium\Exception\ValidationException;
+use OCA\Vinarium\Service\PhotoService;
 use OCA\Vinarium\Service\VintageService;
 use OCP\AppFramework\Http;
 use OCP\IRequest;
@@ -22,14 +23,16 @@ use PHPUnit\Framework\TestCase;
 class VintageControllerTest extends TestCase {
 	private VintageService&MockObject $service;
 	private IRequest&MockObject $request;
+	private PhotoService&MockObject $photoService;
 
 	protected function setUp(): void {
 		$this->service = $this->createMock(VintageService::class);
 		$this->request = $this->createMock(IRequest::class);
+		$this->photoService = $this->createMock(PhotoService::class);
 	}
 
 	private function controller(?string $userId = 'alice'): VintageController {
-		return new VintageController($this->request, $userId, $this->service);
+		return new VintageController($this->request, $userId, $this->service, $this->photoService);
 	}
 
 	public function testIndexByWine(): void {

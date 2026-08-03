@@ -298,7 +298,7 @@ import type { CellarResponse } from '@/api/cellar'
 import { addCompartment, destroyCompartment, destroyShelf, fetchCellar, fetchSlots, reorderShelves, updateCompartment, updateShelf } from '@/api/cellar'
 import { useBottleStore } from '@/stores/bottleStore'
 import { cssColorFor, cssSlotGradient } from '@/utils/wineColors'
-import { getBottlePhotoUrl } from '@/api/bottles'
+import { getVintagePhotoUrl } from '@/api/vintages'
 
 const store = useBottleStore()
 
@@ -355,9 +355,11 @@ function bottleInSlot(slotId: number): BottleListItem | undefined {
 
 function slotBgStyle(b: BottleListItem | undefined): Record<string, string> {
 	if (!b) return {}
-	if (b.photo_file_id !== null) {
+	if (b.photo_front_file_id !== null) {
 		return {
-			backgroundImage: `url('${getBottlePhotoUrl(b.id)}')`,
+			// cover stays: this is the decorative slot tile, which has to fill the
+			// cell. The readable, uncropped label lives in the bottle detail.
+			backgroundImage: `url('${getVintagePhotoUrl(b.vintage_id, 'front')}?v=${b.photo_front_file_id}')`,
 			backgroundSize: 'cover',
 			backgroundPosition: 'center',
 		}
