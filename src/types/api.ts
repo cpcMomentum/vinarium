@@ -74,6 +74,8 @@ export interface Vintage {
 	description: string | null
 	referenceUrl: string | null
 	sweetness: Sweetness | null
+	photoFrontFileId: number | null
+	photoBackFileId: number | null
 }
 
 export interface Purchase {
@@ -93,7 +95,6 @@ export interface Bottle {
 	purchaseId: number
 	slotId: number | null
 	status: BottleStatus
-	photoFileId: number | null
 	notes: string | null
 	eventDate: string | null
 	eventRecipient: string | null
@@ -211,7 +212,7 @@ export interface BottleListItem {
 	purchase_id: number
 	slot_id: number | null
 	status: BottleStatus
-	photo_file_id: number | null
+	photo_front_file_id: number | null
 	notes: string | null
 	wine_id: number
 	vintage_id: number

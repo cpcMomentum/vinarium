@@ -15,7 +15,6 @@ use OCA\Vinarium\Exception\NotFoundException;
 use OCA\Vinarium\Exception\PermissionDeniedException;
 use OCA\Vinarium\Exception\SlotOccupiedException;
 use OCA\Vinarium\Service\BottleService;
-use OCA\Vinarium\Service\PhotoService;
 use OCP\AppFramework\Http;
 use OCP\IRequest;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -24,16 +23,14 @@ use PHPUnit\Framework\TestCase;
 class BottleControllerTest extends TestCase {
 	private BottleService&MockObject $service;
 	private IRequest&MockObject $request;
-	private PhotoService&MockObject $photoService;
 
 	protected function setUp(): void {
 		$this->service = $this->createMock(BottleService::class);
 		$this->request = $this->createMock(IRequest::class);
-		$this->photoService = $this->createMock(PhotoService::class);
 	}
 
 	private function controller(?string $userId = 'alice'): BottleController {
-		return new BottleController($this->request, $userId, $this->service, $this->photoService);
+		return new BottleController($this->request, $userId, $this->service);
 	}
 
 	public function testIndexWithoutFilter(): void {

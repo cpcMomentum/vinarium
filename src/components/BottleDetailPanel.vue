@@ -60,31 +60,13 @@
 				<div v-if="activeTab === 'bottle'" id="bd-panel-bottle" role="tabpanel" aria-labelledby="bd-tab-bottle" class="bd-panel">
 					<div class="bd-bottle-grid">
 						<div class="bd-photo-col">
-							<div class="bd-photo-wrap">
-								<img
-									v-if="detail.photo_file_id !== null"
-									:src="photoUrl"
-									:key="photoUrl"
-									class="bd-photo"
-									:alt="detail.wine_name"
-								/>
-								<div v-else class="bd-photo-placeholder muted">
-									{{ t('vinarium', 'Kein Foto') }}
-								</div>
-							</div>
-							<div class="bd-photo-actions">
-								<label class="bd-photo-upload" :title="t('vinarium', 'Foto hochladen')">
-									<input type="file" accept="image/*" class="bd-photo-input" @change="onPhotoSelected" />
-									{{ detail.photo_file_id !== null ? t('vinarium', 'Ersetzen') : t('vinarium', 'Foto hinzufügen') }}
-								</label>
-								<button
-									v-if="detail.photo_file_id !== null"
-									class="bd-photo-remove"
-									:title="t('vinarium', 'Foto entfernen')"
-									@click="onRemovePhoto"
-								>✕</button>
-							</div>
-							<p v-if="photoError" class="bd-error">{{ photoError }}</p>
+							<LabelPhotoEditor
+								:vintage-id="detail.vintage_id"
+								:front-file-id="detail.photo_front_file_id"
+								:back-file-id="detail.photo_back_file_id"
+								:alt="detail.wine_name"
+								@changed="onLabelPhotoChanged"
+							/>
 						</div>
 
 						<dl class="bd-kv">
@@ -243,12 +225,6 @@
 			</div>
 		</div>
 
-		<PhotoCropDialog
-			:open="cropOpen"
-			:file="cropSourceFile"
-			@close="onCropCancel"
-			@confirm="onCropConfirm"
-		/>
 	</NcModal>
 </template>
 
@@ -258,8 +234,9 @@ import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import PhotoCropDialog from '@/components/PhotoCropDialog.vue'
-import { getBottleDetails, getBottlePhotoUrl, uploadBottlePhoto, deleteBottlePhoto, type BottleDetail } from '@/api/bottles'
+import LabelPhotoEditor from '@/components/LabelPhotoEditor.vue'
+import { getBottleDetails, type BottleDetail } from '@/api/bottles'
+import type { LabelSide } from '@/api/vintages'
 import { updateProducer } from '@/api/producers'
 import { updateWine } from '@/api/wines'
 import { updateVintage } from '@/api/vintages'
@@ -292,9 +269,6 @@ const emit = defineEmits<{
 const detail = ref<BottleDetail | null>(null)
 const loading = ref(false)
 const error = ref<string | null>(null)
-const photoError = ref<string | null>(null)
-const cropOpen = ref(false)
-const cropSourceFile = ref<File | null>(null)
 const activeTab = ref<TabKey>(props.initialTab)
 const saving = ref(false)
 const editError = ref<string | null>(null)
@@ -320,11 +294,14 @@ const modalTitle = computed(() => detail.value
 	? `${detail.value.wine_name} ${detail.value.year}`
 	: t('vinarium', 'Flasche'))
 
-const photoUrl = computed(() =>
-	detail.value !== null && detail.value?.photo_file_id !== null
-		? `${getBottlePhotoUrl(detail.value.id)}?v=${detail.value.photo_file_id}`
-		: null,
-)
+/** Write one side back into the loaded detail without refetching. */
+function onLabelPhotoChanged(side: LabelSide, fileId: number | null) {
+	if (!detail.value) return
+	detail.value = side === 'front'
+		? { ...detail.value, photo_front_file_id: fileId }
+		: { ...detail.value, photo_back_file_id: fileId }
+	emit('photo-changed')
+}
 
 watch(() => props.bottleId, async (id) => {
 	if (id === null) {
@@ -335,7 +312,6 @@ watch(() => props.bottleId, async (id) => {
 	loading.value = true
 	detail.value = null
 	error.value = null
-	photoError.value = null
 	editError.value = null
 	saving.value = false
 	try {
@@ -457,45 +433,6 @@ function onKeydown(e: KeyboardEvent) {
 onMounted(() => window.addEventListener('keydown', onKeydown))
 onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
-function onPhotoSelected(event: Event) {
-	const input = event.target as HTMLInputElement
-	const file = input.files?.[0]
-	if (!file || !detail.value) return
-	photoError.value = null
-	cropSourceFile.value = file
-	cropOpen.value = true
-	input.value = ''
-}
-
-function onCropCancel() {
-	cropOpen.value = false
-	cropSourceFile.value = null
-}
-
-async function onCropConfirm(file: File) {
-	cropOpen.value = false
-	cropSourceFile.value = null
-	if (!detail.value) return
-	try {
-		const result = await uploadBottlePhoto(detail.value.id, file)
-		detail.value = { ...detail.value, photo_file_id: result.photo_file_id }
-		emit('photo-changed')
-	} catch (e: any) {
-		photoError.value = e?.message ?? t('vinarium', 'Upload fehlgeschlagen')
-	}
-}
-
-async function onRemovePhoto() {
-	if (!detail.value) return
-	photoError.value = null
-	try {
-		await deleteBottlePhoto(detail.value.id)
-		detail.value = { ...detail.value, photo_file_id: null }
-		emit('photo-changed')
-	} catch (e: any) {
-		photoError.value = e?.message ?? t('vinarium', 'Entfernen fehlgeschlagen')
-	}
-}
 </script>
 
 <style scoped>
@@ -598,40 +535,6 @@ async function onRemovePhoto() {
 	align-items: start;
 }
 .bd-photo-col { display: flex; flex-direction: column; gap: 8px; }
-.bd-photo-wrap {
-	width: 240px; aspect-ratio: 3 / 4;
-	border-radius: 8px;
-	overflow: hidden;
-	background: var(--color-background-dark);
-}
-.bd-photo {
-	width: 100%; height: 100%;
-	object-fit: contain;
-}
-.bd-photo-placeholder {
-	width: 100%; height: 100%;
-	display: flex; align-items: center; justify-content: center;
-	font-size: 0.85rem;
-}
-.bd-photo-actions {
-	display: flex; align-items: center; gap: 0.5rem;
-}
-.bd-photo-upload {
-	display: inline-flex; align-items: center;
-	padding: 0.3rem 0.75rem;
-	background: var(--color-background-dark);
-	border: 1px solid var(--color-border);
-	border-radius: 6px;
-	cursor: pointer;
-	font-size: 0.8rem;
-}
-.bd-photo-upload:hover { background: var(--color-background-hover); }
-.bd-photo-input { display: none; }
-.bd-photo-remove {
-	background: none; border: none; cursor: pointer;
-	color: var(--color-text-maxcontrast); font-size: 0.9rem; padding: 0 4px;
-}
-.bd-photo-remove:hover { color: var(--color-error, #c62828); }
 
 .bd-kv {
 	display: grid;

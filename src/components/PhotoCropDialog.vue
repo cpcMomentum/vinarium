@@ -2,13 +2,15 @@
 	<NcModal v-if="open" :name="t('vinarium', 'Foto zuschneiden')" @keydown.esc="e => escCloses(e, cancel)" @close="cancel">
 		<div class="crop-dialog">
 			<p class="crop-dialog__hint">
-				{{ t('vinarium', 'Wähle den Etiketten-Ausschnitt — fixes Hochformat-Verhältnis.') }}
+				{{ aspectRatio === null
+					? t('vinarium', 'Wähle den Etiketten-Ausschnitt — frei wählbares Verhältnis.')
+					: t('vinarium', 'Wähle den Etiketten-Ausschnitt — fixes Hochformat-Verhältnis.') }}
 			</p>
 			<div v-if="imageSrc" class="crop-dialog__container">
 				<VueCropper
 					ref="cropper"
 					:src="imageSrc"
-					:aspect-ratio="3 / 4"
+					:aspect-ratio="aspectRatio ?? NaN"
 					:view-mode="1"
 					:auto-crop-area="0.85"
 					:background="true"
@@ -40,7 +42,17 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import VueCropper from 'vue-cropperjs'
 import 'cropperjs/dist/cropper.css'
 
-const props = defineProps<{ open: boolean; file: File | null }>()
+const props = withDefaults(defineProps<{
+	open: boolean
+	file: File | null
+	/**
+	 * Fixed crop ratio, or null to let the user choose freely. Label photos pass
+	 * null because bottles differ in shape — a forced ratio cuts text off the back
+	 * label, where the grape varieties and bottler are printed. Defaults to the
+	 * portrait ratio so existing callers keep their behaviour.
+	 */
+	aspectRatio?: number | null
+}>(), { aspectRatio: 3 / 4 })
 const emit = defineEmits<{
 	(e: 'close'): void
 	(e: 'confirm', file: File): void

@@ -203,7 +203,7 @@
 						<li v-for="(e, i) in stats.recentActivity" :key="i">
 							<span class="chip" :class="'chip--' + e.type">{{ chipLabel(e.type) }}</span>
 							<span class="lst-activity__text">{{ e.label }}</span>
-							<span class="lst-activity__date">{{ formatShortDate(e.date) }}</span>
+							<span class="lst-activity__date">{{ formatDate(e.date) }}</span>
 						</li>
 					</ul>
 				</section>
@@ -223,6 +223,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import { fetchStats, type DashboardStats, type ActivityType } from '@/api/dashboard'
 import { search } from '@/api/search'
 import { WINE_COLOR_LABELS, WINE_COLORS, type SearchResult, type SearchResultType, type WineColor } from '@/types/api'
+import { formatDate } from '@/utils/date'
 import { cssColorFor } from '@/utils/wineColors'
 import PurchaseWizardModal from '@/components/PurchaseWizardModal.vue'
 
@@ -431,13 +432,6 @@ function chipLabel(type: ActivityType): string {
 		case 'gifted': return t('vinarium', 'Verschenkt')
 		case 'lost': return t('vinarium', 'Verloren')
 	}
-}
-
-function formatShortDate(iso: string): string {
-	if (!iso) return ''
-	const d = new Date(iso)
-	if (isNaN(d.getTime())) return iso
-	return d.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' })
 }
 
 function onAddPurchase() {

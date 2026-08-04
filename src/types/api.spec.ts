@@ -61,7 +61,7 @@ describe('api types', () => {
 			externalRating: null,
 			externalRatingSource: null,
 			description: 'Frisch, mineralisch',
-			referenceUrl: null,
+			referenceUrl: null, photoFrontFileId: null, photoBackFileId: null,
 		}
 		expect(vintage.year).toBeGreaterThan(2000)
 		expect(vintage.grapeVarieties).toContain('Merlot')
@@ -74,7 +74,6 @@ describe('api types', () => {
 			purchaseId: 1,
 			slotId: null,
 			status: 'in_storage',
-			photoFileId: null,
 			notes: null,
 			eventDate: null,
 			eventRecipient: null,

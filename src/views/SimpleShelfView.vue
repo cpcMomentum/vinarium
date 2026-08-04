@@ -84,6 +84,24 @@
 						>
 						<template v-else>
 							<button class="shelf-tab__label" @click="onTabClick(entry.shelf.id)">{{ entry.shelf.name }}</button>
+							<template v-if="activeShelfId === entry.shelf.id && shelves.length > 1">
+								<button
+									:ref="el => setMoveButton(entry.shelf.id, -1, el)"
+									class="shelf-tab__move"
+									:disabled="shelfIndex(entry.shelf.id) === 0"
+									:title="t('vinarium', 'Regal nach links verschieben')"
+									:aria-label="t('vinarium', 'Regal nach links verschieben')"
+									@click.stop="moveShelf(entry.shelf.id, -1)"
+								>‹</button>
+								<button
+									:ref="el => setMoveButton(entry.shelf.id, 1, el)"
+									class="shelf-tab__move"
+									:disabled="shelfIndex(entry.shelf.id) === shelves.length - 1"
+									:title="t('vinarium', 'Regal nach rechts verschieben')"
+									:aria-label="t('vinarium', 'Regal nach rechts verschieben')"
+									@click.stop="moveShelf(entry.shelf.id, 1)"
+								>›</button>
+							</template>
 							<button
 								v-if="activeShelfId === entry.shelf.id"
 								class="shelf-tab__delete"
@@ -298,7 +316,7 @@ import type { CellarResponse } from '@/api/cellar'
 import { addCompartment, destroyCompartment, destroyShelf, fetchCellar, fetchSlots, reorderShelves, updateCompartment, updateShelf } from '@/api/cellar'
 import { useBottleStore } from '@/stores/bottleStore'
 import { cssColorFor, cssSlotGradient } from '@/utils/wineColors'
-import { getBottlePhotoUrl } from '@/api/bottles'
+import { getVintagePhotoUrl } from '@/api/vintages'
 
 const store = useBottleStore()
 
@@ -317,6 +335,16 @@ const draggedBottleId = ref<number | null>(null)
 const cellarId = ref<number | null>(null)
 const draggedShelfId = ref<number | null>(null)
 const dropTargetShelfId = ref<number | null>(null)
+const moveButtons = new Map<string, HTMLButtonElement>()
+function setMoveButton(shelfId: number, direction: -1 | 1, el: unknown) {
+	const key = `${shelfId}:${direction}`
+	if (el instanceof HTMLButtonElement) {
+		moveButtons.set(key, el)
+	} else {
+		moveButtons.delete(key)
+	}
+}
+const shelfIndex = (shelfId: number): number => shelves.value.findIndex(e => e.shelf.id === shelfId)
 const parkzoneDragOver = ref(false)
 const errorMsg = ref('')
 
@@ -355,9 +383,11 @@ function bottleInSlot(slotId: number): BottleListItem | undefined {
 
 function slotBgStyle(b: BottleListItem | undefined): Record<string, string> {
 	if (!b) return {}
-	if (b.photo_file_id !== null) {
+	if (b.photo_front_file_id !== null) {
 		return {
-			backgroundImage: `url('${getBottlePhotoUrl(b.id)}')`,
+			// cover stays: this is the decorative slot tile, which has to fill the
+			// cell. The readable, uncropped label lives in the bottle detail.
+			backgroundImage: `url('${getVintagePhotoUrl(b.vintage_id, 'front')}?v=${b.photo_front_file_id}')`,
 			backgroundSize: 'cover',
 			backgroundPosition: 'center',
 		}
@@ -468,12 +498,44 @@ function onShelfDragLeave(shelfId: number) {
 async function onShelfDrop(targetShelfId: number) {
 	const sourceId = draggedShelfId.value
 	dropTargetShelfId.value = null
-	if (sourceId === null || sourceId === targetShelfId || cellarId.value === null) return
+	if (sourceId === null || sourceId === targetShelfId) return
 
 	const order = shelves.value.map(e => e.shelf.id)
+	await applyShelfOrder(sourceId, order.indexOf(targetShelfId))
+}
+
+/**
+ * Verschiebt ein Regal um eine Position (#211).
+ *
+ * Drag & Drop war der einzige Weg, die Reihenfolge zu aendern, und ist per
+ * Tastatur nicht bedienbar. Diese Aktionen nutzen denselben Bulk-Endpunkt, es
+ * entsteht also kein zweiter Schreibpfad mit eigener Semantik.
+ */
+async function moveShelf(shelfId: number, direction: -1 | 1) {
+	const order = shelves.value.map(e => e.shelf.id)
+	const target = order.indexOf(shelfId) + direction
+	if (target < 0 || target >= order.length) return
+
+	await applyShelfOrder(shelfId, target)
+	// Der Knopf wandert mit dem Tab durchs DOM — ohne das landet der Fokus
+	// nach dem Neuzeichnen am Seitenanfang und die naechste Bewegung braucht
+	// wieder mehrere Tab-Schritte. Landet das Regal am Rand, ist genau der
+	// geklickte Knopf jetzt disabled (nicht fokussierbar) — dann auf den
+	// Gegenknopf ausweichen, statt den Fokus ganz zu verlieren.
+	await nextTick()
+	const clicked = moveButtons.get(`${shelfId}:${direction}`)
+	if (clicked && !clicked.disabled) {
+		clicked.focus()
+	} else {
+		moveButtons.get(`${shelfId}:${-direction}`)?.focus()
+	}
+}
+
+async function applyShelfOrder(sourceId: number, to: number) {
+	if (cellarId.value === null) return
+	const order = shelves.value.map(e => e.shelf.id)
 	const from = order.indexOf(sourceId)
-	const to = order.indexOf(targetShelfId)
-	if (from < 0 || to < 0) return
+	if (from < 0 || to < 0 || from === to) return
 	order.splice(to, 0, ...order.splice(from, 1))
 
 	// Optimistisch umsortieren, damit der Tab sofort sitzt; bei Fehler zurück.
@@ -1031,6 +1093,18 @@ async function loadAllSlots() {
 	color: inherit;
 	font-family: inherit;
 }
+.shelf-tab__move {
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 0 2px;
+	font-size: 1.1em;
+	line-height: 1;
+	color: inherit;
+	opacity: 0.75;
+}
+.shelf-tab__move:hover:not(:disabled) { opacity: 1; }
+.shelf-tab__move:disabled { opacity: 0.25; cursor: default; }
 .shelf-tab__delete {
 	background: none;
 	border: none;

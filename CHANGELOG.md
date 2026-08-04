@@ -7,6 +7,28 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-08-04
+
+### Added
+- **Etikett mit Vorder- und Rückseite** — das Etikettenfoto hängt jetzt am Jahrgang statt an der einzelnen Flasche, und es lassen sich zwei Seiten hinterlegen. Die Rückseite trägt in der Praxis Rebsorten, Lage und Abfüller. Bestehende Flaschenfotos wandern als Vorderseite mit; tragen mehrere Flaschen eines Jahrgangs unterschiedliche Fotos, gewinnt die zuerst aufgenommene, keine Datei wird gelöscht (Fixes #190)
+- **Etiketten frei zuschneiden** — das feste 3:4-Hochformat entfällt für Etiketten. Rückenetiketten sind oft anders proportioniert; ein erzwungenes Verhältnis schnitt dort Text weg. Verkostungsfotos behalten ihr Verhalten
+- **Regal-Reihenfolge per Tastatur** — am aktiven Regal verschieben zwei Knöpfe es eine Position nach links oder rechts. Drag & Drop war bisher der einzige Weg und ist per Tastatur nicht bedienbar (Fixes #211)
+
+### Fixed
+- **Vue lief im ausgelieferten Produktionsbundle im Entwicklungsmodus** — ein pauschales `'process.env': {}` in der Vite-Konfiguration ließ `NODE_ENV` als `undefined` durchlaufen, wodurch Warnungen, Prop-Typprüfungen und Devtools-Hooks im Bundle landeten. Nach der Korrektur ist das Bundle rund 100 KB kleiner (gzip 472 → 438 KB)
+- **Aktivitäts-Widget zeigte das Datum ohne Jahr** — Einträge aus verschiedenen Jahren waren nicht unterscheidbar, ein Datum in der Zukunft las sich wie ein Sortierfehler. Das Widget nutzt jetzt denselben Datums-Helfer wie die Vollansicht; im Frontend gibt es kein zweites Datumsformat mehr (Fixes #205)
+- **Verwaiste Daten nach dem Löschen eines Benutzers** — nach `occ user:delete` blieben Keller- und Weindaten in der Datenbank liegen, über kein UI mehr erreichbar. Ein Listener räumt beide Besitzwurzeln transaktional ab (Fixes #212)
+- Aktivitätslog: Die Sortierung „neueste zuerst" verließ sich bei Einträgen ohne Uhrzeit (Geschenk/Verlust) auf einen Zufall der `strcmp`-String-Länge statt auf eine benannte Regel; das Ergebnis bleibt gleich, aber ein künftiges ISO-`T` oder Sekundenbruchteile in einer Quelle würden die Reihenfolge nicht mehr still verschieben (Fixes #214)
+- Der Kauf-Wizard lud dasselbe Etikettenfoto einmal pro Flasche hoch — bei sechs Flaschen sechs identische Dateien. Jetzt ein Upload an den Jahrgang
+
+### Changed
+- **Migration auf Vite 8** — der Bump scheiterte bisher an einem Laufzeitfehler (`process is not defined`). Ursache waren die esm-bundler-Builds von Vue, Pinia und Vue Router, die eine Ersetzung von `process.env.NODE_ENV` durch den Bundler voraussetzen (Fixes #182)
+- `vinarium_vintage` erhält `photo_front_file_id` und `photo_back_file_id`; `vinarium_bottle.photo_file_id` entfällt. Zwei getrennte Migrationsschritte, damit ein Abbruch beim Übertragen die Quelldaten intakt lässt
+- Neue Etikettenfotos liegen unter `Vinarium/labels/`; das bisherige Verzeichnis bleibt beim Ausliefern zugelassen, vorhandene Bilder werden nicht verschoben
+- Die Foto-Endpunkte sind von `/bottles/{id}/photo` nach `/vintages/{id}/photo/{side}` gewandert
+- Unit-Tests 80 → 115; neuer Workflow schließt referenzierte Issues beim Merge nach `develop` (Fixes #213, #216)
+- Dependency-Updates: ws, fast-uri, fast-xml-parser, @babel/core, postcss, immutable, js-cookie
+
 ## [0.5.0] - 2026-08-02
 
 ### Added
@@ -194,7 +216,8 @@ Erste offizielle Veröffentlichung — Weinverwaltung End-to-End.
 - 88 PHPUnit-Tests + 24 Vitest-Tests (112 gesamt)
 - Pre-Commit-Hook für OCP-only API-Enforcement
 
-[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.5.0...HEAD
+[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.5.1...HEAD
+[0.5.1]: https://github.com/cpcMomentum/vinarium/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/cpcMomentum/vinarium/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/cpcMomentum/vinarium/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/cpcMomentum/vinarium/compare/v0.4.0...v0.4.1

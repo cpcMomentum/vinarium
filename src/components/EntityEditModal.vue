@@ -79,6 +79,16 @@
 				</div>
 				<label class="field"><span>{{ t('vinarium', 'Referenz-URL') }}</span><input v-model.lazy="vintageReferenceUrl" class="input" /></label>
 				<label class="field"><span>{{ t('vinarium', 'Beschreibung') }}</span><textarea v-model.lazy="vintageDescription" class="input" rows="3" /></label>
+				<div v-if="vintage.id" class="field">
+					<span>{{ t('vinarium', 'Etikett') }}</span>
+					<LabelPhotoEditor
+						:vintage-id="vintage.id"
+						:front-file-id="vintage.photoFrontFileId"
+						:back-file-id="vintage.photoBackFileId"
+						:show-scope-hint="false"
+						@changed="onLabelPhotoChanged"
+					/>
+				</div>
 			</template>
 
 			<div class="actions">
@@ -93,6 +103,8 @@
 import { escCloses } from '@/utils/modalEsc'
 import { computed, ref, watch } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
+import LabelPhotoEditor from '@/components/LabelPhotoEditor.vue'
+import type { LabelSide } from '@/api/vintages'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { SWEETNESS_LABELS, SWEETNESS_VALUES, WINE_COLORS, WINE_COLOR_LABELS, type Producer, type PurchaseListItem, type Sweetness, type Vintage, type Wine } from '@/types/api'
@@ -116,6 +128,20 @@ const saving = ref(false)
 const producer = ref<Producer | null>(null)
 const wine = ref<Wine | null>(null)
 const vintage = ref<Vintage | null>(null)
+
+/**
+ * Photos are stored the moment they are uploaded, not on Save — the file already
+ * lives in the user's storage by then. Mirroring the ids into the local copy
+ * keeps the form showing what the server has.
+ */
+function onLabelPhotoChanged(side: LabelSide, fileId: number | null) {
+	if (!vintage.value) return
+	if (side === 'front') {
+		vintage.value.photoFrontFileId = fileId
+		return
+	}
+	vintage.value.photoBackFileId = fileId
+}
 const purchase = ref<PurchaseListItem | null>(null)
 const knownVendors = ref<string[]>([])
 
