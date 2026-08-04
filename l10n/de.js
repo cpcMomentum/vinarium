@@ -176,6 +176,8 @@ OC.L10N.register(
     "Fach konfigurieren": "Fach konfigurieren",
     "Zum Umbenennen klicken": "Zum Umbenennen klicken",
     "Regal löschen": "Regal löschen",
+    "Regal nach links verschieben": "Regal nach links verschieben",
+    "Regal nach rechts verschieben": "Regal nach rechts verschieben",
     "Frei — Ebene {level}, {row}, Platz {col}": "Frei — Ebene {level}, {row}, Platz {col}",
     "Regal \"{name}\" wirklich löschen? Alle Flaschen kommen in die Parkzone.": "Regal \"{name}\" wirklich löschen? Alle Flaschen kommen in die Parkzone.",
     "Verschieben fehlgeschlagen": "Verschieben fehlgeschlagen",

@@ -184,6 +184,8 @@
         "Fach konfigurieren": "Configure compartment",
         "Zum Umbenennen klicken": "Click to rename",
         "Regal löschen": "Delete shelf",
+        "Regal nach links verschieben": "Move shelf left",
+        "Regal nach rechts verschieben": "Move shelf right",
         "Frei — Ebene {level}, {row}, Platz {col}": "Free — Level {level}, {row}, Position {col}",
         "Regal \"{name}\" wirklich löschen? Alle Flaschen kommen in die Parkzone.": "Really delete shelf \"{name}\"? All bottles will be moved to the parking zone.",
         "Verschieben fehlgeschlagen": "Moving failed",
