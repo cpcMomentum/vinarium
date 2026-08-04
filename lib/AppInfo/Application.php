@@ -12,7 +12,9 @@ namespace OCA\Vinarium\AppInfo;
 use OCP\AppFramework\App;
 use OCP\AppFramework\Bootstrap\IBootContext;
 use OCP\AppFramework\Bootstrap\IBootstrap;
+use OCA\Vinarium\Listener\UserDeletedListener;
 use OCP\AppFramework\Bootstrap\IRegistrationContext;
+use OCP\User\Events\UserDeletedEvent;
 
 class Application extends App implements IBootstrap {
 	public const APP_ID = 'vinarium';
@@ -22,6 +24,9 @@ class Application extends App implements IBootstrap {
 	}
 
 	public function register(IRegistrationContext $context): void {
+		// Ohne diesen Listener ueberleben Keller- und Weindaten ihren Besitzer:
+		// nach `occ user:delete` bleiben sie verwaist in der Datenbank liegen (#212).
+		$context->registerEventListener(UserDeletedEvent::class, UserDeletedListener::class);
 	}
 
 	public function boot(IBootContext $context): void {
