@@ -49,13 +49,17 @@ class UserDeletedListener implements IEventListener {
 		}
 		$userId = $event->getUser()->getUID();
 
-		$this->db->beginTransaction();
+		$inTransaction = false;
 		try {
+			$this->db->beginTransaction();
+			$inTransaction = true;
+
 			$deleted = [];
 			foreach ($this->statements() as $table => $sql) {
 				$deleted[$table] = $this->db->executeStatement($sql, [$userId]);
 			}
 			$this->db->commit();
+			$inTransaction = false;
 
 			$total = array_sum($deleted);
 			if ($total > 0) {
@@ -66,7 +70,9 @@ class UserDeletedListener implements IEventListener {
 				]);
 			}
 		} catch (Throwable $e) {
-			$this->db->rollBack();
+			if ($inTransaction) {
+				$this->db->rollBack();
+			}
 			// Swallowed deliberately: the account is already gone, and throwing here
 			// would surface as a failed user deletion. Leftover rows are the lesser
 			// problem, but they must not disappear silently from the log.

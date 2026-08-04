@@ -115,6 +115,17 @@ class UserDeletedListenerTest extends TestCase {
 		(new UserDeletedListener($db, $this->logger))->handle($this->event());
 	}
 
+	public function testAFailingTransactionStartIsLoggedWithoutRollingBackOrThrowing(): void {
+		// beginTransaction() itself failing must not surface as a failed user
+		// deletion either, and there is no transaction to roll back.
+		$db = $this->createMock(IDBConnection::class);
+		$db->method('beginTransaction')->willThrowException(new \RuntimeException('keine Verbindung'));
+		$db->expects($this->never())->method('rollBack');
+		$this->logger->expects($this->once())->method('error');
+
+		(new UserDeletedListener($db, $this->logger))->handle($this->event());
+	}
+
 	public function testAnUnrelatedEventIsIgnored(): void {
 		$this->db->expects($this->never())->method('beginTransaction');
 
