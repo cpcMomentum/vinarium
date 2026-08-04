@@ -76,13 +76,38 @@ class ActivityService {
 			$events = array_merge($events, $this->bottleStatusEvents($userId, $statuses, $from, $to, $perSource));
 		}
 
-		usort($events, static fn (array $a, array $b): int => strcmp((string)$b['date'], (string)$a['date']));
+		usort($events, self::compareByDateDesc(...));
 
 		$page = array_slice($events, $offset, $limit);
 		return [
 			'events' => array_values($page),
 			'hasMore' => count($events) > $offset + $limit,
 		];
+	}
+
+	/**
+	 * Newest first.
+	 *
+	 * The three sources carry different column types: purchases and tastings are
+	 * timestamps ('2026-08-03 10:00:00'), bottle events are plain dates
+	 * ('2026-08-03'). A plain strcmp over the raw values let the format decide the
+	 * outcome — the shorter string lost every comparison within the same day (#214).
+	 *
+	 * A bottle event records no time of day, so no correct position inside its day
+	 * exists. Any rule is arbitrary; this one is at least explicit: a value without
+	 * a time counts as midnight, which places it at the start of its day and thus
+	 * last among that day's entries. Making it explicit also keeps the order stable
+	 * if a source ever returns a different string length — a fractional second or an
+	 * ISO 'T' separator would otherwise silently shift entries.
+	 */
+	private static function compareByDateDesc(array $a, array $b): int {
+		return strcmp(self::sortKey($b['date']), self::sortKey($a['date']));
+	}
+
+	/** Pads a date-only value to a full timestamp so comparisons never hinge on length. */
+	private static function sortKey(mixed $date): string {
+		$value = trim(str_replace('T', ' ', (string)$date));
+		return strlen($value) === 10 ? $value . ' 00:00:00' : $value;
 	}
 
 	private function normalizeDate(?string $value, string $field): ?string {
