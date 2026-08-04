@@ -519,9 +519,16 @@ async function moveShelf(shelfId: number, direction: -1 | 1) {
 	await applyShelfOrder(shelfId, target)
 	// Der Knopf wandert mit dem Tab durchs DOM — ohne das landet der Fokus
 	// nach dem Neuzeichnen am Seitenanfang und die naechste Bewegung braucht
-	// wieder mehrere Tab-Schritte.
+	// wieder mehrere Tab-Schritte. Landet das Regal am Rand, ist genau der
+	// geklickte Knopf jetzt disabled (nicht fokussierbar) — dann auf den
+	// Gegenknopf ausweichen, statt den Fokus ganz zu verlieren.
 	await nextTick()
-	moveButtons.get(`${shelfId}:${direction}`)?.focus()
+	const clicked = moveButtons.get(`${shelfId}:${direction}`)
+	if (clicked && !clicked.disabled) {
+		clicked.focus()
+	} else {
+		moveButtons.get(`${shelfId}:${-direction}`)?.focus()
+	}
 }
 
 async function applyShelfOrder(sourceId: number, to: number) {
