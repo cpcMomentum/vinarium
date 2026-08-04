@@ -91,7 +91,10 @@ class VintageControllerTest extends TestCase {
 	}
 
 	public function testUploadPhotoRejectsSomethingThatWasNotUploaded(): void {
-		// Guards against a caller pointing tmp_name at an arbitrary server path.
+		// is_uploaded_file() ist im CLI-Kontext immer false, der Test belegt also
+		// nur, dass die Pruefung stattfindet — nicht, dass sie genau diesen Pfad
+		// abweist. Ihr Zweck im Betrieb ist es, ein tmp_name auf einen beliebigen
+		// Serverpfad zurueckzuweisen.
 		$this->request->method('getUploadedFile')->willReturn([
 			'tmp_name' => '/etc/passwd', 'error' => UPLOAD_ERR_OK, 'size' => 10,
 		]);
