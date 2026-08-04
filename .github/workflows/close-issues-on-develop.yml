@@ -39,7 +39,7 @@ jobs:
             // Die Schluesselwoerter, die GitHub selbst auswertet — plus die
             // deutschen Entsprechungen, weil die PR-Texte in diesem Repo deutsch
             // sind und "Behebt #212" sonst wirkungslos bliebe.
-            const pattern = /\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?|behebt|beheben|schliesst|schliesst\s+ab|loest|geloest|umgesetzt\s+in)\s*:?\s+#(\d+)/gi
+            const pattern = /\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?|behebt|behebe[nt]?|behoben|schliesst|geschlossen\s+durch|loest|geloest|umgesetzt\s+in)\s*:?\s+#(\d+)/gi
             const numbers = [...new Set(
               [...haystack.matchAll(pattern)].map(m => Number(m[1]))
             )]
