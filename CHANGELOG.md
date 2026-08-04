@@ -7,6 +7,9 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Fixed
+- Aktivitätslog: Die Sortierung „neueste zuerst" verließ sich bei Einträgen ohne Uhrzeit (Geschenk/Verlust) auf einen Zufall der `strcmp`-String-Länge statt auf eine benannte Regel; das Ergebnis bleibt gleich, aber ein künftiges ISO-`T` oder Sekundenbruchteile in einer Quelle würden die Reihenfolge nicht mehr still verschieben (Fixes #214)
+
 ## [0.5.0] - 2026-08-02
 
 ### Added
