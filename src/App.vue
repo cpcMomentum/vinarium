@@ -1,10 +1,9 @@
 <template>
-	<NcContent app-name="vinarium">
+	<NcContent appName="vinarium">
 		<NcAppNavigation aria-label="Vinarium">
 			<NcAppNavigationItem
 				:name="t('vinarium', 'Dashboard')"
 				:to="{ name: 'dashboard' }"
-				exact
 			>
 				<template #icon>
 					<ViewDashboard :size="20" />

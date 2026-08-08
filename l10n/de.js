@@ -356,6 +356,9 @@ OC.L10N.register(
     "Fach \"{label}\" wirklich löschen? Alle Flaschen kommen in die Parkzone." : "Fach \"{label}\" wirklich löschen? Alle Flaschen kommen in die Parkzone.",
     "Fach hinzufügen fehlgeschlagen" : "Fach hinzufügen fehlgeschlagen",
     "Fach löschen fehlgeschlagen" : "Fach löschen fehlgeschlagen",
-    "Flaschen konnten nicht geladen werden" : "Flaschen konnten nicht geladen werden"
+    "Flaschen konnten nicht geladen werden" : "Flaschen konnten nicht geladen werden",
+    "Laden…" : "Laden…",
+    "https://…" : "https://…",
+    "Suche läuft …" : "Suche läuft …"
 },
 "nplurals=2; plural=(n != 1);");

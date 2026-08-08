@@ -82,10 +82,10 @@
 				<div v-if="vintage.id" class="field">
 					<span>{{ t('vinarium', 'Etikett') }}</span>
 					<LabelPhotoEditor
-						:vintage-id="vintage.id"
-						:front-file-id="vintage.photoFrontFileId"
-						:back-file-id="vintage.photoBackFileId"
-						:show-scope-hint="false"
+						:vintageId="vintage.id"
+						:frontFileId="vintage.photoFrontFileId"
+						:backFileId="vintage.photoBackFileId"
+						:showScopeHint="false"
 						@changed="onLabelPhotoChanged"
 					/>
 				</div>

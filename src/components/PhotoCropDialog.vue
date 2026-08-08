@@ -10,15 +10,15 @@
 				<VueCropper
 					ref="cropper"
 					:src="imageSrc"
-					:aspect-ratio="aspectRatio ?? NaN"
-					:view-mode="1"
-					:auto-crop-area="0.85"
+					:aspectRatio="aspectRatio ?? NaN"
+					:viewMode="1"
+					:autoCropArea="0.85"
 					:background="true"
 					:rotatable="true"
 					:scalable="true"
 					:zoomable="true"
 					:movable="true"
-					drag-mode="move"
+					dragMode="move"
 					class="crop-dialog__cropper"
 				/>
 			</div>

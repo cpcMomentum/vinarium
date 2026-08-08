@@ -284,7 +284,7 @@
 			:open="deleteConfirmOpen"
 			:name="t('vinarium', 'Regal löschen')"
 			:message="deleteConfirmMessage"
-			:confirm-label="t('vinarium', 'Löschen')"
+			:confirmLabel="t('vinarium', 'Löschen')"
 			:destructive="true"
 			@close="deleteConfirmOpen = false"
 			@confirm="performDeleteShelf"
@@ -293,7 +293,7 @@
 			:open="deleteCompartmentConfirmOpen"
 			:name="t('vinarium', 'Fach löschen')"
 			:message="deleteCompartmentConfirmMessage"
-			:confirm-label="t('vinarium', 'Löschen')"
+			:confirmLabel="t('vinarium', 'Löschen')"
 			:destructive="true"
 			@close="deleteCompartmentConfirmOpen = false"
 			@confirm="performDeleteCompartment"
@@ -311,7 +311,7 @@ import BottleDetailPanel from '@/components/BottleDetailPanel.vue'
 import TastingDialog from '@/components/TastingDialog.vue'
 import BottleEventDialog from '@/components/BottleEventDialog.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
-import type { BottleListItem, CompartmentWithLevels, Level, Slot, WineColor } from '@/types/api'
+import type { BottleListItem, CompartmentWithLevels, Level, Slot } from '@/types/api'
 import type { CellarResponse } from '@/api/cellar'
 import { addCompartment, destroyCompartment, destroyShelf, fetchCellar, fetchSlots, reorderShelves, updateCompartment, updateShelf } from '@/api/cellar'
 import { useBottleStore } from '@/stores/bottleStore'

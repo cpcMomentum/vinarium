@@ -124,7 +124,7 @@
 								<NcActions
 									v-if="b.status === 'in_storage'"
 									:aria-label="t('vinarium', 'Aktionen')"
-									:force-name="false"
+									:forceName="false"
 								>
 									<NcActionButton @click="openTasting(b.id)">
 										<template #icon><GlassCorkIcon :size="20" /></template>
@@ -159,38 +159,38 @@
 
 		<!-- Stammdaten-Tabs -->
 		<div v-show="activeTab === 'producers'">
-			<MasterDataPanel entity-type="producers" @data-changed="loadStats" />
+			<MasterDataPanel entityType="producers" @dataChanged="loadStats" />
 		</div>
 		<div v-show="activeTab === 'wines'">
-			<MasterDataPanel entity-type="wines" @data-changed="loadStats" />
+			<MasterDataPanel entityType="wines" @dataChanged="loadStats" />
 		</div>
 		<div v-show="activeTab === 'purchases'">
-			<MasterDataPanel entity-type="purchases" @data-changed="loadStats" />
+			<MasterDataPanel entityType="purchases" @dataChanged="loadStats" />
 		</div>
 
 		<!-- Detail-Modal mit Reitern + Prev/Next-Navigation -->
 		<BottleDetailPanel
-			:bottle-id="detailBottleId"
-			:bottle-ids="bottleIdsInOrder"
+			:bottleId="detailBottleId"
+			:bottleIds="bottleIdsInOrder"
 			@close="closeDetail"
 			@uncork="onDetailUncork"
 			@gift="onDetailGift"
 			@lose="onDetailLose"
-			@photo-changed="onPhotoChanged"
-			@data-changed="onPhotoChanged"
+			@photoChanged="onPhotoChanged"
+			@dataChanged="onPhotoChanged"
 			@navigate="detailBottleId = $event"
 		/>
 
 		<!-- Modals -->
 		<TastingDialog
 			:open="tastingOpen"
-			:bottle-id="tastingBottleId"
+			:bottleId="tastingBottleId"
 			@close="tastingOpen = false"
 			@consumed="onConsumed"
 		/>
 		<BottleEventDialog
 			:open="eventOpen"
-			:bottle-id="eventBottleId"
+			:bottleId="eventBottleId"
 			:mode="eventMode"
 			@close="eventOpen = false"
 			@done="onEventDone"
