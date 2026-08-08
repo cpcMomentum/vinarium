@@ -126,13 +126,6 @@ export default [
 			 * mehrzeilige Koerper weiter Klammern brauchen.
 			 */
 			curly: ['error', 'multi-line'],
-			/*
-			 * 26 Stellen, ueberwiegend `Record<string, any>` in Formular-Objekten.
-			 * Sie ordentlich zu typisieren ist ein Umbau in den Komponenten, kein
-			 * Aufraeumen — und `any` hebelt die Typpruefung dort tatsaechlich aus.
-			 * Deshalb sichtbar als Warnung statt abgeschaltet oder vorgetaeuscht
-			 * behoben. Nachzuarbeiten in einem eigenen Schritt.
-			 */
 		},
 	},
 ]
