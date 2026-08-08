@@ -7,6 +7,15 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-08-08
+
+### Fixed
+- **0.5.1 ließ sich nicht benutzen: die App rendert nicht** — jede Datumsausgabe warf `TypeError: (0, ns.default) is not a function`. Betroffen war `formatDate`, und die steckt im Dashboard und fünf weiteren Ansichten, darunter der Standardroute; sichtbar blieb ein leerer Inhaltsbereich. Ursache war der Bundler-Wechsel in 0.5.1: `@nextcloud/moment` liefert ein UMD-Bundle ohne eigenen `default`-Export, und Vite 8 (Rolldown) greift bei solchen Paketen im Bibliotheks-Build direkt auf `.default` zu, wo Vite 7 zuvor einen Auspack-Helfer eingefügt hatte. `formatDate` kommt jetzt ohne die Bibliothek aus: für ein ISO-Datum als TT.MM.JJJJ genügen ein Muster und eine Kalenderprüfung über UTC. Damit hängt die Funktion an keiner Bundler-Interop mehr, und das Bundle verliert die komplette moment-Sprachdatenbank, rund 132 KB (Fixes #233)
+
+### Changed
+- Vite bleibt auf 8. Ein Rückbau auf 7 war zwischenzeitlich erwogen und wieder verworfen: die Interop ist nicht generell defekt, sondern nur für UMD-Pakete ohne `default`. Für gewöhnliche CommonJS-Pakete setzt der eingefügte Helfer `default` korrekt auf `module.exports`, nachgewiesen an `@nextcloud/event-bus`
+- `@nextcloud/moment` als Abhängigkeit entfernt
+
 ## [0.5.1] - 2026-08-04
 
 ### Added
@@ -216,7 +225,8 @@ Erste offizielle Veröffentlichung — Weinverwaltung End-to-End.
 - 88 PHPUnit-Tests + 24 Vitest-Tests (112 gesamt)
 - Pre-Commit-Hook für OCP-only API-Enforcement
 
-[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.5.2...HEAD
+[0.5.2]: https://github.com/cpcMomentum/vinarium/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/cpcMomentum/vinarium/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/cpcMomentum/vinarium/compare/v0.4.2...v0.5.0
 [0.4.2]: https://github.com/cpcMomentum/vinarium/compare/v0.4.1...v0.4.2
