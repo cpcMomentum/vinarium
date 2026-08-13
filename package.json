@@ -41,7 +41,7 @@
     "@vue/test-utils": "^2.4.6",
     "@vue/tsconfig": "^0.7.0",
     "happy-dom": "^20.9.0",
-    "nc-app-tooling": "github:cpcMomentum/nc-app-tooling#v1.2.0",
+    "nc-app-tooling": "github:cpcMomentum/nc-app-tooling#v1.3.0",
     "sass": "^1.70.0",
     "typescript": "^5.7.2",
     "vite": "^8.2.1",
