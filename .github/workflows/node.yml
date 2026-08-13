@@ -32,6 +32,12 @@ jobs:
         run: |
           rm -f package-lock.json
           npm install --no-audit --no-fund
+      # Faengt Strings ab, die in t()/n()/->t() stehen, aber in keiner l10n-Datei.
+      # Solche Texte fallen in JEDER Sprache auf den deutschen Quelltext zurueck
+      # und bleiben beim Entwickeln unsichtbar, weil auf Deutsch getestet wird.
+      - name: l10n-Vollstaendigkeit
+        run: npm run l10n:check
+
       - name: Typecheck
         run: npm run typecheck
       - name: Frontend-Unit-Tests (vitest)
