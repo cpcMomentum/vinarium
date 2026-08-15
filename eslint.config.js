@@ -23,6 +23,9 @@ import { recommended } from '@nextcloud/eslint-config'
 // genau einem Objekt mit; hier wird es fuer den Ueberschreib-Block wiederverwendet.
 const tsPlugin = recommended.find((c) => c.plugins?.['@typescript-eslint'])
 	?.plugins['@typescript-eslint']
+// Dasselbe fuer das Vue-Plugin: eine Regel ABSCHALTEN geht ohne, sie
+// EINSCHALTEN nicht — dafuer muss das Plugin im selben Objekt stehen.
+const vuePlugin = recommended.find((c) => c.plugins?.vue)?.plugins.vue
 
 export default [
 	...recommended,
@@ -126,6 +129,35 @@ export default [
 			 * mehrzeilige Koerper weiter Klammern brauchen.
 			 */
 			curly: ['error', 'multi-line'],
+		},
+	},
+	{
+		name: 'vinarium/ereignisnamen',
+		...(vuePlugin ? { plugins: { vue: vuePlugin } } : {}),
+		rules: {
+			/*
+			 * Das Nextcloud-Preset stellt diese Regel auf 'never', verlangt also
+			 * `@dataChanged`. Das passt hier nicht: die Komponenten emittieren
+			 * `data-changed` und `photo-changed`, und Vue 3 uebersetzt
+			 * Ereignisnamen NICHT zwischen kebab-case und camelCase, wie es das
+			 * bei Eigenschaften tut. Ein `@dataChanged` faengt ein
+			 * `emit('data-changed')` also schlicht nicht ab.
+			 *
+			 * Der Autofix hat genau das angerichtet: aus `@data-changed` wurde
+			 * `@dataChanged`, und `loadStats` sowie `onPhotoChanged` in
+			 * InventoryView liefen danach still ins Leere — kein Fehler, keine
+			 * Warnung, die Oberflaeche aktualisierte sich einfach nicht mehr.
+			 * Gefunden im Bot-Review zu #239.
+			 *
+			 * Der Block weiter oben schaltet `vue/custom-event-name-casing` ab,
+			 * also die EMIT-Seite. Die Empfaenger-Seite blieb offen — genau durch
+			 * diese Luecke kam der Fehler herein.
+			 *
+			 * Deshalb 'always', passend zu dem, was die App tatsaechlich
+			 * emittiert. Und `autofix: false`, damit dieselbe Automatik den
+			 * Fehler nicht beim naechsten `lint:fix` erneut einbaut.
+			 */
+			'vue/v-on-event-hyphenation': ['error', 'always', { autofix: false }],
 		},
 	},
 ]
