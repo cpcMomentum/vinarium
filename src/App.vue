@@ -4,7 +4,6 @@
 			<NcAppNavigationItem
 				:name="t('vinarium', 'Dashboard')"
 				:to="{ name: 'dashboard' }"
-				exact
 			>
 				<template #icon>
 					<ViewDashboard :size="20" />
