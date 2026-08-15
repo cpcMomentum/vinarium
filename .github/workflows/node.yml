@@ -1,9 +1,8 @@
 name: node
 
-# Frontend-Gate: Typecheck + vitest + Produktions-Build muessen gruen sein.
+# Frontend-Gate: Lint + Typecheck + vitest + Produktions-Build muessen gruen sein.
 # Laeuft auf ALLEN PRs (kein paths-Filter): als Required-Status-Check muss der
 # Workflow immer melden, sonst blockiert ein nie-startender Check den Merge.
-# (Kein lint-Script in package.json.)
 
 on:
   push:
@@ -24,19 +23,31 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
+          # Node 24 aus zwei Gruenden, die beide zaehlen:
+          #   - @nextcloud/eslint-config 9 nutzt findPackageJSON aus node:module,
+          #     das es erst ab 22.14 gibt. Unter Node 20 bricht der Lint mit
+          #     einem SyntaxError ab.
+          #   - npm 11 kommt damit, und ohne das laeuft das npm ci unten nicht
+          #     durch (nc-app-tooling#1).
           node-version: '24'
       - name: Abhaengigkeiten installieren
         # `npm ci` statt `npm install`, und das Lockfile bleibt liegen. Bis zum
         # 15.08.2026 stand hier `rm -f package-lock.json` mit Verweis auf
         # npm/cli#4828 (fehlendes rollup-Binary). Der Fehler, der tatsaechlich
         # auftrat, war ein anderer: npm 10 meldet auf einem synchronen Lock
-        # faelschlich "Missing: pinia@3.0.4". Mit npm 11 -- das mit Node 24
-        # kommt -- laeuft `npm ci` durch.
+        # faelschlich "Missing: pinia@3.0.4". Mit npm 11 laeuft `npm ci` durch.
         #
         # Das ist die Voraussetzung fuer den Frische-Schritt weiter unten:
         # ohne gepinnte Installation weicht der CI-Build vom lokalen ab und der
-        # Vergleich meldet immer (nc-app-tooling#1).
+        # Vergleich meldet immer.
         run: npm ci
+
+      # Der Job hiess "lint-and-build", ohne je zu linten: das Paket war
+      # deklariert, aber es gab keine Konfiguration, kein Skript und keinen
+      # Schritt. Ein Pruefschritt, der nichts prueft, ist schlechter als keiner.
+      - name: Lint
+        run: npm run lint
+
       # Faengt Strings ab, die in t()/n()/->t() stehen, aber in keiner l10n-Datei.
       # Solche Texte fallen in JEDER Sprache auf den deutschen Quelltext zurueck
       # und bleiben beim Entwickeln unsichtbar, weil auf Deutsch getestet wird.

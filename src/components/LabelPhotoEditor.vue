@@ -46,7 +46,7 @@
 		<PhotoCropDialog
 			:open="cropOpen"
 			:file="cropFile"
-			:aspect-ratio="null"
+			:aspectRatio="null"
 			@close="onCropCancel"
 			@confirm="onCropConfirm"
 		/>

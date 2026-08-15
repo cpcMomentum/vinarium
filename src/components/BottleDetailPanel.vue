@@ -8,7 +8,7 @@
 	>
 		<div class="bd-modal">
 			<div v-if="loading" class="bd-loading">
-				<p class="muted">{{ t('vinarium', 'Laden...') }}</p>
+				<p class="muted">{{ t('vinarium', 'Laden…') }}</p>
 			</div>
 
 			<template v-else-if="detail">
@@ -61,9 +61,9 @@
 					<div class="bd-bottle-grid">
 						<div class="bd-photo-col">
 							<LabelPhotoEditor
-								:vintage-id="detail.vintage_id"
-								:front-file-id="detail.photo_front_file_id"
-								:back-file-id="detail.photo_back_file_id"
+								:vintageId="detail.vintage_id"
+								:frontFileId="detail.photo_front_file_id"
+								:backFileId="detail.photo_back_file_id"
 								:alt="detail.wine_name"
 								@changed="onLabelPhotoChanged"
 							/>

@@ -196,7 +196,7 @@
 		<EntityEditModal
 			:open="editOpen"
 			:type="editType"
-			:entity-id="editId"
+			:entityId="editId"
 			@close="closeEdit"
 			@saved="onEntitySaved"
 		/>
@@ -204,7 +204,7 @@
 			:open="deleteConfirmOpen"
 			:name="deleteConfirmTitle"
 			:message="deleteConfirmMessage"
-			:confirm-label="t('vinarium', 'Löschen')"
+			:confirmLabel="t('vinarium', 'Löschen')"
 			:destructive="true"
 			@close="deleteConfirmOpen = false"
 			@confirm="performDelete"

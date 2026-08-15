@@ -356,6 +356,9 @@ OC.L10N.register(
     "Fach \"{label}\" wirklich löschen? Alle Flaschen kommen in die Parkzone." : "Really delete compartment \"{label}\"? All bottles will be moved to the parking zone.",
     "Fach hinzufügen fehlgeschlagen" : "Could not add compartment",
     "Fach löschen fehlgeschlagen" : "Could not delete compartment",
-    "Flaschen konnten nicht geladen werden" : "Could not load bottles"
+    "Flaschen konnten nicht geladen werden" : "Could not load bottles",
+    "Laden…" : "Loading…",
+    "https://…" : "https://…",
+    "Suche läuft …" : "Searching …"
 },
 "nplurals=2; plural=(n != 1);");

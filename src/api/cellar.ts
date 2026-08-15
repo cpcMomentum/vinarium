@@ -4,7 +4,7 @@
  */
 
 import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from './client'
-import type { Cellar, Compartment, CompartmentWithLevels, Level, Shelf, Slot } from '@/types/api'
+import type { Cellar, Compartment, CompartmentWithLevels, Shelf, Slot } from '@/types/api'
 
 export interface CellarResponse {
 	cellar: Cellar
