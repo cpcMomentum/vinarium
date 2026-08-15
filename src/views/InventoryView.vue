@@ -159,13 +159,13 @@
 
 		<!-- Stammdaten-Tabs -->
 		<div v-show="activeTab === 'producers'">
-			<MasterDataPanel entityType="producers" @dataChanged="loadStats" />
+			<MasterDataPanel entityType="producers" @data-changed="loadStats" />
 		</div>
 		<div v-show="activeTab === 'wines'">
-			<MasterDataPanel entityType="wines" @dataChanged="loadStats" />
+			<MasterDataPanel entityType="wines" @data-changed="loadStats" />
 		</div>
 		<div v-show="activeTab === 'purchases'">
-			<MasterDataPanel entityType="purchases" @dataChanged="loadStats" />
+			<MasterDataPanel entityType="purchases" @data-changed="loadStats" />
 		</div>
 
 		<!-- Detail-Modal mit Reitern + Prev/Next-Navigation -->
@@ -176,8 +176,8 @@
 			@uncork="onDetailUncork"
 			@gift="onDetailGift"
 			@lose="onDetailLose"
-			@photoChanged="onPhotoChanged"
-			@dataChanged="onPhotoChanged"
+			@photo-changed="onPhotoChanged"
+			@data-changed="onPhotoChanged"
 			@navigate="detailBottleId = $event"
 		/>
 
