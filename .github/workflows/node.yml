@@ -42,6 +42,12 @@ jobs:
         # Vergleich meldet immer.
         run: npm ci
 
+      - name: Schema-Portabilitaet
+        run: npx nc-schema-check
+
+      - name: Notification-Vertraege
+        run: npx nc-notification-check
+
       # Der Job hiess "lint-and-build", ohne je zu linten: das Paket war
       # deklariert, aber es gab keine Konfiguration, kein Skript und keinen
       # Schritt. Ein Pruefschritt, der nichts prueft, ist schlechter als keiner.
