@@ -35,7 +35,7 @@
     "vue": "^3.5.13",
     "vue-cropperjs": "^5.0.0",
     "vue-material-design-icons": "^5.3.1",
-    "vue-router": "^4.6.4"
+    "vue-router": "^5.3.0"
   },
   "devDependencies": {
     "@nextcloud/eslint-config": "^9.0.1",
