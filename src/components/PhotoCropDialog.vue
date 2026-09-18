@@ -39,8 +39,17 @@ import { ref, watch } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
-import VueCropper from 'vue-cropperjs'
+import VueCropperModule from 'vue-cropperjs'
 import 'cropperjs/dist/cropper.css'
+
+// vue-cropperjs ships only CommonJS (exports.default = component), it provides no
+// ESM entry. Under Vite 8's default-interop the namespace can arrive as
+// { default: component } instead of the component itself, so `<VueCropper>` binds
+// to a non-component object: it renders nothing and its methods (getCroppedCanvas)
+// are missing — the crop dialog stays blank and "Übernehmen" fails. Resolve the
+// real component defensively so it works whichever shape the interop yields.
+const VueCropper = ((VueCropperModule as unknown as { default?: unknown }).default
+	?? VueCropperModule) as typeof VueCropperModule
 
 const props = withDefaults(defineProps<{
 	open: boolean
