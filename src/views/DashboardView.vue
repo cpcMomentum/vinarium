@@ -25,7 +25,7 @@
 					<kbd class="searchbox__hint">⌘K</kbd>
 				</div>
 				<div v-if="searchOpen" id="search-results-listbox" class="search-dd" role="listbox">
-					<div v-if="searchLoading" class="search-dd__msg">{{ t('vinarium', 'Suche läuft …') }}</div>
+					<div v-if="searchLoading" class="search-dd__msg">{{ t('vinarium', 'Suche läuft …') }}</div>
 					<template v-else-if="flatResults.length">
 						<template v-for="group in groupedResults" :key="group.type">
 							<template v-if="group.items.length">
@@ -222,7 +222,7 @@ import { translate as t, translatePlural as n } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { fetchStats, type DashboardStats, type ActivityType } from '@/api/dashboard'
 import { search } from '@/api/search'
-import { WINE_COLOR_LABELS, WINE_COLORS, type SearchResult, type SearchResultType, type WineColor } from '@/types/api'
+import { WINE_COLOR_LABELS, WINE_COLORS, type SearchResult, type SearchResultType } from '@/types/api'
 import { formatDate } from '@/utils/date'
 import { cssColorFor } from '@/utils/wineColors'
 import PurchaseWizardModal from '@/components/PurchaseWizardModal.vue'

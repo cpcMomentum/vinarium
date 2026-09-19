@@ -1,7 +1,7 @@
 <template>
-	<NcModal v-if="open" :name="detail ? detail.wine_name + ' ' + detail.year : t('vinarium', 'Laden...')" @keydown.esc="e => escCloses(e, () => $emit('close'))" @close="$emit('close')">
+	<NcModal v-if="open" :name="detail ? detail.wine_name + ' ' + detail.year : t('vinarium', 'Laden…')" @keydown.esc="e => escCloses(e, () => $emit('close'))" @close="$emit('close')">
 		<div v-if="loading" class="detail-modal detail-modal--loading">
-			<p class="muted">{{ t('vinarium', 'Laden...') }}</p>
+			<p class="muted">{{ t('vinarium', 'Laden…') }}</p>
 		</div>
 		<div v-else-if="error" class="detail-modal detail-modal--loading">
 			<p class="error-text">{{ t('vinarium', 'Fehler beim Laden der Verkostung.') }}</p>
@@ -142,7 +142,7 @@ const props = defineProps<{
 	open: boolean
 	tastingId: number | null
 }>()
-const emit = defineEmits<{
+defineEmits<{
 	(e: 'close'): void
 	(e: 'edit', detail: TastingDetail): void
 }>()

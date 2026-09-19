@@ -9,7 +9,6 @@ declare(strict_types=1);
 
 namespace OCA\Vinarium\Tests\Unit\Migration;
 
-use Doctrine\DBAL\Schema\Table;
 use OCA\Vinarium\Migration\Version000107Date20260803000000;
 use OCP\DB\IResult;
 use OCP\DB\ISchemaWrapper;
@@ -24,6 +23,7 @@ use PHPUnit\Framework\TestCase;
  * photo a user keeps seeing.
  */
 class VintagePhotoMigrationTest extends TestCase {
+	use SchemaTypenTrait;
 
 	/** @var list<array{string, array}> captured UPDATE statements */
 	private array $statements = [];
@@ -48,7 +48,9 @@ class VintagePhotoMigrationTest extends TestCase {
 			}
 		);
 
-		$table = $this->createMock(Table::class);
+		// Nicht Doctrines Table fest verdrahten: ISchemaWrapper::getTable()
+		// gibt ab dem naechsten NC ein ITable zurueck (siehe SchemaTypenTrait).
+		$table = $this->createMock(self::tabellenKlasse());
 		$table->method('hasColumn')->willReturn($bottleColumnExists);
 
 		$schema = $this->createMock(ISchemaWrapper::class);

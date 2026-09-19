@@ -25,7 +25,6 @@ vi.mock('@nextcloud/vue/components/NcButton', () => ({
 import * as producersApi from '@/api/producers'
 import * as purchasesApi from '@/api/purchases'
 import PurchaseWizardModal from '@/components/PurchaseWizardModal.vue'
-import { useWineStore } from '@/stores/wineStore'
 
 const makeProducer = (id: number, name: string) => ({
 	id, ownerUserId: 'alice', name, country: null, region: null, website: null, notes: null,

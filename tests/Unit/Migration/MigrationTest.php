@@ -10,8 +10,6 @@ declare(strict_types=1);
 namespace OCA\Vinarium\Tests\Unit\Migration;
 
 use Closure;
-use Doctrine\DBAL\Schema\Column;
-use Doctrine\DBAL\Schema\Table;
 use OCA\Vinarium\Migration\Version000100Date20260415120000;
 use OCP\DB\ISchemaWrapper;
 use OCP\Migration\IOutput;
@@ -19,6 +17,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 class MigrationTest extends TestCase {
+	use SchemaTypenTrait;
 
 	/** @var string[] */
 	private array $createdTables = [];
@@ -37,7 +36,7 @@ class MigrationTest extends TestCase {
 
 		$schema = $this->createMock(ISchemaWrapper::class);
 		$schema->method('hasTable')->willReturn(false);
-		$schema->method('createTable')->willReturnCallback(function (string $name): Table {
+		$schema->method('createTable')->willReturnCallback(function (string $name) {
 			$this->createdTables[] = $name;
 			$this->columnsPerTable[$name] = [];
 			$this->foreignKeysPerTable[$name] = [];
@@ -47,17 +46,23 @@ class MigrationTest extends TestCase {
 		return $schema;
 	}
 
-	private function buildTableMock(string $tableName): Table&MockObject {
-		$table = $this->createMock(Table::class);
+	private function buildTableMock(string $tableName): MockObject {
+		$table = $this->createMock(self::tabellenKlasse());
 
 		$table->method('addColumn')->willReturnCallback(
-			function (string $colName, string $type, array $options = []) use ($tableName): Column {
+			function (string $colName, string $type, array $options = []) use ($tableName) {
 				$this->columnsPerTable[$tableName][$colName] = $type;
-				$column = $this->createMock(Column::class);
-				$column->method('setDefault')->willReturnSelf();
-				$column->method('setNotnull')->willReturnSelf();
-				$column->method('setLength')->willReturnSelf();
-				$column->method('setAutoincrement')->willReturnSelf();
+				$spalte = self::spaltenKlasse();
+				$column = $this->createMock($spalte);
+				// Nur stubben, was es auf der vorliegenden Fassung gibt:
+				// `setAutoincrement` kennt Doctrines Column, IColumn nicht --
+				// dort kommt autoincrement ueber das options-Array von
+				// addColumn, so wie die Migration es ohnehin schon macht.
+				foreach (['setDefault', 'setNotnull', 'setLength', 'setAutoincrement'] as $setter) {
+					if (method_exists($spalte, $setter)) {
+						$column->method($setter)->willReturnSelf();
+					}
+				}
 				return $column;
 			}
 		);
@@ -65,7 +70,7 @@ class MigrationTest extends TestCase {
 		$table->method('setPrimaryKey')->willReturnSelf();
 
 		$table->method('addIndex')->willReturnCallback(
-			function (array $columns, ?string $name = null) use ($tableName): Table {
+			function (array $columns, ?string $name = null) use ($tableName) {
 				$this->indexesPerTable[$tableName][] = [
 					'columns' => $columns,
 					'unique' => false,
@@ -76,7 +81,7 @@ class MigrationTest extends TestCase {
 		);
 
 		$table->method('addUniqueIndex')->willReturnCallback(
-			function (array $columns, ?string $name = null) use ($tableName): Table {
+			function (array $columns, ?string $name = null) use ($tableName) {
 				$this->indexesPerTable[$tableName][] = [
 					'columns' => $columns,
 					'unique' => true,
@@ -87,8 +92,12 @@ class MigrationTest extends TestCase {
 		);
 
 		$table->method('addForeignKeyConstraint')->willReturnCallback(
-			function ($foreignTable, array $localCols, array $foreignCols, array $options = []) use ($tableName): Table {
-				$foreignName = $foreignTable instanceof Table ? $foreignTable->getName() : (string)$foreignTable;
+			function ($foreignTable, array $localCols, array $foreignCols, array $options = []) use ($tableName) {
+				// Nicht auf Doctrines Table pruefen -- ab dem naechsten NC ist
+				// das ein ITable, und der Vergleich waere still immer falsch.
+				$foreignName = is_object($foreignTable) && method_exists($foreignTable, 'getName')
+					? $foreignTable->getName()
+					: (string)$foreignTable;
 				$this->foreignKeysPerTable[$tableName][] = [
 					'localColumns' => $localCols,
 					'foreignTable' => $foreignName,

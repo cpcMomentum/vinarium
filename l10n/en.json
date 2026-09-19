@@ -69,10 +69,6 @@
         "Flop": "Flop",
         "Ø Bewertung pro Wein × Jahrgang": "Ø rating per wine × vintage",
         "Noch keine Bewertungen.": "No ratings yet.",
-        "({n} Verkostung)": [
-            "({n} tasting)",
-            "({n} tastings)"
-        ],
         "Aktivität": "Activity",
         "Flaschen": "bottles",
         "Weine, Weingüter, Jahrgänge suchen…": "Search wines, producers, vintages…",
@@ -80,10 +76,6 @@
         "Keine Treffer": "No results",
         "+ Kauf erfassen": "+ Record purchase",
         "+ Kauf": "+ Purchase",
-        "verteilt auf {n} Regal": [
-            "spread across {n} shelf",
-            "spread across {n} shelves"
-        ],
         "Trinkfenster läuft bald ab": "Drinking window closing soon",
         "Alle ansehen ›": "View all ›",
         "Keine Weine mit demnächst ablaufendem Trinkfenster. Trage „Trinken bis“ am Jahrgang ein, damit hier Vorschläge erscheinen.": "No wines with an upcoming drinking window. Add a \"Drink until\" year to a vintage to see suggestions here.",
@@ -92,10 +84,6 @@
         "Noch keine Aktivität.": "No activity yet.",
         "Letzte Verkostungen": "Recent Tastings",
         "CSV-Export herunterladen": "Download CSV Export",
-        "{count} Flasche": [
-            "{count} bottle",
-            "{count} bottles"
-        ],
         "bis {year} ({count}×)": "until {year} ({count}×)",
         "Farbe": "Color",
         "alle": "all",
@@ -327,7 +315,59 @@
         "Foto": "Photo",
         "Fotos ({count})": "Photos ({count})",
         "Bestätigen": "Confirm",
-        "{entity} löschen": "Delete {entity}"
+        "{entity} löschen": "Delete {entity}",
+        "Vorherige Flasche": "Previous bottle",
+        "Nächste Flasche": "Next bottle",
+        "Detail-Reiter": "Detail tabs",
+        "Wirkt auf alle Flaschen dieses Weinguts.": "Applies to all bottles from this producer.",
+        "Wirkt auf alle Flaschen dieses Weins.": "Applies to all bottles of this wine.",
+        "Wein-Name": "Wine name",
+        "Wirkt auf alle Flaschen dieses Jahrgangs.": "Applies to all bottles of this vintage.",
+        "Jahr": "Year",
+        "Alkohol (%)": "Alcohol (%)",
+        "Trinken ab": "Drink from",
+        "Trinken bis": "Drink until",
+        "Wirkt auf alle Flaschen dieser Charge.": "Applies to all bottles in this lot.",
+        "Kaufdatum": "Purchase date",
+        "Speichert…": "Saving…",
+        "Flasche": "Bottle",
+        "Wein / Jahrgang": "Wine / vintage",
+        "Summe aller gekauften Flaschen — enthält auch entkorkte, verschenkte oder verlorene.": "Total of all bottles purchased — including those opened, given away or lost.",
+        "Gekauft": "Purchased",
+        "Wein löschen": "Delete wine",
+        "Jahrgang löschen": "Delete vintage",
+        "ab {year}": "from {year}",
+        "bis {year}": "until {year}",
+        "Fehler beim Laden der Verkostung.": "Could not load the tasting.",
+        "_verteilt auf {n} Regal_::_verteilt auf {n} Regale_": [
+            "spread across {n} shelf",
+            "spread across {n} shelves"
+        ],
+        "_{count} Flasche_::_{count} Flaschen_": [
+            "{count} bottle",
+            "{count} bottles"
+        ],
+        "_({n} Verkostung)_::_({n} Verkostungen)_": [
+            "({n} tasting)",
+            "({n} tastings)"
+        ],
+        "Weinkeller": "Wine cellar",
+        "Regal konfigurieren": "Configure shelf",
+        "Noch kein Regal angelegt.": "No shelf created yet.",
+        "Fach löschen": "Delete compartment",
+        "belegt": "occupied",
+        "frei": "free",
+        "+ Fach hinzufügen": "+ Add compartment",
+        "TOP": "TOP",
+        "BODEN": "BOTTOM",
+        "MITTE": "MIDDLE",
+        "Fach \"{label}\" wirklich löschen? Alle Flaschen kommen in die Parkzone.": "Really delete compartment \"{label}\"? All bottles will be moved to the parking zone.",
+        "Fach hinzufügen fehlgeschlagen": "Could not add compartment",
+        "Fach löschen fehlgeschlagen": "Could not delete compartment",
+        "Flaschen konnten nicht geladen werden": "Could not load bottles",
+        "Laden…": "Loading…",
+        "https://…": "https://…",
+        "Suche läuft …": "Searching …"
     },
     "pluralForm": "nplurals=2; plural=(n != 1);"
 }

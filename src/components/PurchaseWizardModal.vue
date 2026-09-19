@@ -22,7 +22,7 @@
 						<label class="field"><span>{{ t('vinarium', 'Land') }}</span><input v-model="form1.country" :disabled="isPicked1" class="input" :placeholder="t('vinarium', 'z. B. Frankreich')" /></label>
 						<label class="field"><span>{{ t('vinarium', 'Region') }}</span><input v-model="form1.region" :disabled="isPicked1" class="input" :placeholder="t('vinarium', 'z. B. Bordeaux')" /></label>
 					</div>
-					<label class="field"><span>{{ t('vinarium', 'Website') }}</span><input v-model="form1.website" :disabled="isPicked1" class="input" :placeholder="t('vinarium', 'https://...')" /></label>
+					<label class="field"><span>{{ t('vinarium', 'Website') }}</span><input v-model="form1.website" :disabled="isPicked1" class="input" :placeholder="t('vinarium', 'https://…')" /></label>
 					<label class="field"><span>{{ t('vinarium', 'Notizen') }}</span><textarea v-model="form1.notes" :disabled="isPicked1" class="input" rows="2" /></label>
 				</fieldset>
 			</section>
@@ -159,7 +159,7 @@
 			<PhotoCropDialog
 				:open="cropOpen"
 				:file="cropSourceFile"
-				:aspect-ratio="null"
+				:aspectRatio="null"
 				@close="onCropCancel"
 				@confirm="onCropConfirm"
 			/>

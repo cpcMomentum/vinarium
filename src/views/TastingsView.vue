@@ -52,7 +52,7 @@
 			</article>
 		</section>
 
-		<p v-if="loading" class="muted">{{ t('vinarium', 'Laden...') }}</p>
+		<p v-if="loading" class="muted">{{ t('vinarium', 'Laden…') }}</p>
 		<p v-else-if="loadError" class="picker-error">{{ loadError }}</p>
 		<p v-else-if="tastings.length === 0" class="empty">{{ t('vinarium', 'Noch keine Verkostungen erfasst.') }}</p>
 		<div v-else class="table-card">
@@ -114,7 +114,7 @@
 			@update:open="pickerOpen = false"
 		>
 			<div class="picker">
-				<p v-if="pickerLoading" class="muted">{{ t('vinarium', 'Laden...') }}</p>
+				<p v-if="pickerLoading" class="muted">{{ t('vinarium', 'Laden…') }}</p>
 				<p v-else-if="pickerError" class="picker-error">{{ pickerError }}</p>
 				<p v-else-if="pickerBottles.length === 0" class="empty">{{ t('vinarium', 'Keine Flaschen im Bestand.') }}</p>
 				<ul v-else class="picker-list">
@@ -140,7 +140,7 @@
 		<!-- Detail modal -->
 		<TastingDetailModal
 			:open="detailModal.open"
-			:tasting-id="detailModal.tastingId"
+			:tastingId="detailModal.tastingId"
 			@close="detailModal.open = false"
 			@edit="onDetailEdit"
 		/>
@@ -156,7 +156,7 @@
 		<!-- Tasting dialog for consuming a bottle -->
 		<TastingDialog
 			:open="consumeDialog.open"
-			:bottle-id="consumeDialog.bottleId"
+			:bottleId="consumeDialog.bottleId"
 			@close="consumeDialog.open = false"
 			@consumed="onConsumed"
 		/>
