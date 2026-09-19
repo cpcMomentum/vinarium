@@ -7,6 +7,18 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.5.3] - 2026-09-19
+
+### Fixed
+- **Etikettenfotos ließen sich nicht zuschneiden** — beim Hochladen eines Etiketts (Kauf-Wizard und Etikett-Bearbeitung) blieb der Zuschneide-Dialog leer, und „Übernehmen" scheiterte mit „Zuschneiden fehlgeschlagen". Betroffen war **jedes** Bildformat, nicht nur HEIC vom iPhone. Ursache: `vue-cropperjs` liefert nur ein CommonJS-Bundle ohne ESM-Entry; unter Vite 8 band der Default-Import an ein Nicht-Komponenten-Objekt, sodass die Cropper-Komponente nicht mountete und ihre Methode `getCroppedCanvas` fehlte. Der Default wird jetzt defensiv aufgelöst, unabhängig von der Interop-Form (Fixes #254)
+- **Fehlende und fehlerhafte Übersetzungen** — 40 fehlende Übersetzungen ergänzt und drei kaputte Pluralschlüssel korrigiert (Fixes #243)
+
+### Security
+- `dompurify` auf 3.4.13 aktualisiert (#236)
+
+### Changed
+- Release-Hygiene: Dev-, Test- und Konfigurationsdateien werden über `.gitattributes export-ignore` aus dem ausgelieferten Archiv gehalten; die Apache-2.0-Attribution (`THIRD_PARTY_NOTICES.md`) bleibt bewusst enthalten (#273)
+
 ## [0.5.2] - 2026-08-08
 
 ### Fixed
@@ -225,7 +237,8 @@ Erste offizielle Veröffentlichung — Weinverwaltung End-to-End.
 - 88 PHPUnit-Tests + 24 Vitest-Tests (112 gesamt)
 - Pre-Commit-Hook für OCP-only API-Enforcement
 
-[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.5.2...HEAD
+[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.5.3...HEAD
+[0.5.3]: https://github.com/cpcMomentum/vinarium/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/cpcMomentum/vinarium/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/cpcMomentum/vinarium/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/cpcMomentum/vinarium/compare/v0.4.2...v0.5.0
