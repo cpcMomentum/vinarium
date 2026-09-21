@@ -97,5 +97,9 @@ return [
 
 		// Search (full-text over producers / wines / vintages)
 		['name' => 'search#index', 'url' => '/api/v1/search', 'verb' => 'GET'],
+
+		// „Was ist neu?"-Fenster (#284)
+		['name' => 'whatsNew#index', 'url' => '/api/v1/whatsnew',      'verb' => 'GET'],
+		['name' => 'whatsNew#seen',  'url' => '/api/v1/whatsnew/seen', 'verb' => 'POST'],
 	],
 ];

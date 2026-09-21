@@ -367,7 +367,12 @@
 		"Flaschen konnten nicht geladen werden": "Flaschen konnten nicht geladen werden",
 		"Laden…": "Laden…",
 		"https://…": "https://…",
-		"Suche läuft …": "Suche läuft …"
+		"Suche läuft …": "Suche läuft …",
+		"Version {version}": "Version {version}",
+		"Zu finden unter": "Zu finden unter",
+		"(nur für Administratoren)": "(nur für Administratoren)",
+		"Alles klar": "Alles klar",
+		"Was ist neu in Vinarium": "Was ist neu in Vinarium"
 	},
 	"pluralForm": "nplurals=2; plural=(n != 1);"
 }

@@ -38,6 +38,9 @@
 		<NcAppContent>
 			<router-view />
 		</NcAppContent>
+
+		<!-- „Was ist neu?"-Fenster (#284) -->
+		<WhatsNewDialog />
 	</NcContent>
 </template>
 
@@ -48,4 +51,5 @@ import ViewDashboard from 'vue-material-design-icons/ViewDashboard.vue'
 import FormatListBulleted from 'vue-material-design-icons/FormatListBulleted.vue'
 import Grid from 'vue-material-design-icons/Grid.vue'
 import StarOutline from 'vue-material-design-icons/StarOutline.vue'
+import WhatsNewDialog from '@/components/WhatsNewDialog.vue'
 </script>

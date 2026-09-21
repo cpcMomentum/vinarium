@@ -1,0 +1,15 @@
+{
+	"0.5.4": [
+		{
+			"title": {
+				"de": "Neuerungen erscheinen ab jetzt in diesem Fenster",
+				"en": "From now on new features appear in this window"
+			},
+			"text": {
+				"de": "Nach einem Update zeigt Vinarium hier kurz, was sich geändert hat. Einmal je Version, wegklickbar, danach kommt es nicht wieder.",
+				"en": "After an update Vinarium briefly shows you what has changed. Once per version, dismissable, and it will not come back."
+			},
+			"icon": "star"
+		}
+	]
+}

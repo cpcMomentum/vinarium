@@ -7,6 +7,11 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Added
+- **„Was ist neu?"-Fenster** — nach einem Update zeigt Vinarium einmal je Nutzer und Version kurz, was sich geändert hat. Die Inhalte liegen als `whatsnew/whatsnew.json` im App-Paket, es wird nichts von fremden Servern nachgeladen. Wegklickbar per Knopf, X oder Escape; jeder Weg quittiert. Keine Kumulation über mehrere Versionen, kein Fenster bei einer Neuinstallation, und fällt etwas aus, bleibt das Fenster einfach aus (Fixes #284)
+
+  > Beim Release beachten: Der Versions-Schlüssel in `whatsnew/whatsnew.json` muss der Version des Release entsprechen, sonst bleibt das Fenster stumm.
+
 ## [0.5.3] - 2026-09-19
 
 ### Fixed
