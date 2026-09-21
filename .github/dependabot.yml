@@ -51,6 +51,24 @@ updates:
       - dependency-name: "*"
         update-types:
           - version-update:semver-major
+      # @nextcloud/vue bleibt unter 9.12. Ab dieser Fassung zieht die Bibliothek
+      # ueber NcUploadPicker den optionalen Peer @nextcloud/files/upload nach;
+      # der Vite-Build bricht dann mit
+      #   [MISSING_EXPORT] "UploadStatus" is not exported by
+      #   "__vite-optional-peer-dep:@nextcloud/files/upload:@nextcloud/vue"
+      # Den Peer zu ergaenzen wurde geprueft und verworfen: er kaskadiert ueber
+      # files -> dialogs -> webdav/sax auf Node-Module und sprengt das
+      # IIFE-Bundle — alles fuer eine Komponente, die vinarium nicht benutzt.
+      #
+      # Ohne diese Zeile schlaegt die Gruppe den Sprung jede Woche erneut vor,
+      # und der Sammel-PR ist jedes Mal rot: erst #280, dann wieder #286. Die
+      # Spanne in package.json (">=9.6.0 <9.12.0") sagt dasselbe noch einmal,
+      # damit die Entscheidung nicht allein im Lockfile steht.
+      #
+      # Wieder aufmachen, sobald @nextcloud/vue den optionalen Peer sauber
+      # behandelt oder eine 9.12+-Funktion gebraucht wird.
+      - dependency-name: "@nextcloud/vue"
+        versions: [">=9.12"]
     commit-message:
       prefix: chore(deps)
       prefix-development: chore(deps-dev)
