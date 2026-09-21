@@ -359,6 +359,11 @@ OC.L10N.register(
     "Flaschen konnten nicht geladen werden" : "Could not load bottles",
     "Laden…" : "Loading…",
     "https://…" : "https://…",
-    "Suche läuft …" : "Searching …"
+    "Suche läuft …" : "Searching …",
+    "Version {version}" : "Version {version}",
+    "Zu finden unter" : "Found under",
+    "(nur für Administratoren)" : "(administrators only)",
+    "Alles klar" : "Got it",
+    "Was ist neu in Vinarium" : "What's new in Vinarium"
 },
 "nplurals=2; plural=(n != 1);");

@@ -37,3 +37,7 @@ CODEOWNERS             export-ignore
 # THIRD_PARTY_NOTICES.md bleibt bewusst IM Archiv: die attributierten Assets
 # (img/app.svg, mdi-grapes, Apache-2.0) werden ausgeliefert, die Attribution
 # muss mit. Nicht per export-ignore entfernen.
+# whatsnew/ steht bewusst NICHT hier: die Datei wird ausgeliefert und ist der
+# Inhalt des „Was ist neu?"-Fensters (#284). Ein export-ignore darauf laesst das
+# Fenster im Release stumm bleiben. nc-app-tooling ab v1.15.0 fuehrt `whatsnew`
+# in der Release-Whitelist, aeltere Fassungen weisen den Ordner als Stray ab.
