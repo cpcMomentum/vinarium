@@ -76,12 +76,17 @@ jobs:
         env:
           OCP: ${{ steps.detect.outputs.constraint }}
         run: |
-          # composer.json pinnt config.platform.php auf die App-Untergrenze
-          # (8.2), damit das ausgelieferte vendor/ dort laeuft. Ein neues NC-
-          # Major hebt regelmaessig die PHP-Untergrenze (NC 35: ~8.3 || ~8.4 ||
-          # ~8.5) — mit dem Pin lehnt composer die Aufloesung ab, BEVOR ein Test
-          # laeuft, und der Lauf meldete das faelschlich als API-Aenderung
-          # (#414). Fuer diesen Wegwerf-Lauf gilt daher das PHP des Runners.
+          # Ein neues NC-Major hebt regelmaessig die PHP-Untergrenze (NC 35:
+          # ~8.3 || ~8.4 || ~8.5). Pinnt eine App config.platform.php auf ihre
+          # eigene Untergrenze, lehnt composer die Aufloesung ab, BEVOR ein Test
+          # laeuft — und der Waechter meldet das faelschlich als API-Aenderung
+          # (Fehldiagnose aus contractmanager#414).
+          #
+          # vinarium pinnt derzeit NICHT (composer.json hat kein config.platform,
+          # nur require.php >=8.2, und ohne Runtime-Deps liefert die App gar kein
+          # vendor/ aus, dem ein Pin gelten koennte). Das --unset ist hier also
+          # folgenlos und steht vorsorglich: es haelt die Datei flottenweit
+          # gleich und greift, falls vinarium den Pin spaeter bekommt.
           # Committet wird davon nichts: der Bump-PR unten nimmt nur info.xml.
           composer config --unset platform.php
           composer require --dev --no-update "nextcloud/ocp:$OCP" \

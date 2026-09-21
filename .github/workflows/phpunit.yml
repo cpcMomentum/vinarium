@@ -134,11 +134,13 @@ jobs:
           OCP_VERSIONS: ${{ steps.derive.outputs.ocp }}
           PHPV: ${{ matrix.php-version }}
         run: |
-          # composer.json pinnt config.platform.php auf die App-Untergrenze
-          # (8.2), damit das ausgelieferte vendor/ dort laeuft. Fuer den
-          # Testlauf gilt das PHP dieses Jobs — sonst lehnt composer eine
-          # ocp-Version ab, die auf diesem PHP sehr wohl laeuft. Nur im
-          # Arbeitsverzeichnis des Laufs, nichts davon wird committet.
+          # Fuer den Testlauf gilt ausdruecklich das PHP dieses Jobs: sonst
+          # koennte ein Platform-Pin eine ocp-Version ablehnen, die auf diesem
+          # PHP sehr wohl laeuft. vinarium pinnt derzeit nicht (composer.json
+          # hat kein config.platform), damit entspricht der gesetzte Wert dem,
+          # was composer ohnehin erkennt — die Zeile steht vorsorglich und haelt
+          # die Datei flottenweit gleich. Nur im Arbeitsverzeichnis des Laufs,
+          # nichts davon wird committet.
           composer config platform.php "$PHPV"
           failed=""
           for ocp in $OCP_VERSIONS; do
