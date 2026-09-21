@@ -7,6 +7,9 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Changed
+- Kompatibilität bis **Nextcloud 35** (`max-version`). Geprüft auf einer echten NC-35-Instanz (35.0.0): Installation, Migrationen, App-Start und alle Ansichten (Dashboard, Bestand, Regal, Verkostungen) ohne Befund; die Unit-Suite läuft in der CI zusätzlich gegen `nextcloud/ocp` dev-master
+
 ## [0.5.4] - 2026-09-21
 
 ### Added
