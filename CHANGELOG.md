@@ -7,6 +7,10 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Changed
+- Kompatibilität bis **Nextcloud 35** (`max-version`). Geprüft auf einer echten NC-35-Instanz (35.0.0): Installation, Migrationen, App-Start und alle Ansichten (Dashboard, Bestand, Regal, Verkostungen) ohne Befund; die Unit-Suite läuft in der CI zusätzlich gegen `nextcloud/ocp` dev-master
+- CI: Die PHPUnit-Matrix wählt die getesteten `nextcloud/ocp`-Versionen jetzt nach der PHP-Version des jeweiligen Jobs. NC 35 lässt PHP 8.2 fallen (`nextcloud/ocp` v35 verlangt `~8.3 || ~8.4 || ~8.5`), der 8.2-Job wäre sonst an einer Auflösung gescheitert, die gar nicht scheitern soll. Neuer Job für PHP 8.5; `php min-version` bleibt bei 8.2, weil eine App-Untergrenze auf einem NC-35-Server ohnehin nicht bindend ist und ein Anheben nur NC-32-bis-34-Nutzer aussperren würde (Muster aus contractmanager#414)
+
 ## [0.5.4] - 2026-09-21
 
 ### Added
