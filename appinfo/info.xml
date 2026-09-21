@@ -20,7 +20,7 @@ Native Nextcloud-App zur privaten Weinverwaltung. Bestand, Lagerposition und Ver
 - **Filter & Suche** — nach Farbe, Region, Jahrgang, Trinkfenster
     ]]></description>
 
-    <version>0.5.3</version>
+    <version>0.5.4</version>
     <licence>AGPL-3.0-or-later</licence>
 
     <author mail="axel.deffner@cpcmomentum.com" homepage="https://github.com/cpcMomentum">Axel Deffner</author>
@@ -44,6 +44,15 @@ Native Nextcloud-App zur privaten Weinverwaltung. Bestand, Lagerposition und Ver
         <nextcloud min-version="32" max-version="34"/>
         <php min-version="8.2"/>
     </dependencies>
+
+    <repair-steps>
+        <post-migration>
+            <!-- Markiert Bestandsinstallationen fuer das „Was ist neu?"-Fenster (#284).
+                 Nextcloud fuehrt post-migration nur beim Update einer bereits
+                 installierten App aus, bei einer frischen Installation nie. -->
+            <step>OCA\Vinarium\Migration\WhatsNewBootstrap</step>
+        </post-migration>
+    </repair-steps>
 
     <navigations>
         <navigation>

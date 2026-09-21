@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           # Node 24 aus zwei Gruenden, die beide zaehlen:
           #   - @nextcloud/eslint-config 9 nutzt findPackageJSON aus node:module,

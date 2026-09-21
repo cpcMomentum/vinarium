@@ -7,6 +7,18 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.5.4] - 2026-09-21
+
+### Added
+- **„Was ist neu?"-Fenster** — nach einem Update zeigt Vinarium einmal je Nutzer und Version kurz, was sich geändert hat. Die Inhalte liegen als `whatsnew/whatsnew.json` im App-Paket, es wird nichts von fremden Servern nachgeladen. Wegklickbar per Knopf, X oder Escape; jeder Weg quittiert. Keine Kumulation über mehrere Versionen, kein Fenster bei einer Neuinstallation, und fällt etwas aus, bleibt das Fenster einfach aus (Fixes #284)
+
+  > Beim Release beachten: Der Versions-Schlüssel in `whatsnew/whatsnew.json` muss der Version des Release entsprechen, sonst bleibt das Fenster stumm.
+
+### Changed
+- Abhängigkeiten aktualisiert: `vitest`, `nanoid`, `brace-expansion` sowie die composer-Entwicklungsabhängigkeiten. `@nextcloud/vue` bleibt bewusst auf 9.6.0 — ab 9.12 zieht die Bibliothek über eine von Vinarium nicht genutzte Upload-Komponente `@nextcloud/files`, `dialogs`, `webdav` und `sax` nach und sprengt damit das ausgelieferte Bundle (#280/#281)
+- Werkzeugkette: `nc-app-tooling` auf v1.15.0 — erst diese Fassung lässt den neuen Ordner `whatsnew/` ins Release-Archiv
+- CI-Actions aktualisiert (`setup-node` 7, `github-script` 9, canary v1.14.0)
+
 ## [0.5.3] - 2026-09-19
 
 ### Fixed
@@ -237,7 +249,8 @@ Erste offizielle Veröffentlichung — Weinverwaltung End-to-End.
 - 88 PHPUnit-Tests + 24 Vitest-Tests (112 gesamt)
 - Pre-Commit-Hook für OCP-only API-Enforcement
 
-[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.5.3...HEAD
+[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.5.4...HEAD
+[0.5.4]: https://github.com/cpcMomentum/vinarium/compare/v0.5.3...v0.5.4
 [0.5.3]: https://github.com/cpcMomentum/vinarium/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/cpcMomentum/vinarium/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/cpcMomentum/vinarium/compare/v0.5.0...v0.5.1
