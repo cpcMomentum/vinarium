@@ -92,10 +92,23 @@ jobs:
           fi
           ocp=""; uebersprungen=""
           for v in $(seq "$min" "$max"); do
+            # `^v?`: nextcloud/ocp taggt derzeit mit v-Praefix (v35.0.0), aber der
+            # Filter darf nicht daran haengen. Griffe der Ausdruck ins Leere,
+            # fiele die Untergrenze weg und der Lauf kehrte still zum alten,
+            # ungefilterten Verhalten zurueck — genau der Fall, den er behebt.
+            #
+            # "nicht gefunden" und "gefunden, ohne php-Anforderung" sind deshalb
+            # getrennt: das erste ist ein Fehler, das zweite heisst wirklich
+            # "keine Einschraenkung".
             req=$(jq -r --arg v "$v" '
               [ .packages["nextcloud/ocp"][]
-                | select(.version | test("^v" + $v + "\\.[0-9]+\\.[0-9]+$"))
-                | .require.php // "" ] | first // ""' "$liste")
+                | select(.version | test("^v?" + $v + "\\.[0-9]+\\.[0-9]+$"))
+                | .require.php // "" ] as $treffer
+              | if ($treffer | length) == 0 then "NICHT_GEFUNDEN" else ($treffer | first) end' "$liste")
+            if [ "$req" = "NICHT_GEFUNDEN" ]; then
+              echo "::error::Packagist kennt keine Freigabe nextcloud/ocp $v.x — PHP-Untergrenze nicht ermittelbar (Tag-Schreibweise geaendert?)"
+              exit 1
+            fi
             floor=$(printf '%s' "$req" | grep -oE '[0-9]+\.[0-9]+' | sort -V | head -1)
             if [ -z "$floor" ] || [ "$(printf '%s\n%s\n' "$floor" "$PHPV" | sort -V | head -1)" = "$floor" ]; then
               ocp="$ocp ^$v.0"
