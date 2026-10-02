@@ -8,6 +8,7 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Changed
+- CI: Die Ableitung der getesteten `nextcloud/ocp`-Versionen nutzt jetzt die geteilte Composite Action `ocp-versionen@v1.17.0` aus nc-app-tooling statt einer eigenen Kopie im Workflow. Verhalten unverändert, auch der harte Abbruch bei einer Packagist-unbekannten Version (#295, nc-app-tooling#28)
 - Abhängigkeiten aktualisiert: `vue` 3.5.43, `eslint` 10.11.0, `nextcloud/ocp` 34.0.4
 - `@nextcloud/vue` ist jetzt auch in `package.json` auf `>=9.6.0 <9.12.0` begrenzt, nicht mehr nur über das Lockfile. Ab 9.12 zieht die Bibliothek über eine von Vinarium nicht genutzte Upload-Komponente `@nextcloud/files/upload` nach und der Build bricht; Dependabot überspringt diese Versionen jetzt, statt den Sprung wöchentlich erneut vorzuschlagen (#286)
 - Kompatibilität bis **Nextcloud 35** (`max-version`). Geprüft auf einer echten NC-35-Instanz (35.0.0): Installation, Migrationen, App-Start und alle Ansichten (Dashboard, Bestand, Regal, Verkostungen) ohne Befund; die Unit-Suite läuft in der CI zusätzlich gegen `nextcloud/ocp` dev-master
