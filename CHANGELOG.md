@@ -7,6 +7,9 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Added
+- Währung **AUD** (Australischer Dollar) beim Erfassen und Bearbeiten eines Kaufs (#294)
+
 ### Security
 - Transitive Abhängigkeiten auf gepatchte Versionen gehoben: `axios` 1.20.0, `brace-expansion` 2.1.7 / 5.0.12, `dompurify` 3.4.16. Schließt 17 Dependabot-Sicherheitshinweise, davon 9 mit hoher Einstufung (#306)
 
