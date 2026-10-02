@@ -10,6 +10,9 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 ### Added
 - Währung **AUD** (Australischer Dollar) beim Erfassen und Bearbeiten eines Kaufs (#294)
 
+### Fixed
+- Etikett-Foto: Ein Bildformat, das der Browser nicht anzeigen kann (z. B. HEIC vom iPhone in Chrome oder Firefox), führt nicht mehr zu einem leeren Zuschnitt-Fenster mit stumm scheiterndem „Übernehmen“. Stattdessen erscheint eine verständliche Meldung mit der Bitte um JPG oder PNG, und „Übernehmen“ bleibt gesperrt (#276)
+
 ### Security
 - Transitive Abhängigkeiten auf gepatchte Versionen gehoben: `axios` 1.20.0, `brace-expansion` 2.1.7 / 5.0.12, `dompurify` 3.4.16. Schließt 17 Dependabot-Sicherheitshinweise, davon 9 mit hoher Einstufung (#306)
 
