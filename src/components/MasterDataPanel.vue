@@ -228,6 +228,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue'
 import { BOTTLE_SIZE_LABELS, WINE_COLOR_LABELS, type BottleSizeMl, type Vintage } from '@/types/api'
 import { useWineStore } from '@/stores/wineStore'
 import { cssColorFor } from '@/utils/wineColors'
+import { errorMessage } from '@/utils/errorMessage'
 
 type EntityType = 'producer' | 'wine' | 'vintage' | 'purchase'
 type PanelTab = 'producers' | 'wines' | 'purchases'
@@ -372,8 +373,8 @@ async function performDelete() {
 		// Loeschen kann Flaschen mitnehmen — Bestandszahlen neu holen (#189).
 		store.fetchVintageStock()
 		emit('data-changed')
-	} catch (e: any) {
-		deleteError.value = e?.message ?? t('vinarium', 'Löschen fehlgeschlagen')
+	} catch (e) {
+		deleteError.value = errorMessage(e, t('vinarium', 'Löschen fehlgeschlagen'))
 	}
 }
 </script>

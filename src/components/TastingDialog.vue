@@ -89,6 +89,7 @@ import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { consumeWithTasting, updateTasting, uploadTastingPhoto, deleteTastingPhoto, tastingPhotoThumbnailUrl } from '@/api/tastings'
 import type { TastingListItem } from '@/api/tastings'
+import { errorMessage } from '@/utils/errorMessage'
 
 const props = defineProps<{
 	open: boolean
@@ -245,8 +246,8 @@ async function submit() {
 			const photosOk = await uploadPendingPhotos(result.tasting.id)
 			if (photosOk) emit('close')
 		}
-	} catch (e: any) {
-		submitError.value = e?.message ?? t('vinarium', 'Speichern fehlgeschlagen')
+	} catch (e) {
+		submitError.value = errorMessage(e, t('vinarium', 'Speichern fehlgeschlagen'))
 	} finally {
 		saving.value = false
 	}

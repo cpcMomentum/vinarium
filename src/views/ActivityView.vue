@@ -56,6 +56,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import { ACTIVITY_TYPES, fetchActivity, type ActivityEvent, type ActivityType } from '@/api/activity'
 import { cssColorFor } from '@/utils/wineColors'
 import { formatDate } from '@/utils/date'
+import { errorMessage } from '@/utils/errorMessage'
 
 const PAGE_SIZE = 50
 
@@ -111,8 +112,8 @@ async function load(offset: number) {
 		})
 		events.value = offset === 0 ? stream.events : [...events.value, ...stream.events]
 		hasMore.value = stream.hasMore
-	} catch (e: any) {
-		errorMsg.value = e?.message ?? t('vinarium', 'Aktivität konnte nicht geladen werden')
+	} catch (e) {
+		errorMsg.value = errorMessage(e, t('vinarium', 'Aktivität konnte nicht geladen werden'))
 	} finally {
 		loading.value = false
 	}
