@@ -11,6 +11,7 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 - Transitive Abhängigkeiten auf gepatchte Versionen gehoben: `axios` 1.20.0, `brace-expansion` 2.1.7 / 5.0.12, `dompurify` 3.4.16. Schließt 17 Dependabot-Sicherheitshinweise, davon 9 mit hoher Einstufung (#306)
 
 ### Changed
+- Die Schema-Prüfung der `whatsnew.json` läuft jetzt zentral über `nc-whatsnew-check` aus nc-app-tooling v1.17.0 (`npm run whatsnew:check`, in der node-CI). Der PHP-Test prüft nur noch das App-Eigene: bekannte Symbole und kein `plus`-Feld (#296, nc-app-tooling#27)
 - `@nextcloud/vue` 9.11.0 (innerhalb der Spanne `<9.12.0`), `vite` 8.3.1, `sass` 1.105.0 (#300)
 - Abhängigkeiten aktualisiert: `vue` 3.5.43, `eslint` 10.11.0, `nextcloud/ocp` 34.0.4
 - `@nextcloud/vue` ist jetzt auch in `package.json` auf `>=9.6.0 <9.12.0` begrenzt, nicht mehr nur über das Lockfile. Ab 9.12 zieht die Bibliothek über eine von Vinarium nicht genutzte Upload-Komponente `@nextcloud/files/upload` nach und der Build bricht; Dependabot überspringt diese Versionen jetzt, statt den Sprung wöchentlich erneut vorzuschlagen (#286)

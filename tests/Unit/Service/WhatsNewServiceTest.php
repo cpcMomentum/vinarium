@@ -375,6 +375,16 @@ class WhatsNewServiceTest extends TestCase {
 		self::assertSame('0.5.4', $written['alice/' . WhatsNewService::KEY_LAST_SEEN] ?? null);
 	}
 
+	/**
+	 * Nur noch das App-Spezifische. Das Schema (de/en-Pflicht, `where`
+	 * zweisprachig, Versionsschluessel `x.y.z`, `plus` boolean) prueft seit
+	 * nc-app-tooling#27 zentral `nc-whatsnew-check` (`npm run whatsnew:check`,
+	 * in der node-CI). Hier bleibt, was der zentrale Check bewusst nicht prueft:
+	 *
+	 * - die **Icon-Whitelist** (`BEKANNTE_SYMBOLE` kennt nur `WhatsNewDialog.vue`);
+	 * - dass `plus` in dieser App **verboten** ist — der zentrale Check prueft nur
+	 *   „wenn `plus` da, dann boolean", nicht Pflicht oder Verbot.
+	 */
 	public function testDieAusgelieferteDateiIstGueltig(): void {
 		$file = dirname(__DIR__, 3) . '/whatsnew/whatsnew.json';
 		self::assertFileExists($file);
@@ -384,23 +394,8 @@ class WhatsNewServiceTest extends TestCase {
 		self::assertNotEmpty($catalogue);
 
 		foreach ($catalogue as $version => $entries) {
-			self::assertMatchesRegularExpression('/^\d+\.\d+\.\d+$/', (string)$version);
 			self::assertIsArray($entries);
 			foreach ($entries as $entry) {
-				// de und en sind Pflicht (Konzept v1.1, Abschnitt 2).
-				foreach (['title', 'text'] as $field) {
-					self::assertArrayHasKey($field, $entry);
-					self::assertArrayHasKey('de', $entry[$field], "$version: $field braucht de");
-					self::assertArrayHasKey('en', $entry[$field], "$version: $field braucht en");
-					self::assertNotSame('', trim((string)$entry[$field]['de']));
-					self::assertNotSame('', trim((string)$entry[$field]['en']));
-				}
-
-				// Fundort ist optional, aber wenn da, dann zweisprachig.
-				if (isset($entry['where'])) {
-					self::assertArrayHasKey('de', $entry['where'], "$version: where braucht de");
-					self::assertArrayHasKey('en', $entry['where'], "$version: where braucht en");
-				}
 				// Symbol muss der Dialog kennen, sonst erscheint stumm der Stern.
 				if (isset($entry['icon'])) {
 					self::assertContains($entry['icon'], self::BEKANNTE_SYMBOLE, "$version: unbekanntes Symbol");
