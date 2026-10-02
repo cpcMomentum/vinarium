@@ -122,6 +122,7 @@
 								<option value="USD">USD</option>
 								<option value="CHF">CHF</option>
 								<option value="GBP">GBP</option>
+								<option value="AUD">AUD</option>
 							</select>
 						</label>
 					</div>

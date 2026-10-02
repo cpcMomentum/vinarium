@@ -7,6 +7,9 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+### Added
+- Währung **AUD** (Australischer Dollar) beim Erfassen und Bearbeiten eines Kaufs (#294)
+
 ### Fixed
 - Etikett-Foto: Ein Bildformat, das der Browser nicht anzeigen kann (z. B. HEIC vom iPhone in Chrome oder Firefox), führt nicht mehr zu einem leeren Zuschnitt-Fenster mit stumm scheiterndem „Übernehmen“. Stattdessen erscheint eine verständliche Meldung mit der Bitte um JPG oder PNG, und „Übernehmen“ bleibt gesperrt (#276)
 
