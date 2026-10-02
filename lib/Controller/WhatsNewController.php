@@ -46,6 +46,18 @@ class WhatsNewController extends Controller {
 		return new DataResponse($this->whatsNewService->getPending($this->userId));
 	}
 
+	/**
+	 * Alle bisherigen Neuerungen, nach Version gruppiert (#298) — fuer den
+	 * dauerhaften Menue-Eintrag „Neuerungen". Beruehrt keine Marke.
+	 */
+	#[NoAdminRequired]
+	public function all(): DataResponse {
+		if ($this->userId === null) {
+			return new DataResponse(['error' => 'Not authenticated'], Http::STATUS_UNAUTHORIZED);
+		}
+		return new DataResponse($this->whatsNewService->getAll());
+	}
+
 	/** Quittiert das Fenster: die laufende Version gilt als gesehen. */
 	#[NoAdminRequired]
 	public function seen(): DataResponse {

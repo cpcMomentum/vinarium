@@ -259,3 +259,14 @@ export interface WhatsNewPayload {
 	version: string
 	entries: WhatsNewEntry[]
 }
+
+/** Eine Version mit ihren Eintraegen; im Popup genau eine, im Archiv alle. */
+export interface WhatsNewGroup {
+	version: string
+	entries: WhatsNewEntry[]
+}
+
+/** Antwort von `GET /whatsnew/all`: alle Versionen, neueste zuerst (#298). */
+export interface WhatsNewArchive {
+	versions: WhatsNewGroup[]
+}

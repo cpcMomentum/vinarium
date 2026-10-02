@@ -100,6 +100,7 @@ return [
 
 		// „Was ist neu?"-Fenster (#284)
 		['name' => 'whatsNew#index', 'url' => '/api/v1/whatsnew',      'verb' => 'GET'],
+		['name' => 'whatsNew#all',   'url' => '/api/v1/whatsnew/all',  'verb' => 'GET'],
 		['name' => 'whatsNew#seen',  'url' => '/api/v1/whatsnew/seen', 'verb' => 'POST'],
 	],
 ];
