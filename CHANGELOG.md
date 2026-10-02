@@ -8,6 +8,7 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 ## [Unreleased]
 
 ### Added
+- Menüeintrag **„Neuerungen“** links unten: öffnet das „Was ist neu?“-Fenster jederzeit mit allen bisherigen Neuerungen, nach Version gruppiert. Nachlesen quittiert nichts, das automatische Fenster nach einem Update bleibt unverändert (#298)
 - Währung **AUD** (Australischer Dollar) beim Erfassen und Bearbeiten eines Kaufs (#294)
 
 ### Fixed

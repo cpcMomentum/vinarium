@@ -365,6 +365,8 @@ OC.L10N.register(
     "(nur für Administratoren)" : "(nur für Administratoren)",
     "Alles klar" : "Alles klar",
     "Was ist neu in Vinarium" : "Was ist neu in Vinarium",
-    "Dieses Bildformat kann dein Browser nicht anzeigen (z. B. HEIC vom iPhone). Bitte lade das Foto als JPG oder PNG hoch." : "Dieses Bildformat kann dein Browser nicht anzeigen (z. B. HEIC vom iPhone). Bitte lade das Foto als JPG oder PNG hoch."
+    "Dieses Bildformat kann dein Browser nicht anzeigen (z. B. HEIC vom iPhone). Bitte lade das Foto als JPG oder PNG hoch." : "Dieses Bildformat kann dein Browser nicht anzeigen (z. B. HEIC vom iPhone). Bitte lade das Foto als JPG oder PNG hoch.",
+    "Neuerungen" : "Neuerungen",
+    "Noch keine Neuerungen." : "Noch keine Neuerungen."
 },
 "nplurals=2; plural=(n != 1);");

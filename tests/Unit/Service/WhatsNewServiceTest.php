@@ -407,6 +407,71 @@ class WhatsNewServiceTest extends TestCase {
 		}
 	}
 
+	public function testArchivLiefertAlleVersionenNeuesteZuerst(): void {
+		$this->writeCatalogue($this->catalogueFixture());
+		$written = [];
+		$service = $this->buildService('0.5.4', [], $written);
+
+		$archive = $service->getAll();
+
+		self::assertSame(['0.5.4', '0.5.1'], array_column($archive['versions'], 'version'));
+		self::assertCount(2, $archive['versions'][0]['entries']);
+		self::assertSame('Etikett mit zwei Seiten', $archive['versions'][0]['entries'][0]['title']);
+		self::assertSame('Aelter DE', $archive['versions'][1]['entries'][0]['title']);
+	}
+
+	public function testArchivLaesstVersionenAusDerZukunftAus(): void {
+		$this->writeCatalogue($this->catalogueFixture());
+		$written = [];
+		$service = $this->buildService('0.5.3', [], $written);
+
+		self::assertSame(['0.5.1'], array_column($service->getAll()['versions'], 'version'));
+	}
+
+	public function testArchivBeruehrtKeineMarke(): void {
+		$this->writeCatalogue($this->catalogueFixture());
+		$written = [];
+		$service = $this->buildService('0.5.4', ['alice/' . WhatsNewService::KEY_LAST_SEEN => '0.5.1'], $written);
+
+		$service->getAll();
+
+		self::assertSame([], $written);
+	}
+
+	public function testArchivFolgtDerSprache(): void {
+		$this->writeCatalogue($this->catalogueFixture());
+		$written = [];
+		$service = $this->buildService('0.5.4', [], $written, 'en');
+
+		$archive = $service->getAll();
+
+		self::assertSame('Label with two sides', $archive['versions'][0]['entries'][0]['title']);
+		self::assertSame('Inventory', $archive['versions'][0]['entries'][0]['where']);
+	}
+
+	public function testArchivSortiertVersionenNumerischNichtAlsText(): void {
+		$eintrag = [['title' => ['de' => 'T', 'en' => 'T'], 'text' => ['de' => 'X', 'en' => 'X']]];
+		$this->writeCatalogue(['0.5.9' => $eintrag, '0.5.10' => $eintrag, '0.4.0' => $eintrag]);
+		$written = [];
+		$service = $this->buildService('0.5.10', [], $written);
+
+		self::assertSame(['0.5.10', '0.5.9', '0.4.0'], array_column($service->getAll()['versions'], 'version'));
+	}
+
+	public function testArchivLaesstLeereVersionenAusUndBlockiertOhneDateiNicht(): void {
+		$this->writeCatalogue([
+			'0.5.1' => [['title' => ['de' => 'Da', 'en' => 'There'], 'text' => ['de' => 'X', 'en' => 'X']]],
+			'0.5.2' => [],
+		]);
+		$written = [];
+		$service = $this->buildService('0.5.4', [], $written);
+		self::assertSame(['0.5.1'], array_column($service->getAll()['versions'], 'version'));
+
+		unlink($this->appDir . '/whatsnew/whatsnew.json');
+		$ohneDatei = $this->buildService('0.5.4', [], $written);
+		self::assertSame(['versions' => []], $ohneDatei->getAll());
+	}
+
 	public function testAppIdBleibtDerAblageortDerMarke(): void {
 		// Die Marke haengt an der App-ID, nicht an einem eigenen Namensraum —
 		// sonst findet sie eine Kopie der Vorlage in einer anderen App nicht.

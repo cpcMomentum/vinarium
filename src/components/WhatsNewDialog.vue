@@ -5,25 +5,32 @@
 		@close="dismiss">
 		<div class="whatsnew">
 			<h2 :id="TITLE_ID">{{ title }}</h2>
-			<p class="whatsnew__version">{{ t('vinarium', 'Version {version}', { version }) }}</p>
 
-			<div v-for="(entry, index) in entries" :key="index" class="whatsnew__entry">
-				<div class="whatsnew__icon">
-					<component :is="iconFor(entry.icon)" :size="22" />
-				</div>
-				<div class="whatsnew__body">
-					<h3 class="whatsnew__entry-title">{{ entry.title }}</h3>
-					<p class="whatsnew__entry-text">{{ entry.text }}</p>
-					<p v-if="entry.where" class="whatsnew__where">
-						{{ t('vinarium', 'Zu finden unter') }}
-						<b>{{ entry.where }}</b><span v-if="entry.adminOnly">{{ ' ' + t('vinarium', '(nur für Administratoren)') }}</span>
-					</p>
+			<p v-if="archive && groups.length === 0" class="whatsnew__empty">
+				{{ t('vinarium', 'Noch keine Neuerungen.') }}
+			</p>
+
+			<div v-for="group in groups" :key="group.version" class="whatsnew__group">
+				<p class="whatsnew__version">{{ t('vinarium', 'Version {version}', { version: group.version }) }}</p>
+
+				<div v-for="(entry, index) in group.entries" :key="group.version + '-' + index" class="whatsnew__entry">
+					<div class="whatsnew__icon">
+						<component :is="iconFor(entry.icon)" :size="22" />
+					</div>
+					<div class="whatsnew__body">
+						<h3 class="whatsnew__entry-title">{{ entry.title }}</h3>
+						<p class="whatsnew__entry-text">{{ entry.text }}</p>
+						<p v-if="entry.where" class="whatsnew__where">
+							{{ t('vinarium', 'Zu finden unter') }}
+							<b>{{ entry.where }}</b><span v-if="entry.adminOnly">{{ ' ' + t('vinarium', '(nur für Administratoren)') }}</span>
+						</p>
+					</div>
 				</div>
 			</div>
 
 			<div class="actions">
 				<NcButton variant="primary" @click="dismiss">
-					{{ t('vinarium', 'Alles klar') }}
+					{{ archive ? t('vinarium', 'Schließen') : t('vinarium', 'Alles klar') }}
 				</NcButton>
 			</div>
 		</div>
@@ -54,8 +61,8 @@ import GridIcon from 'vue-material-design-icons/Grid.vue'
 import MagnifyIcon from 'vue-material-design-icons/Magnify.vue'
 import StarIcon from 'vue-material-design-icons/Star.vue'
 import TranslateIcon from 'vue-material-design-icons/Translate.vue'
-import type { WhatsNewEntry } from '@/types/api'
-import { getWhatsNew, markWhatsNewSeen } from '@/api/whatsnew'
+import type { WhatsNewGroup } from '@/types/api'
+import { getWhatsNew, getWhatsNewArchive, markWhatsNewSeen } from '@/api/whatsnew'
 import { escCloses } from '@/utils/modalEsc'
 
 /**
@@ -88,8 +95,10 @@ const ICONS: Record<string, Component> = {
 }
 
 const open = ref(false)
-const version = ref('')
-const entries = ref<WhatsNewEntry[]>([])
+/** Im Popup genau eine Gruppe (die neueste ungesehene Version), im Archiv alle. */
+const groups = ref<WhatsNewGroup[]>([])
+/** Archiv-Modus (#298): ueber das Menue geoeffnet, nicht das Auto-Popup. */
+const archive = ref(false)
 const title = t('vinarium', 'Was ist neu in Vinarium')
 
 /** Unbekannter oder fehlender Name faellt auf den Stern zurueck. */
@@ -101,8 +110,8 @@ onMounted(async () => {
 	try {
 		const payload = await getWhatsNew()
 		if (payload.entries.length > 0) {
-			version.value = payload.version
-			entries.value = payload.entries
+			groups.value = [{ version: payload.version, entries: payload.entries }]
+			archive.value = false
 			open.value = true
 		}
 	} catch {
@@ -110,8 +119,24 @@ onMounted(async () => {
 	}
 })
 
+/** Alle bisherigen Neuerungen zeigen (#298). Beruehrt keine Marke. */
+async function openArchive(): Promise<void> {
+	try {
+		const payload = await getWhatsNewArchive()
+		groups.value = payload.versions
+		archive.value = true
+		open.value = true
+	} catch {
+		// Kein Fenster ist besser als eine Fehlermeldung ueber Neuerungen.
+	}
+}
+
+/** Schliessen; nur das Popup quittiert, Nachlesen im Archiv nicht. */
 async function dismiss(): Promise<void> {
 	open.value = false
+	if (archive.value) {
+		return
+	}
 	try {
 		await markWhatsNewSeen()
 	} catch {
@@ -119,6 +144,9 @@ async function dismiss(): Promise<void> {
 		// Das ist die harmlosere Seite des Fehlers.
 	}
 }
+
+// Der Menue-Eintrag „Neuerungen" in App.vue ruft dies ueber eine Template-Referenz.
+defineExpose({ openArchive })
 </script>
 
 <style scoped>
@@ -135,6 +163,16 @@ async function dismiss(): Promise<void> {
 	margin: 2px 0 4px;
 	color: var(--color-text-maxcontrast);
 	font-size: 0.9em;
+}
+.whatsnew__empty {
+	margin: 8px 0;
+	color: var(--color-text-maxcontrast);
+}
+/* Im Archiv trennt eine Linie die Versionsbloecke; im Popup gibt es nur einen. */
+.whatsnew__group + .whatsnew__group {
+	margin-top: 16px;
+	padding-top: 10px;
+	border-top: 1px solid var(--color-border);
 }
 .whatsnew__entry {
 	display: flex;

@@ -102,6 +102,36 @@ class WhatsNewService {
 		];
 	}
 
+	/**
+	 * Alle bisherigen Neuerungen, nach Version gruppiert, neueste zuerst (#298).
+	 *
+	 * Fuer den dauerhaften Menue-Eintrag „Neuerungen": Anders als
+	 * {@see getPending} liefert dies das ganze Archiv statt der einen neuesten
+	 * ungesehenen Version. Keine Marke wird beruehrt; Nachlesen ist kein
+	 * Quittieren. Derselbe obere Deckel wie im Popup: Versionen neuer als die
+	 * installierte App bleiben aus. Muster: projektwerk#329.
+	 *
+	 * @return array{versions: list<array{version: string, entries: list<array{title: string, text: string, icon: string, where: string, adminOnly: bool}>}>}
+	 */
+	public function getAll(): array {
+		$current = $this->currentVersion();
+		$versions = [];
+		foreach ($this->catalogue() as $version => $entries) {
+			if (version_compare((string)$version, $current, '>')) {
+				continue;
+			}
+			$localised = $this->localise($entries);
+			if ($localised === []) {
+				continue;
+			}
+			$versions[] = ['version' => (string)$version, 'entries' => $localised];
+		}
+
+		usort($versions, static fn (array $a, array $b): int => version_compare($b['version'], $a['version']));
+
+		return ['versions' => $versions];
+	}
+
 	/** Quittiert das Fenster: die laufende Version gilt als gesehen. */
 	public function markSeen(string $userId): void {
 		$this->config->setUserValue(
