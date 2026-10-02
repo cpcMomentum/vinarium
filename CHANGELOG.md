@@ -14,6 +14,8 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 - Transitive Abhängigkeiten auf gepatchte Versionen gehoben: `axios` 1.20.0, `brace-expansion` 2.1.7 / 5.0.12, `dompurify` 3.4.16. Schließt 17 Dependabot-Sicherheitshinweise, davon 9 mit hoher Einstufung (#306)
 
 ### Changed
+- Build: `appName` und `appVersion` für `@nextcloud/vue` kommen jetzt aus `package.json` (App-ID `vinarium`) und `appinfo/info.xml` statt aus festen Werten (`VINARIUM`, `0.1.0`). Heute ohne sichtbare Wirkung, verhindert aber „VINARIUM 0.1.0“ in einem späteren Einstellungsdialog (#301)
+- Die Schema-Prüfung der `whatsnew.json` läuft jetzt zentral über `nc-whatsnew-check` aus nc-app-tooling v1.17.0 (`npm run whatsnew:check`, in der node-CI). Der PHP-Test prüft nur noch das App-Eigene: bekannte Symbole und kein `plus`-Feld (#296, nc-app-tooling#27)
 - CI: Die Ableitung der getesteten `nextcloud/ocp`-Versionen nutzt jetzt die geteilte Composite Action `ocp-versionen@v1.17.0` aus nc-app-tooling statt einer eigenen Kopie im Workflow. Verhalten unverändert, auch der harte Abbruch bei einer Packagist-unbekannten Version (#295, nc-app-tooling#28)
 - `@nextcloud/vue` 9.11.0 (innerhalb der Spanne `<9.12.0`), `vite` 8.3.1, `sass` 1.105.0 (#300)
 - Abhängigkeiten aktualisiert: `vue` 3.5.43, `eslint` 10.11.0, `nextcloud/ocp` 34.0.4
