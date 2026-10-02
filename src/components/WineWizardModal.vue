@@ -118,6 +118,7 @@ import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { SWEETNESS_LABELS, SWEETNESS_VALUES, WINE_COLORS, WINE_COLOR_LABELS, type Sweetness, type WineColor } from '@/types/api'
 import { useWineStore } from '@/stores/wineStore'
+import { errorMessage } from '@/utils/errorMessage'
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{
@@ -290,8 +291,8 @@ async function complete() {
 
 		emit('complete', { wineId: wine.id, vintageId })
 		emit('close')
-	} catch (e: any) {
-		errorMsg.value = e?.message ?? t('vinarium', 'Anlegen fehlgeschlagen')
+	} catch (e) {
+		errorMsg.value = errorMessage(e, t('vinarium', 'Anlegen fehlgeschlagen'))
 	} finally {
 		saving.value = false
 	}

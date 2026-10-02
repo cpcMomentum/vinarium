@@ -220,6 +220,7 @@ import { BOTTLE_STATUS_LABELS, SWEETNESS_LABELS, SWEETNESS_VALUES, WINE_COLORS, 
 import { useBottleStore } from '@/stores/bottleStore'
 import { useWineStore } from '@/stores/wineStore'
 import { fetchStats, type DashboardStats } from '@/api/dashboard'
+import { errorMessage } from '@/utils/errorMessage'
 
 type SubTab = 'bottles' | 'producers' | 'wines' | 'purchases'
 
@@ -462,8 +463,8 @@ async function doRestore(id: number) {
 	try {
 		await store.restoreBottle(id)
 		wineStore.fetchVintageStock()
-	} catch (e: any) {
-		restoreError.value = e?.message ?? t('vinarium', 'Zurücksetzen fehlgeschlagen')
+	} catch (e) {
+		restoreError.value = errorMessage(e, t('vinarium', 'Zurücksetzen fehlgeschlagen'))
 	}
 }
 

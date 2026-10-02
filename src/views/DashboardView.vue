@@ -226,6 +226,7 @@ import { WINE_COLOR_LABELS, WINE_COLORS, type SearchResult, type SearchResultTyp
 import { formatDate } from '@/utils/date'
 import { cssColorFor } from '@/utils/wineColors'
 import PurchaseWizardModal from '@/components/PurchaseWizardModal.vue'
+import { errorMessage } from '@/utils/errorMessage'
 
 const stats = ref<DashboardStats | null>(null)
 const errorMsg = ref('')
@@ -236,8 +237,8 @@ const currentYear = new Date().getFullYear()
 async function loadStats() {
 	try {
 		stats.value = await fetchStats()
-	} catch (e: any) {
-		errorMsg.value = e?.message ?? JSON.stringify(e)
+	} catch (e) {
+		errorMsg.value = errorMessage(e, JSON.stringify(e))
 		console.error('Dashboard stats error:', e)
 	}
 }

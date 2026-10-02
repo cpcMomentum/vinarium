@@ -191,6 +191,7 @@ import { createPurchaseViaWizard, listVendors } from '@/api/purchases'
 import { uploadVintagePhoto } from '@/api/vintages'
 import CameraIcon from 'vue-material-design-icons/Camera.vue'
 import PhotoCropDialog from '@/components/PhotoCropDialog.vue'
+import { errorMessage } from '@/utils/errorMessage'
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{
@@ -444,8 +445,8 @@ async function complete() {
 		emit('complete', { purchaseId: result.purchase.id, bottleCount: result.bottles.length })
 		clearPhoto()
 		emit('close')
-	} catch (e: any) {
-		errorMsg.value = e?.message ?? t('vinarium', 'Kauf konnte nicht erfasst werden')
+	} catch (e) {
+		errorMsg.value = errorMessage(e, t('vinarium', 'Kauf konnte nicht erfasst werden'))
 	} finally {
 		saving.value = false
 	}

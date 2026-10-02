@@ -63,6 +63,7 @@ import {
 	uploadVintagePhoto,
 	type LabelSide,
 } from '@/api/vintages'
+import { errorMessage } from '@/utils/errorMessage'
 
 const props = withDefaults(defineProps<{
 	vintageId: number
@@ -126,8 +127,8 @@ async function onCropConfirm(file: File) {
 	try {
 		const result = await uploadVintagePhoto(props.vintageId, side, file)
 		emit('changed', side, result.fileId)
-	} catch (e: any) {
-		errorMsg.value = e?.message ?? t('vinarium', 'Upload fehlgeschlagen')
+	} catch (e) {
+		errorMsg.value = errorMessage(e, t('vinarium', 'Upload fehlgeschlagen'))
 	} finally {
 		busy.value = false
 	}
@@ -139,8 +140,8 @@ async function onRemove(side: LabelSide) {
 	try {
 		await deleteVintagePhoto(props.vintageId, side)
 		emit('changed', side, null)
-	} catch (e: any) {
-		errorMsg.value = e?.message ?? t('vinarium', 'Entfernen fehlgeschlagen')
+	} catch (e) {
+		errorMsg.value = errorMessage(e, t('vinarium', 'Entfernen fehlgeschlagen'))
 	} finally {
 		busy.value = false
 	}

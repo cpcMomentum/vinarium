@@ -241,9 +241,10 @@ import { updateProducer } from '@/api/producers'
 import { updateWine } from '@/api/wines'
 import { updateVintage } from '@/api/vintages'
 import { updatePurchase } from '@/api/purchases'
-import { BOTTLE_SIZE_LABELS, BOTTLE_STATUS_LABELS, SWEETNESS_LABELS, SWEETNESS_VALUES, WINE_COLORS, WINE_COLOR_LABELS, type BottleSizeMl, type WineColor, type BottleStatus } from '@/types/api'
+import { BOTTLE_SIZE_LABELS, BOTTLE_STATUS_LABELS, SWEETNESS_LABELS, SWEETNESS_VALUES, WINE_COLORS, WINE_COLOR_LABELS, type BottleSizeMl, type WineColor, type BottleStatus, type Sweetness } from '@/types/api'
 import { cssColorFor } from '@/utils/wineColors'
 import { formatDate } from '@/utils/date'
+import { errorMessage } from '@/utils/errorMessage'
 
 type TabKey = 'bottle' | 'producer' | 'wine' | 'vintage' | 'purchase'
 
@@ -272,7 +273,30 @@ const error = ref<string | null>(null)
 const activeTab = ref<TabKey>(props.initialTab)
 const saving = ref(false)
 const editError = ref<string | null>(null)
-const form = ref<Record<string, any>>({})
+// Jeder Tab befuellt nur seinen Abschnitt, daher alle Felder optional.
+interface SectionForm {
+	producer_name?: string
+	producer_country?: string
+	producer_region?: string
+	producer_website?: string
+	wine_name?: string
+	wine_color?: string
+	appellation?: string
+	year?: number
+	alcohol_percent?: number | null
+	grape_varieties?: string
+	sweetness?: Sweetness | ''
+	drink_from_year?: number | null
+	drink_until_year?: number | null
+	external_rating?: number | null
+	external_rating_source?: string
+	purchased_at?: string
+	vendor?: string
+	unit_price?: number | null
+	currency?: string
+	bottle_size_ml?: BottleSizeMl
+}
+const form = ref<SectionForm>({})
 
 const open = computed(() => props.bottleId !== null)
 
@@ -317,8 +341,8 @@ watch(() => props.bottleId, async (id) => {
 	try {
 		detail.value = await getBottleDetails(id)
 		prefillForm()
-	} catch (e: any) {
-		error.value = e?.message ?? t('vinarium', 'Fehler beim Laden')
+	} catch (e) {
+		error.value = errorMessage(e, t('vinarium', 'Fehler beim Laden'))
 	} finally {
 		loading.value = false
 	}
@@ -360,7 +384,7 @@ function prefillForm() {
 			vendor: d.vendor ?? '',
 			unit_price: d.unit_price,
 			currency: d.currency ?? 'EUR',
-			bottle_size_ml: d.bottle_size_ml,
+			bottle_size_ml: d.bottle_size_ml as BottleSizeMl,
 		}
 	}
 	editError.value = null
@@ -409,8 +433,8 @@ async function saveSection() {
 		detail.value = await getBottleDetails(detail.value.id)
 		prefillForm()
 		emit('data-changed')
-	} catch (e: any) {
-		editError.value = e?.response?.data?.error ?? e?.message ?? t('vinarium', 'Speichern fehlgeschlagen')
+	} catch (e) {
+		editError.value = errorMessage(e, t('vinarium', 'Speichern fehlgeschlagen'))
 	} finally {
 		saving.value = false
 	}
