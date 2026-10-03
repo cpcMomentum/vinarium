@@ -10,7 +10,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 vi.mock('@nextcloud/vue/components/NcModal', () => ({
 	default: {
 		name: 'NcModal',
-		props: ['name'],
+		props: ['name', 'labelId'],
 		emits: ['close'],
 		template: '<div class="stub-modal"><slot /></div>',
 	},
@@ -124,5 +124,19 @@ describe('PhotoCropDialog', () => {
 
 		expect(wrapper.find('.stub-cropper').exists()).toBe(true)
 		expect(wrapper.find('.crop-dialog__error').exists()).toBe(false)
+	})
+
+	it('beschriftet NcModal ueber die eigene sichtbare Ueberschrift', async () => {
+		const wrapper = mount(PhotoCropDialog, { props: { open: true, file: datei('etikett.jpg', 'image/jpeg') } })
+		await warteAufLesen()
+		aufloesen('ok')
+		await flushPromises()
+
+		const modal = wrapper.findComponent({ name: 'NcModal' })
+		expect(modal.props('name')).toBeUndefined()
+		const titel = wrapper.find('h2')
+		expect(titel.text()).toBe('Foto zuschneiden')
+		expect(modal.props('labelId')).toBe(titel.attributes('id'))
+		expect(titel.attributes('id')).toBeTruthy()
 	})
 })

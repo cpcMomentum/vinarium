@@ -1,7 +1,7 @@
 <template>
-	<NcModal v-if="open" :name="title" @keydown.esc="e => escCloses(e, () => $emit('close'))" @close="$emit('close')">
+	<NcModal v-if="open" :labelId="titleId" @keydown.esc="e => escCloses(e, () => $emit('close'))" @close="$emit('close')">
 		<div class="edit-modal">
-			<h2>{{ title }}</h2>
+			<h2 :id="titleId">{{ title }}</h2>
 
 			<template v-if="type === 'producer' && producer">
 				<label class="field"><span>{{ t('vinarium', 'Name *') }}</span><input v-model="producer.name" class="input" /></label>
@@ -102,7 +102,7 @@
 
 <script setup lang="ts">
 import { escCloses } from '@/utils/modalEsc'
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, useId } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import LabelPhotoEditor from '@/components/LabelPhotoEditor.vue'
 import type { LabelSide } from '@/api/vintages'
@@ -111,6 +111,9 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import { SWEETNESS_LABELS, SWEETNESS_VALUES, WINE_COLORS, WINE_COLOR_LABELS, type Producer, type PurchaseListItem, type Sweetness, type Vintage, type Wine } from '@/types/api'
 import { useWineStore } from '@/stores/wineStore'
 import { listVendors } from '@/api/purchases'
+
+// NcModal :name baut eine Kopfzeile, die ueber der Nextcloud-Leiste schwebt (#314).
+const titleId = useId()
 
 type EntityType = 'producer' | 'wine' | 'vintage' | 'purchase'
 
