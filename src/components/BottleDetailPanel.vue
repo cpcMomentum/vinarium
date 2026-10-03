@@ -1,14 +1,14 @@
 <template>
 	<NcModal
 		v-if="open"
-		:name="modalTitle"
+		:labelId="titleId"
 		size="large"
 		@keydown.esc="e => escCloses(e, () => $emit('close'))"
 		@close="$emit('close')"
 	>
 		<div class="bd-modal">
 			<div v-if="loading" class="bd-loading">
-				<p class="muted">{{ t('vinarium', 'Laden…') }}</p>
+				<p :id="titleId" class="muted">{{ t('vinarium', 'Laden…') }}</p>
 			</div>
 
 			<template v-else-if="detail">
@@ -30,7 +30,7 @@
 						>›</button>
 					</div>
 					<span class="bd-dot" :style="{ background: cssColorFor(detail.wine_color) }"></span>
-					<div class="bd-title">
+					<div :id="titleId" class="bd-title">
 						<div>
 							<strong class="bd-wine">{{ detail.wine_name }}</strong>
 							<span class="bd-year muted">{{ detail.year }}</span>
@@ -221,7 +221,7 @@
 			</template>
 
 			<div v-else-if="error" class="bd-hint">
-				<p class="muted">{{ error }}</p>
+				<p :id="titleId" class="muted">{{ error }}</p>
 			</div>
 		</div>
 
@@ -230,7 +230,7 @@
 
 <script setup lang="ts">
 import { escCloses } from '@/utils/modalEsc'
-import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { computed, ref, watch, onMounted, onBeforeUnmount, useId } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -245,6 +245,9 @@ import { BOTTLE_SIZE_LABELS, BOTTLE_STATUS_LABELS, SWEETNESS_LABELS, SWEETNESS_V
 import { cssColorFor } from '@/utils/wineColors'
 import { formatDate } from '@/utils/date'
 import { errorMessage } from '@/utils/errorMessage'
+
+// NcModal :name baut eine Kopfzeile, die ueber der Nextcloud-Leiste schwebt (#314).
+const titleId = useId()
 
 type TabKey = 'bottle' | 'producer' | 'wine' | 'vintage' | 'purchase'
 
@@ -313,10 +316,6 @@ const navIndex = computed(() => {
 	return props.bottleIds.indexOf(props.bottleId)
 })
 const totalCount = computed(() => props.bottleIds.length)
-
-const modalTitle = computed(() => detail.value
-	? `${detail.value.wine_name} ${detail.value.year}`
-	: t('vinarium', 'Flasche'))
 
 /** Write one side back into the loaded detail without refetching. */
 function onLabelPhotoChanged(side: LabelSide, fileId: number | null) {

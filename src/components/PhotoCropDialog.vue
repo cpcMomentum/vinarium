@@ -1,6 +1,7 @@
 <template>
-	<NcModal v-if="open" :name="t('vinarium', 'Foto zuschneiden')" @keydown.esc="e => escCloses(e, cancel)" @close="cancel">
+	<NcModal v-if="open" :labelId="titleId" @keydown.esc="e => escCloses(e, cancel)" @close="cancel">
 		<div class="crop-dialog">
+			<h2 :id="titleId" class="crop-dialog__title">{{ t('vinarium', 'Foto zuschneiden') }}</h2>
 			<p v-if="imageSrc || !errorMsg" class="crop-dialog__hint">
 				{{ aspectRatio === null
 					? t('vinarium', 'Wähle den Etiketten-Ausschnitt — frei wählbares Verhältnis.')
@@ -35,12 +36,15 @@
 
 <script setup lang="ts">
 import { escCloses } from '@/utils/modalEsc'
-import { ref, watch } from 'vue'
+import { ref, watch, useId } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import VueCropperModule from 'vue-cropperjs'
 import 'cropperjs/dist/cropper.css'
+
+// NcModal :name baut eine Kopfzeile, die ueber der Nextcloud-Leiste schwebt (#314).
+const titleId = useId()
 
 // vue-cropperjs ships only CommonJS (exports.default = component), it provides no
 // ESM entry. Under Vite 8's default-interop the namespace can arrive as
@@ -160,6 +164,9 @@ function confirm() {
 	display: flex;
 	flex-direction: column;
 	gap: 14px;
+}
+.crop-dialog__title {
+	margin: 0;
 }
 .crop-dialog__hint {
 	font-size: 13.5px;

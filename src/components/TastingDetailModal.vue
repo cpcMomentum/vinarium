@@ -1,17 +1,17 @@
 <template>
-	<NcModal v-if="open" :name="detail ? detail.wine_name + ' ' + detail.year : t('vinarium', 'Laden…')" @keydown.esc="e => escCloses(e, () => $emit('close'))" @close="$emit('close')">
+	<NcModal v-if="open" :labelId="titleId" @keydown.esc="e => escCloses(e, () => $emit('close'))" @close="$emit('close')">
 		<div v-if="loading" class="detail-modal detail-modal--loading">
-			<p class="muted">{{ t('vinarium', 'Laden…') }}</p>
+			<p :id="titleId" class="muted">{{ t('vinarium', 'Laden…') }}</p>
 		</div>
 		<div v-else-if="error" class="detail-modal detail-modal--loading">
-			<p class="error-text">{{ t('vinarium', 'Fehler beim Laden der Verkostung.') }}</p>
+			<p :id="titleId" class="error-text">{{ t('vinarium', 'Fehler beim Laden der Verkostung.') }}</p>
 		</div>
 		<div v-else-if="detail" class="detail-modal">
 			<!-- Header -->
 			<div class="detail-modal__header">
 				<div class="detail-modal__wine">
 					<span class="dot" :style="{ background: cssColorFor(detail.wine_color) }"></span>
-					<h2>{{ detail.wine_name }} <span class="year">{{ detail.year }}</span></h2>
+					<h2 :id="titleId">{{ detail.wine_name }} <span class="year">{{ detail.year }}</span></h2>
 				</div>
 				<div class="detail-modal__meta">
 					<span class="producer">{{ detail.producer_name }}</span>
@@ -129,7 +129,7 @@
 
 <script setup lang="ts">
 import { escCloses } from '@/utils/modalEsc'
-import { ref, watch } from 'vue'
+import { ref, watch, useId } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import { formatDate } from '@/utils/date'
 import NcModal from '@nextcloud/vue/components/NcModal'
@@ -137,6 +137,9 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import { getTastingDetails, tastingPhotoThumbnailUrl, tastingPhotoFullUrl, type TastingDetail } from '@/api/tastings'
 import { BOTTLE_SIZE_LABELS, WINE_COLOR_LABELS, type BottleSizeMl, type WineColor } from '@/types/api'
 import { cssColorFor } from '@/utils/wineColors'
+
+// NcModal :name baut eine Kopfzeile, die ueber der Nextcloud-Leiste schwebt (#314).
+const titleId = useId()
 
 const props = defineProps<{
 	open: boolean
