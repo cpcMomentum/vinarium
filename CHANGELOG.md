@@ -26,6 +26,7 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 - Mindestversion auf **Nextcloud 33** angehoben (`min-version`; `max-version` bleibt 35). Ohne `<database>`-Deklaration begrenzt NC bei min-version 32 Bezeichnernamen auf die scharfen Oracle-11-Grenzen (30/27/22 Zeichen); seit NC 33 gilt stattdessen eine glatte 63 (nextcloud/server#51593), zudem korrigiert NC 33 die NOT-NULL-Boolean-Behandlung selbst. Oracle bleibt installierbar (kein `<database>`-Ausschluss). Preis: NC-32-Nutzer erhalten kein Update mehr; Produktivinstanzen laufen auf NC 34 (nc-app-tooling#15)
 
 ### Fixed
+- Die Apache-2.0-Attribution des App-Symbols (mdi-grapes) wird jetzt mit ausgeliefert. Sie stand bisher in `THIRD_PARTY_NOTICES.md`, die beim Packen still herausfiel; jetzt steht sie in der `README.md`
 - Dialog-Titel schweben nicht mehr über der Suchleiste der Nextcloud-Kopfzeile. Alle acht Dialoge benennen sich jetzt über ihre eigene Überschrift (`labelId` statt `name`); der Foto-Zuschnitt hat dafür eine sichtbare Überschrift bekommen (#314)
 - Etikett-Foto: Ein Bildformat, das der Browser nicht anzeigen kann (z. B. HEIC vom iPhone in Chrome oder Firefox), führt nicht mehr zu einem leeren Zuschnitt-Fenster mit stumm scheiterndem „Übernehmen“. Stattdessen erscheint eine verständliche Meldung mit der Bitte um JPG oder PNG, und „Übernehmen“ bleibt gesperrt (#276)
 
