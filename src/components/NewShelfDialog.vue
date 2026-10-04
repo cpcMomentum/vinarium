@@ -75,6 +75,7 @@ import { translate as t } from '@nextcloud/l10n'
 import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { createShelf, type LevelConfig } from '@/api/cellar'
+import { errorMessage } from '@/utils/errorMessage'
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{ close: []; created: [] }>()
@@ -138,8 +139,8 @@ async function submit() {
 		await createShelf(name.value.trim(), compartmentCount.value, levelsConfig.value)
 		emit('created')
 		emit('close')
-	} catch (e: any) {
-		errorMsg.value = e?.message ?? t('vinarium', 'Fehler beim Anlegen')
+	} catch (e) {
+		errorMsg.value = errorMessage(e, t('vinarium', 'Fehler beim Anlegen'))
 	} finally {
 		saving.value = false
 	}

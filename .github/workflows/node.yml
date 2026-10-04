@@ -20,7 +20,7 @@ jobs:
   lint-and-build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           # Node 24 aus zwei Gruenden, die beide zaehlen:
@@ -59,6 +59,11 @@ jobs:
       # und bleiben beim Entwickeln unsichtbar, weil auf Deutsch getestet wird.
       - name: l10n-Vollstaendigkeit
         run: npm run l10n:check
+
+      # Schema der whatsnew.json des „Was ist neu?"-Fensters — zentral seit
+      # nc-app-tooling#27 (v1.17.0), vorher als PHPUnit-Methode in jeder App.
+      - name: Was-ist-neu-Schema
+        run: npm run whatsnew:check
 
       - name: Typecheck
         run: npm run typecheck

@@ -49,6 +49,7 @@ import NcDialog from '@nextcloud/vue/components/NcDialog'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { reconfigureCompartment, type LevelConfig } from '@/api/cellar'
 import type { CompartmentWithLevels } from '@/types/api'
+import { errorMessage } from '@/utils/errorMessage'
 
 const props = defineProps<{ open: boolean; compartment: CompartmentWithLevels }>()
 const emit = defineEmits<{ close: []; reconfigured: [movedCount: number] }>()
@@ -101,8 +102,8 @@ async function submit() {
 		const { movedToParkzone } = await reconfigureCompartment(props.compartment.compartment.id, editLevels.value)
 		emit('reconfigured', movedToParkzone)
 		emit('close')
-	} catch (e: any) {
-		errorMsg.value = e?.message ?? t('vinarium', 'Fehler beim Speichern')
+	} catch (e) {
+		errorMsg.value = errorMessage(e, t('vinarium', 'Fehler beim Speichern'))
 	} finally {
 		saving.value = false
 	}

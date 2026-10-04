@@ -1,7 +1,7 @@
 <template>
-	<NcModal v-if="open" :name="title" @keydown.esc="e => escCloses(e, () => $emit('close'))" @close="$emit('close')">
+	<NcModal v-if="open" :labelId="titleId" @keydown.esc="e => escCloses(e, () => $emit('close'))" @close="$emit('close')">
 		<div class="event-dialog">
-			<h2>{{ title }}</h2>
+			<h2 :id="titleId">{{ title }}</h2>
 			<p class="muted">
 				{{ mode === 'gift'
 					? t('vinarium', 'Die Flasche wird als „verschenkt“ markiert und der Slot freigegeben.')
@@ -49,11 +49,15 @@
 
 <script setup lang="ts">
 import { escCloses } from '@/utils/modalEsc'
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, useId } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { giftBottle, loseBottle, fetchGiftRecipients } from '@/api/bottles'
+import { errorMessage } from '@/utils/errorMessage'
+
+// NcModal :name baut eine Kopfzeile, die ueber der Nextcloud-Leiste schwebt (#314).
+const titleId = useId()
 
 const props = defineProps<{
 	open: boolean
@@ -116,8 +120,8 @@ async function submit() {
 		}
 		emit('done')
 		emit('close')
-	} catch (e: any) {
-		submitError.value = e?.message ?? t('vinarium', 'Speichern fehlgeschlagen')
+	} catch (e) {
+		submitError.value = errorMessage(e, t('vinarium', 'Speichern fehlgeschlagen'))
 	} finally {
 		saving.value = false
 	}

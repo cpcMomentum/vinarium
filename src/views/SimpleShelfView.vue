@@ -311,12 +311,13 @@ import BottleDetailPanel from '@/components/BottleDetailPanel.vue'
 import TastingDialog from '@/components/TastingDialog.vue'
 import BottleEventDialog from '@/components/BottleEventDialog.vue'
 import ConfirmDialog from '@/components/ConfirmDialog.vue'
-import type { BottleListItem, CompartmentWithLevels, Level, Slot } from '@/types/api'
+import type { ApiError, BottleListItem, CompartmentWithLevels, Level, Slot } from '@/types/api'
 import type { CellarResponse } from '@/api/cellar'
 import { addCompartment, destroyCompartment, destroyShelf, fetchCellar, fetchSlots, reorderShelves, updateCompartment, updateShelf } from '@/api/cellar'
 import { useBottleStore } from '@/stores/bottleStore'
 import { cssColorFor, cssSlotGradient } from '@/utils/wineColors'
 import { getVintagePhotoUrl } from '@/api/vintages'
+import { errorMessage } from '@/utils/errorMessage'
 
 const store = useBottleStore()
 
@@ -547,9 +548,9 @@ async function applyShelfOrder(sourceId: number, to: number) {
 	errorMsg.value = ''
 	try {
 		await reorderShelves(cellarId.value, order)
-	} catch (e: any) {
+	} catch (e) {
 		shelves.value = previous
-		errorMsg.value = e?.message ?? t('vinarium', 'Reihenfolge konnte nicht gespeichert werden')
+		errorMsg.value = errorMessage(e, t('vinarium', 'Reihenfolge konnte nicht gespeichert werden'))
 	} finally {
 		draggedShelfId.value = null
 	}
@@ -579,8 +580,8 @@ async function onDrop(slotId: number) {
 			await store.moveBottle(bottleId, slotId)
 			await store.fetchBottles({ status: 'in_storage' })
 		}
-	} catch (e: any) {
-		errorMsg.value = e?.message ?? t('vinarium', 'Verschieben fehlgeschlagen')
+	} catch (e) {
+		errorMsg.value = errorMessage(e, t('vinarium', 'Verschieben fehlgeschlagen'))
 	} finally {
 		selectedBottleId.value = null
 		draggedBottleId.value = null
@@ -599,8 +600,8 @@ async function onDropToParkzone() {
 	try {
 		await store.moveBottle(bottleId, null)
 		await store.fetchBottles({ status: 'in_storage' })
-	} catch (e: any) {
-		errorMsg.value = e?.message ?? t('vinarium', 'Verschieben fehlgeschlagen')
+	} catch (e) {
+		errorMsg.value = errorMessage(e, t('vinarium', 'Verschieben fehlgeschlagen'))
 	} finally {
 		selectedBottleId.value = null
 		draggedBottleId.value = null
@@ -728,8 +729,8 @@ async function commitRename() {
 	try {
 		await updateShelf(id, newName)
 		await reload()
-	} catch (e: any) {
-		errorMsg.value = e?.message ?? t('vinarium', 'Umbenennen fehlgeschlagen')
+	} catch (e) {
+		errorMsg.value = errorMessage(e, t('vinarium', 'Umbenennen fehlgeschlagen'))
 	}
 }
 
@@ -757,8 +758,8 @@ async function commitCompartmentRename() {
 	try {
 		await updateCompartment(id, newLabel)
 		await reload()
-	} catch (e: any) {
-		errorMsg.value = e?.message ?? t('vinarium', 'Umbenennen fehlgeschlagen')
+	} catch (e) {
+		errorMsg.value = errorMessage(e, t('vinarium', 'Umbenennen fehlgeschlagen'))
 	}
 }
 
@@ -778,8 +779,8 @@ async function performDeleteShelf() {
 		await destroyShelf(activeShelf.value.shelf.id)
 		await reload()
 		await store.fetchBottles({ status: 'in_storage' })
-	} catch (e: any) {
-		errorMsg.value = e?.message ?? t('vinarium', 'Löschen fehlgeschlagen')
+	} catch (e) {
+		errorMsg.value = errorMessage(e, t('vinarium', 'Löschen fehlgeschlagen'))
 	}
 }
 
@@ -806,8 +807,8 @@ async function onAddCompartment() {
 		]
 		await addCompartment(activeShelf.value.shelf.id, defaultLevels)
 		await reload()
-	} catch (e: any) {
-		errorMsg.value = e?.message ?? t('vinarium', 'Fach hinzufügen fehlgeschlagen')
+	} catch (e) {
+		errorMsg.value = errorMessage(e, t('vinarium', 'Fach hinzufügen fehlgeschlagen'))
 	} finally {
 		addingCompartment.value = false
 	}
@@ -827,8 +828,8 @@ async function performDeleteCompartment() {
 		await destroyCompartment(target.compartment.id)
 		await reload()
 		await store.fetchBottles({ status: 'in_storage' })
-	} catch (e: any) {
-		errorMsg.value = e?.message ?? t('vinarium', 'Fach löschen fehlgeschlagen')
+	} catch (e) {
+		errorMsg.value = errorMessage(e, t('vinarium', 'Fach löschen fehlgeschlagen'))
 	}
 }
 
@@ -856,13 +857,13 @@ async function reload() {
 			activeShelfId.value = shelves.value[0]?.shelf.id ?? null
 		}
 		await loadAllSlots()
-	} catch (e: any) {
-		if (e?.status === 404) {
+	} catch (e) {
+		if ((e as Partial<ApiError> | null)?.status === 404) {
 			shelves.value = []
 			activeShelfId.value = null
 			allSlots.value = []
 		} else {
-			errorMsg.value = e?.message ?? t('vinarium', 'Fehler beim Laden')
+			errorMsg.value = errorMessage(e, t('vinarium', 'Fehler beim Laden'))
 		}
 	}
 }

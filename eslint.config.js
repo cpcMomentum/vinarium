@@ -85,14 +85,7 @@ export default [
 		name: 'vinarium/typescript-regeln',
 		...(tsPlugin ? { plugins: { '@typescript-eslint': tsPlugin } } : {}),
 		rules: {
-			/*
-			 * 26 Stellen, ueberwiegend `Record<string, any>` in Formular-Objekten.
-			 * Sie ordentlich zu typisieren ist ein Umbau in den Komponenten, kein
-			 * Aufraeumen — und `any` hebelt die Typpruefung dort tatsaechlich aus.
-			 * Deshalb sichtbar als Warnung statt abgeschaltet oder vorgetaeuscht
-			 * behoben, siehe #232.
-			 */
-			'@typescript-eslint/no-explicit-any': 'warn',
+			'@typescript-eslint/no-explicit-any': 'error',
 			/*
 			 * Absichtlich unbenutzte Parameter mit Unterstrich-Praefix zulassen. Das
 			 * ist die uebliche Kennzeichnung und steht so auch im generischen

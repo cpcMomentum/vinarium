@@ -1,7 +1,7 @@
 <template>
-	<NcModal v-if="open" :name="editMode ? t('vinarium', 'Verkostung bearbeiten') : t('vinarium', 'Flasche öffnen + Verkostung')" @keydown.esc="e => escCloses(e, () => $emit('close'))" @close="$emit('close')">
+	<NcModal v-if="open" :labelId="titleId" @keydown.esc="e => escCloses(e, () => $emit('close'))" @close="$emit('close')">
 		<div class="tasting-dialog">
-			<h2>{{ editMode ? t('vinarium', 'Verkostung bearbeiten') : t('vinarium', 'Flasche öffnen + Verkostung') }}</h2>
+			<h2 :id="titleId">{{ editMode ? t('vinarium', 'Verkostung bearbeiten') : t('vinarium', 'Flasche öffnen + Verkostung') }}</h2>
 			<p v-if="!editMode" class="muted">{{ t('vinarium', 'Die Flasche wird als „getrunken“ markiert und der Slot freigegeben.') }}</p>
 
 			<fieldset class="fieldset">
@@ -83,12 +83,16 @@
 
 <script setup lang="ts">
 import { escCloses } from '@/utils/modalEsc'
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, useId } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { consumeWithTasting, updateTasting, uploadTastingPhoto, deleteTastingPhoto, tastingPhotoThumbnailUrl } from '@/api/tastings'
 import type { TastingListItem } from '@/api/tastings'
+import { errorMessage } from '@/utils/errorMessage'
+
+// NcModal :name baut eine Kopfzeile, die ueber der Nextcloud-Leiste schwebt (#314).
+const titleId = useId()
 
 const props = defineProps<{
 	open: boolean
@@ -245,8 +249,8 @@ async function submit() {
 			const photosOk = await uploadPendingPhotos(result.tasting.id)
 			if (photosOk) emit('close')
 		}
-	} catch (e: any) {
-		submitError.value = e?.message ?? t('vinarium', 'Speichern fehlgeschlagen')
+	} catch (e) {
+		submitError.value = errorMessage(e, t('vinarium', 'Speichern fehlgeschlagen'))
 	} finally {
 		saving.value = false
 	}

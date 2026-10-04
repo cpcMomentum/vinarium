@@ -1,4 +1,62 @@
 {
+	"0.5.5": [
+		{
+			"title": {
+				"de": "Neuerungen jederzeit nachlesen",
+				"en": "Read what's new at any time"
+			},
+			"text": {
+				"de": "Unten links in der Navigation öffnet „Neuerungen“ alle bisherigen Hinweise, nach Version sortiert.",
+				"en": "Bottom left in the navigation, “What's new” opens all previous notes, sorted by version."
+			},
+			"icon": "star",
+			"where": {
+				"de": "Navigation unten links",
+				"en": "Navigation, bottom left"
+			}
+		},
+		{
+			"title": {
+				"de": "Australischer Dollar",
+				"en": "Australian dollar"
+			},
+			"text": {
+				"de": "Käufe lassen sich jetzt auch in AUD erfassen und bearbeiten.",
+				"en": "Purchases can now also be recorded and edited in AUD."
+			},
+			"icon": "bottle-wine",
+			"where": {
+				"de": "Kauf erfassen",
+				"en": "Record purchase"
+			}
+		},
+		{
+			"title": {
+				"de": "Klare Meldung bei HEIC-Fotos",
+				"en": "Clear notice for HEIC photos"
+			},
+			"text": {
+				"de": "Kann dein Browser ein Foto nicht anzeigen, etwa HEIC vom iPhone, sagt Vinarium das jetzt und bittet um JPG oder PNG.",
+				"en": "If your browser cannot display a photo, such as HEIC from an iPhone, Vinarium now tells you and asks for JPG or PNG."
+			},
+			"icon": "camera",
+			"where": {
+				"de": "Etiketten-Foto",
+				"en": "Label photo"
+			}
+		},
+		{
+			"title": {
+				"de": "Bereit für Nextcloud 35",
+				"en": "Ready for Nextcloud 35"
+			},
+			"text": {
+				"de": "Vinarium läuft jetzt auf Nextcloud 33 bis 35.",
+				"en": "Vinarium now runs on Nextcloud 33 to 35."
+			},
+			"icon": "cog"
+		}
+	],
 	"0.5.4": [
 		{
 			"title": {

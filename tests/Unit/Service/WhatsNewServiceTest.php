@@ -375,6 +375,16 @@ class WhatsNewServiceTest extends TestCase {
 		self::assertSame('0.5.4', $written['alice/' . WhatsNewService::KEY_LAST_SEEN] ?? null);
 	}
 
+	/**
+	 * Nur noch das App-Spezifische. Das Schema (de/en-Pflicht, `where`
+	 * zweisprachig, Versionsschluessel `x.y.z`, `plus` boolean) prueft seit
+	 * nc-app-tooling#27 zentral `nc-whatsnew-check` (`npm run whatsnew:check`,
+	 * in der node-CI). Hier bleibt, was der zentrale Check bewusst nicht prueft:
+	 *
+	 * - die **Icon-Whitelist** (`BEKANNTE_SYMBOLE` kennt nur `WhatsNewDialog.vue`);
+	 * - dass `plus` in dieser App **verboten** ist — der zentrale Check prueft nur
+	 *   „wenn `plus` da, dann boolean", nicht Pflicht oder Verbot.
+	 */
 	public function testDieAusgelieferteDateiIstGueltig(): void {
 		$file = dirname(__DIR__, 3) . '/whatsnew/whatsnew.json';
 		self::assertFileExists($file);
@@ -384,23 +394,8 @@ class WhatsNewServiceTest extends TestCase {
 		self::assertNotEmpty($catalogue);
 
 		foreach ($catalogue as $version => $entries) {
-			self::assertMatchesRegularExpression('/^\d+\.\d+\.\d+$/', (string)$version);
 			self::assertIsArray($entries);
 			foreach ($entries as $entry) {
-				// de und en sind Pflicht (Konzept v1.1, Abschnitt 2).
-				foreach (['title', 'text'] as $field) {
-					self::assertArrayHasKey($field, $entry);
-					self::assertArrayHasKey('de', $entry[$field], "$version: $field braucht de");
-					self::assertArrayHasKey('en', $entry[$field], "$version: $field braucht en");
-					self::assertNotSame('', trim((string)$entry[$field]['de']));
-					self::assertNotSame('', trim((string)$entry[$field]['en']));
-				}
-
-				// Fundort ist optional, aber wenn da, dann zweisprachig.
-				if (isset($entry['where'])) {
-					self::assertArrayHasKey('de', $entry['where'], "$version: where braucht de");
-					self::assertArrayHasKey('en', $entry['where'], "$version: where braucht en");
-				}
 				// Symbol muss der Dialog kennen, sonst erscheint stumm der Stern.
 				if (isset($entry['icon'])) {
 					self::assertContains($entry['icon'], self::BEKANNTE_SYMBOLE, "$version: unbekanntes Symbol");
@@ -410,6 +405,71 @@ class WhatsNewServiceTest extends TestCase {
 				self::assertArrayNotHasKey('plus', $entry, "$version: plus gehoert nicht nach Vinarium");
 			}
 		}
+	}
+
+	public function testArchivLiefertAlleVersionenNeuesteZuerst(): void {
+		$this->writeCatalogue($this->catalogueFixture());
+		$written = [];
+		$service = $this->buildService('0.5.4', [], $written);
+
+		$archive = $service->getAll();
+
+		self::assertSame(['0.5.4', '0.5.1'], array_column($archive['versions'], 'version'));
+		self::assertCount(2, $archive['versions'][0]['entries']);
+		self::assertSame('Etikett mit zwei Seiten', $archive['versions'][0]['entries'][0]['title']);
+		self::assertSame('Aelter DE', $archive['versions'][1]['entries'][0]['title']);
+	}
+
+	public function testArchivLaesstVersionenAusDerZukunftAus(): void {
+		$this->writeCatalogue($this->catalogueFixture());
+		$written = [];
+		$service = $this->buildService('0.5.3', [], $written);
+
+		self::assertSame(['0.5.1'], array_column($service->getAll()['versions'], 'version'));
+	}
+
+	public function testArchivBeruehrtKeineMarke(): void {
+		$this->writeCatalogue($this->catalogueFixture());
+		$written = [];
+		$service = $this->buildService('0.5.4', ['alice/' . WhatsNewService::KEY_LAST_SEEN => '0.5.1'], $written);
+
+		$service->getAll();
+
+		self::assertSame([], $written);
+	}
+
+	public function testArchivFolgtDerSprache(): void {
+		$this->writeCatalogue($this->catalogueFixture());
+		$written = [];
+		$service = $this->buildService('0.5.4', [], $written, 'en');
+
+		$archive = $service->getAll();
+
+		self::assertSame('Label with two sides', $archive['versions'][0]['entries'][0]['title']);
+		self::assertSame('Inventory', $archive['versions'][0]['entries'][0]['where']);
+	}
+
+	public function testArchivSortiertVersionenNumerischNichtAlsText(): void {
+		$eintrag = [['title' => ['de' => 'T', 'en' => 'T'], 'text' => ['de' => 'X', 'en' => 'X']]];
+		$this->writeCatalogue(['0.5.9' => $eintrag, '0.5.10' => $eintrag, '0.4.0' => $eintrag]);
+		$written = [];
+		$service = $this->buildService('0.5.10', [], $written);
+
+		self::assertSame(['0.5.10', '0.5.9', '0.4.0'], array_column($service->getAll()['versions'], 'version'));
+	}
+
+	public function testArchivLaesstLeereVersionenAusUndBlockiertOhneDateiNicht(): void {
+		$this->writeCatalogue([
+			'0.5.1' => [['title' => ['de' => 'Da', 'en' => 'There'], 'text' => ['de' => 'X', 'en' => 'X']]],
+			'0.5.2' => [],
+		]);
+		$written = [];
+		$service = $this->buildService('0.5.4', [], $written);
+		self::assertSame(['0.5.1'], array_column($service->getAll()['versions'], 'version'));
+
+		unlink($this->appDir . '/whatsnew/whatsnew.json');
+		$ohneDatei = $this->buildService('0.5.4', [], $written);
+		self::assertSame(['versions' => []], $ohneDatei->getAll());
 	}
 
 	public function testAppIdBleibtDerAblageortDerMarke(): void {

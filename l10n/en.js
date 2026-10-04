@@ -364,6 +364,9 @@ OC.L10N.register(
     "Zu finden unter" : "Found under",
     "(nur für Administratoren)" : "(administrators only)",
     "Alles klar" : "Got it",
-    "Was ist neu in Vinarium" : "What's new in Vinarium"
+    "Was ist neu in Vinarium" : "What's new in Vinarium",
+    "Dieses Bildformat kann dein Browser nicht anzeigen (z. B. HEIC vom iPhone). Bitte lade das Foto als JPG oder PNG hoch." : "Your browser cannot display this image format (e.g. HEIC from an iPhone). Please upload the photo as JPG or PNG.",
+    "Neuerungen" : "What's new",
+    "Noch keine Neuerungen." : "No news yet."
 },
 "nplurals=2; plural=(n != 1);");

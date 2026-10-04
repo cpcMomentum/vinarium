@@ -1,7 +1,7 @@
 <template>
-	<NcModal v-if="open" :name="titles[step]" @keydown.esc="e => escCloses(e, cancel)" @close="cancel">
+	<NcModal v-if="open" :labelId="titleId" @keydown.esc="e => escCloses(e, cancel)" @close="cancel">
 		<div class="wizard">
-			<h2 class="wizard__title">{{ titles[step] }}</h2>
+			<h2 :id="titleId" class="wizard__title">{{ titles[step] }}</h2>
 			<div class="wizard__stepper">
 				<span v-for="s in 4" :key="s" :class="['step', { active: step === s, done: step > s }]">{{ s }}</span>
 			</div>
@@ -122,6 +122,7 @@
 								<option value="USD">USD</option>
 								<option value="CHF">CHF</option>
 								<option value="GBP">GBP</option>
+								<option value="AUD">AUD</option>
 							</select>
 						</label>
 					</div>
@@ -180,7 +181,7 @@
 
 <script setup lang="ts">
 import { escCloses } from '@/utils/modalEsc'
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, useId } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -190,6 +191,10 @@ import { createPurchaseViaWizard, listVendors } from '@/api/purchases'
 import { uploadVintagePhoto } from '@/api/vintages'
 import CameraIcon from 'vue-material-design-icons/Camera.vue'
 import PhotoCropDialog from '@/components/PhotoCropDialog.vue'
+import { errorMessage } from '@/utils/errorMessage'
+
+// NcModal :name baut eine Kopfzeile, die ueber der Nextcloud-Leiste schwebt (#314).
+const titleId = useId()
 
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits<{
@@ -443,8 +448,8 @@ async function complete() {
 		emit('complete', { purchaseId: result.purchase.id, bottleCount: result.bottles.length })
 		clearPhoto()
 		emit('close')
-	} catch (e: any) {
-		errorMsg.value = e?.message ?? t('vinarium', 'Kauf konnte nicht erfasst werden')
+	} catch (e) {
+		errorMsg.value = errorMessage(e, t('vinarium', 'Kauf konnte nicht erfasst werden'))
 	} finally {
 		saving.value = false
 	}

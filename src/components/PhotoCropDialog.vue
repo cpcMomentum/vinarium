@@ -1,7 +1,8 @@
 <template>
-	<NcModal v-if="open" :name="t('vinarium', 'Foto zuschneiden')" @keydown.esc="e => escCloses(e, cancel)" @close="cancel">
+	<NcModal v-if="open" :labelId="titleId" @keydown.esc="e => escCloses(e, cancel)" @close="cancel">
 		<div class="crop-dialog">
-			<p class="crop-dialog__hint">
+			<h2 :id="titleId" class="crop-dialog__title">{{ t('vinarium', 'Foto zuschneiden') }}</h2>
+			<p v-if="imageSrc || !errorMsg" class="crop-dialog__hint">
 				{{ aspectRatio === null
 					? t('vinarium', 'Wähle den Etiketten-Ausschnitt — frei wählbares Verhältnis.')
 					: t('vinarium', 'Wähle den Etiketten-Ausschnitt — fixes Hochformat-Verhältnis.') }}
@@ -35,12 +36,15 @@
 
 <script setup lang="ts">
 import { escCloses } from '@/utils/modalEsc'
-import { ref, watch } from 'vue'
+import { ref, watch, useId } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import VueCropperModule from 'vue-cropperjs'
 import 'cropperjs/dist/cropper.css'
+
+// NcModal :name baut eine Kopfzeile, die ueber der Nextcloud-Leiste schwebt (#314).
+const titleId = useId()
 
 // vue-cropperjs ships only CommonJS (exports.default = component), it provides no
 // ESM entry. Under Vite 8's default-interop the namespace can arrive as
@@ -72,12 +76,47 @@ const imageSrc = ref<string | null>(null)
 const saving = ref(false)
 const errorMsg = ref<string | null>(null)
 
+// Sequence number of the current file: reading and decoding are async. If the
+// file changes or the dialog closes in between, a late result must not overwrite
+// the newer state.
+let loadSeq = 0
+
+/**
+ * Checks whether the browser can actually render the image. FileReader reads
+ * HEIC/HEIF from an iPhone without complaint, but Chrome and Firefox cannot decode
+ * it: `<img>` stays empty (naturalWidth 0) and getCroppedCanvas fails (#276).
+ * Without this check the dialog showed a blank area and "Übernehmen" failed
+ * silently. Catches every undecodable format, not only HEIC.
+ */
+function isDecodable(src: string): Promise<boolean> {
+	return new Promise(resolve => {
+		const img = new Image()
+		img.onload = () => resolve(img.naturalWidth > 0)
+		img.onerror = () => resolve(false)
+		img.src = src
+	})
+}
+
 watch(() => [props.open, props.file], ([isOpen, file]) => {
+	const seq = ++loadSeq
 	if (isOpen && file instanceof File) {
 		errorMsg.value = null
+		imageSrc.value = null
 		const reader = new FileReader()
-		reader.onload = () => { imageSrc.value = reader.result as string }
-		reader.onerror = () => { errorMsg.value = t('vinarium', 'Datei konnte nicht gelesen werden') }
+		reader.onload = async () => {
+			const src = reader.result as string
+			const decodable = await isDecodable(src)
+			if (seq !== loadSeq) return
+			if (decodable) {
+				imageSrc.value = src
+			} else {
+				errorMsg.value = t('vinarium', 'Dieses Bildformat kann dein Browser nicht anzeigen (z. B. HEIC vom iPhone). Bitte lade das Foto als JPG oder PNG hoch.')
+			}
+		}
+		reader.onerror = () => {
+			if (seq !== loadSeq) return
+			errorMsg.value = t('vinarium', 'Datei konnte nicht gelesen werden')
+		}
 		reader.readAsDataURL(file)
 	} else if (!isOpen) {
 		imageSrc.value = null
@@ -125,6 +164,9 @@ function confirm() {
 	display: flex;
 	flex-direction: column;
 	gap: 14px;
+}
+.crop-dialog__title {
+	margin: 0;
 }
 .crop-dialog__hint {
 	font-size: 13.5px;

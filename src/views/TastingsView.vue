@@ -175,6 +175,7 @@ import { SWEETNESS_LABELS, type BottleListItem } from '@/types/api'
 import TastingDialog from '@/components/TastingDialog.vue'
 import TastingDetailModal from '@/components/TastingDetailModal.vue'
 import { cssColorFor } from '@/utils/wineColors'
+import { errorMessage } from '@/utils/errorMessage'
 
 const tastings = ref<TastingListItem[]>([])
 const loading = ref(true)
@@ -250,8 +251,8 @@ async function openPicker() {
 	pickerBottles.value = []
 	try {
 		pickerBottles.value = await listBottles({ status: 'in_storage' })
-	} catch (e: any) {
-		pickerError.value = e?.message ?? t('vinarium', 'Flaschen konnten nicht geladen werden')
+	} catch (e) {
+		pickerError.value = errorMessage(e, t('vinarium', 'Flaschen konnten nicht geladen werden'))
 	} finally {
 		pickerLoading.value = false
 	}
@@ -284,8 +285,8 @@ onMounted(async () => {
 			loadStats(),
 		])
 		tastings.value = list
-	} catch (e: any) {
-		loadError.value = e?.message ?? t('vinarium', 'Fehler beim Laden')
+	} catch (e) {
+		loadError.value = errorMessage(e, t('vinarium', 'Fehler beim Laden'))
 	} finally {
 		loading.value = false
 	}

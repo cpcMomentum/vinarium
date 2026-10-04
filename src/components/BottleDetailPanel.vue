@@ -1,14 +1,14 @@
 <template>
 	<NcModal
 		v-if="open"
-		:name="modalTitle"
+		:labelId="titleId"
 		size="large"
 		@keydown.esc="e => escCloses(e, () => $emit('close'))"
 		@close="$emit('close')"
 	>
 		<div class="bd-modal">
 			<div v-if="loading" class="bd-loading">
-				<p class="muted">{{ t('vinarium', 'Laden…') }}</p>
+				<p :id="titleId" class="muted">{{ t('vinarium', 'Laden…') }}</p>
 			</div>
 
 			<template v-else-if="detail">
@@ -30,7 +30,7 @@
 						>›</button>
 					</div>
 					<span class="bd-dot" :style="{ background: cssColorFor(detail.wine_color) }"></span>
-					<div class="bd-title">
+					<div :id="titleId" class="bd-title">
 						<div>
 							<strong class="bd-wine">{{ detail.wine_name }}</strong>
 							<span class="bd-year muted">{{ detail.year }}</span>
@@ -221,7 +221,7 @@
 			</template>
 
 			<div v-else-if="error" class="bd-hint">
-				<p class="muted">{{ error }}</p>
+				<p :id="titleId" class="muted">{{ error }}</p>
 			</div>
 		</div>
 
@@ -230,7 +230,7 @@
 
 <script setup lang="ts">
 import { escCloses } from '@/utils/modalEsc'
-import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { computed, ref, watch, onMounted, onBeforeUnmount, useId } from 'vue'
 import { translate as t } from '@nextcloud/l10n'
 import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
@@ -241,9 +241,13 @@ import { updateProducer } from '@/api/producers'
 import { updateWine } from '@/api/wines'
 import { updateVintage } from '@/api/vintages'
 import { updatePurchase } from '@/api/purchases'
-import { BOTTLE_SIZE_LABELS, BOTTLE_STATUS_LABELS, SWEETNESS_LABELS, SWEETNESS_VALUES, WINE_COLORS, WINE_COLOR_LABELS, type BottleSizeMl, type WineColor, type BottleStatus } from '@/types/api'
+import { BOTTLE_SIZE_LABELS, BOTTLE_STATUS_LABELS, SWEETNESS_LABELS, SWEETNESS_VALUES, WINE_COLORS, WINE_COLOR_LABELS, type BottleSizeMl, type WineColor, type BottleStatus, type Sweetness } from '@/types/api'
 import { cssColorFor } from '@/utils/wineColors'
 import { formatDate } from '@/utils/date'
+import { errorMessage } from '@/utils/errorMessage'
+
+// NcModal :name baut eine Kopfzeile, die ueber der Nextcloud-Leiste schwebt (#314).
+const titleId = useId()
 
 type TabKey = 'bottle' | 'producer' | 'wine' | 'vintage' | 'purchase'
 
@@ -272,7 +276,30 @@ const error = ref<string | null>(null)
 const activeTab = ref<TabKey>(props.initialTab)
 const saving = ref(false)
 const editError = ref<string | null>(null)
-const form = ref<Record<string, any>>({})
+// Jeder Tab befuellt nur seinen Abschnitt, daher alle Felder optional.
+interface SectionForm {
+	producer_name?: string
+	producer_country?: string
+	producer_region?: string
+	producer_website?: string
+	wine_name?: string
+	wine_color?: string
+	appellation?: string
+	year?: number
+	alcohol_percent?: number | null
+	grape_varieties?: string
+	sweetness?: Sweetness | ''
+	drink_from_year?: number | null
+	drink_until_year?: number | null
+	external_rating?: number | null
+	external_rating_source?: string
+	purchased_at?: string
+	vendor?: string
+	unit_price?: number | null
+	currency?: string
+	bottle_size_ml?: BottleSizeMl
+}
+const form = ref<SectionForm>({})
 
 const open = computed(() => props.bottleId !== null)
 
@@ -289,10 +316,6 @@ const navIndex = computed(() => {
 	return props.bottleIds.indexOf(props.bottleId)
 })
 const totalCount = computed(() => props.bottleIds.length)
-
-const modalTitle = computed(() => detail.value
-	? `${detail.value.wine_name} ${detail.value.year}`
-	: t('vinarium', 'Flasche'))
 
 /** Write one side back into the loaded detail without refetching. */
 function onLabelPhotoChanged(side: LabelSide, fileId: number | null) {
@@ -317,8 +340,8 @@ watch(() => props.bottleId, async (id) => {
 	try {
 		detail.value = await getBottleDetails(id)
 		prefillForm()
-	} catch (e: any) {
-		error.value = e?.message ?? t('vinarium', 'Fehler beim Laden')
+	} catch (e) {
+		error.value = errorMessage(e, t('vinarium', 'Fehler beim Laden'))
 	} finally {
 		loading.value = false
 	}
@@ -360,7 +383,7 @@ function prefillForm() {
 			vendor: d.vendor ?? '',
 			unit_price: d.unit_price,
 			currency: d.currency ?? 'EUR',
-			bottle_size_ml: d.bottle_size_ml,
+			bottle_size_ml: d.bottle_size_ml as BottleSizeMl,
 		}
 	}
 	editError.value = null
@@ -409,8 +432,8 @@ async function saveSection() {
 		detail.value = await getBottleDetails(detail.value.id)
 		prefillForm()
 		emit('data-changed')
-	} catch (e: any) {
-		editError.value = e?.response?.data?.error ?? e?.message ?? t('vinarium', 'Speichern fehlgeschlagen')
+	} catch (e) {
+		editError.value = errorMessage(e, t('vinarium', 'Speichern fehlgeschlagen'))
 	} finally {
 		saving.value = false
 	}
