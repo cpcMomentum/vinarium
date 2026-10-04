@@ -12,6 +12,7 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 - Währung **AUD** (Australischer Dollar) beim Erfassen und Bearbeiten eines Kaufs (#294)
 
 ### Fixed
+- Dialog-Titel schweben nicht mehr über der Suchleiste der Nextcloud-Kopfzeile. Alle acht Dialoge benennen sich jetzt über ihre eigene Überschrift (`labelId` statt `name`); der Foto-Zuschnitt hat dafür eine sichtbare Überschrift bekommen (#314)
 - Etikett-Foto: Ein Bildformat, das der Browser nicht anzeigen kann (z. B. HEIC vom iPhone in Chrome oder Firefox), führt nicht mehr zu einem leeren Zuschnitt-Fenster mit stumm scheiterndem „Übernehmen“. Stattdessen erscheint eine verständliche Meldung mit der Bitte um JPG oder PNG, und „Übernehmen“ bleibt gesperrt (#276)
 
 ### Security
