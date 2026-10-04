@@ -7,16 +7,11 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.5.5] - 2026-10-04
+
 ### Added
 - Menüeintrag **„Neuerungen“** links unten: öffnet das „Was ist neu?“-Fenster jederzeit mit allen bisherigen Neuerungen, nach Version gruppiert. Nachlesen quittiert nichts, das automatische Fenster nach einem Update bleibt unverändert (#298)
 - Währung **AUD** (Australischer Dollar) beim Erfassen und Bearbeiten eines Kaufs (#294)
-
-### Fixed
-- Dialog-Titel schweben nicht mehr über der Suchleiste der Nextcloud-Kopfzeile. Alle acht Dialoge benennen sich jetzt über ihre eigene Überschrift (`labelId` statt `name`); der Foto-Zuschnitt hat dafür eine sichtbare Überschrift bekommen (#314)
-- Etikett-Foto: Ein Bildformat, das der Browser nicht anzeigen kann (z. B. HEIC vom iPhone in Chrome oder Firefox), führt nicht mehr zu einem leeren Zuschnitt-Fenster mit stumm scheiterndem „Übernehmen“. Stattdessen erscheint eine verständliche Meldung mit der Bitte um JPG oder PNG, und „Übernehmen“ bleibt gesperrt (#276)
-
-### Security
-- Transitive Abhängigkeiten auf gepatchte Versionen gehoben: `axios` 1.20.0, `brace-expansion` 2.1.7 / 5.0.12, `dompurify` 3.4.16. Schließt 17 Dependabot-Sicherheitshinweise, davon 9 mit hoher Einstufung (#306)
 
 ### Changed
 - Fehlermeldungen laufen über einen gemeinsamen Helfer statt über `catch (e: any)`. Beim Hochladen eines Etikett-Fotos erscheint jetzt die Meldung des Servers statt „Request failed with status code 400“. ESLint verbietet `any` nun als Fehler (#232)
@@ -29,6 +24,13 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 - Kompatibilität bis **Nextcloud 35** (`max-version`). Geprüft auf einer echten NC-35-Instanz (35.0.0): Installation, Migrationen, App-Start und alle Ansichten (Dashboard, Bestand, Regal, Verkostungen) ohne Befund; die Unit-Suite läuft in der CI zusätzlich gegen `nextcloud/ocp` dev-master
 - CI: Die PHPUnit-Matrix wählt die getesteten `nextcloud/ocp`-Versionen jetzt nach der PHP-Version des jeweiligen Jobs. NC 35 lässt PHP 8.2 fallen (`nextcloud/ocp` v35 verlangt `~8.3 || ~8.4 || ~8.5`), der 8.2-Job wäre sonst an einer Auflösung gescheitert, die gar nicht scheitern soll. Neuer Job für PHP 8.5; `php min-version` bleibt bei 8.2, weil eine App-Untergrenze auf einem NC-35-Server ohnehin nicht bindend ist und ein Anheben nur NC-32-bis-34-Nutzer aussperren würde (Muster aus contractmanager#414)
 - Mindestversion auf **Nextcloud 33** angehoben (`min-version`; `max-version` bleibt 35). Ohne `<database>`-Deklaration begrenzt NC bei min-version 32 Bezeichnernamen auf die scharfen Oracle-11-Grenzen (30/27/22 Zeichen); seit NC 33 gilt stattdessen eine glatte 63 (nextcloud/server#51593), zudem korrigiert NC 33 die NOT-NULL-Boolean-Behandlung selbst. Oracle bleibt installierbar (kein `<database>`-Ausschluss). Preis: NC-32-Nutzer erhalten kein Update mehr; Produktivinstanzen laufen auf NC 34 (nc-app-tooling#15)
+
+### Fixed
+- Dialog-Titel schweben nicht mehr über der Suchleiste der Nextcloud-Kopfzeile. Alle acht Dialoge benennen sich jetzt über ihre eigene Überschrift (`labelId` statt `name`); der Foto-Zuschnitt hat dafür eine sichtbare Überschrift bekommen (#314)
+- Etikett-Foto: Ein Bildformat, das der Browser nicht anzeigen kann (z. B. HEIC vom iPhone in Chrome oder Firefox), führt nicht mehr zu einem leeren Zuschnitt-Fenster mit stumm scheiterndem „Übernehmen“. Stattdessen erscheint eine verständliche Meldung mit der Bitte um JPG oder PNG, und „Übernehmen“ bleibt gesperrt (#276)
+
+### Security
+- Transitive Abhängigkeiten auf gepatchte Versionen gehoben: `axios` 1.20.0, `brace-expansion` 2.1.7 / 5.0.12, `dompurify` 3.4.16. Schließt 17 Dependabot-Sicherheitshinweise, davon 9 mit hoher Einstufung (#306)
 
 ## [0.5.4] - 2026-09-21
 
@@ -278,6 +280,7 @@ Erste offizielle Veröffentlichung — Weinverwaltung End-to-End.
 [0.5.2]: https://github.com/cpcMomentum/vinarium/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/cpcMomentum/vinarium/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/cpcMomentum/vinarium/compare/v0.4.2...v0.5.0
+[0.5.5]: https://github.com/cpcMomentum/vinarium/compare/v0.5.4...v0.5.5
 [0.4.2]: https://github.com/cpcMomentum/vinarium/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/cpcMomentum/vinarium/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/cpcMomentum/vinarium/compare/v0.3.0...v0.4.0
