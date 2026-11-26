@@ -10,11 +10,13 @@ declare(strict_types=1);
 namespace OCA\Vinarium\Service;
 
 use OCP\IDBConnection;
+use OCP\IL10N;
 
 class ExportService {
 
 	public function __construct(
 		private readonly IDBConnection $db,
+		private readonly IL10N $l10n,
 	) {
 	}
 
@@ -22,12 +24,14 @@ class ExportService {
 		$rows = $this->fetchDenormalized($userId);
 
 		$out = "\xEF\xBB\xBF"; // UTF-8 BOM for Excel
-		$out .= implode(';', [
-			'Weingut', 'Wein', 'Farbe', 'Jahrgang', 'Rebsorten',
-			'Trinken ab', 'Trinken bis', 'Kaufdatum', 'Händler',
-			'Preis', 'Währung', 'Flaschengröße (ml)',
-			'Status', 'Bewertung', 'Notizen',
-		]) . "\n";
+		$out .= implode(';', array_map([$this, 'esc'], [
+			$this->l10n->t('Weingut'), $this->l10n->t('Wein'), $this->l10n->t('Farbe'),
+			$this->l10n->t('Jahrgang'), $this->l10n->t('Rebsorten'),
+			$this->l10n->t('Trinken ab'), $this->l10n->t('Trinken bis'),
+			$this->l10n->t('Kaufdatum'), $this->l10n->t('Händler'),
+			$this->l10n->t('Preis'), $this->l10n->t('Währung'), $this->l10n->t('Flaschengröße (ml)'),
+			$this->l10n->t('Status'), $this->l10n->t('Bewertung'), $this->l10n->t('Notizen'),
+		])) . "\n";
 
 		foreach ($rows as $row) {
 			$out .= implode(';', [
