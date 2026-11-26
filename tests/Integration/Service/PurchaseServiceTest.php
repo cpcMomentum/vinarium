@@ -19,9 +19,9 @@ use OCA\Vinarium\Exception\NotFoundException;
 use OCA\Vinarium\Exception\ValidationException;
 use OCA\Vinarium\Service\ProducerService;
 use OCA\Vinarium\Service\PurchaseService;
+use OCA\Vinarium\Service\UserClock;
 use OCA\Vinarium\Service\VintageService;
 use OCA\Vinarium\Service\WineService;
-use OCA\Vinarium\Service\UserClock;
 use OCA\Vinarium\Tests\Integration\IntegrationTestCase;
 use OCP\Server;
 

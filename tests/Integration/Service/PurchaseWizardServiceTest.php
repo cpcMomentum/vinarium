@@ -23,9 +23,9 @@ use OCA\Vinarium\Service\BottleService;
 use OCA\Vinarium\Service\ProducerService;
 use OCA\Vinarium\Service\PurchaseService;
 use OCA\Vinarium\Service\PurchaseWizardService;
+use OCA\Vinarium\Service\UserClock;
 use OCA\Vinarium\Service\VintageService;
 use OCA\Vinarium\Service\WineService;
-use OCA\Vinarium\Service\UserClock;
 use OCA\Vinarium\Tests\Integration\IntegrationTestCase;
 use OCP\Server;
 
