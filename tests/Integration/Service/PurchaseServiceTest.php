@@ -10,6 +10,7 @@ declare(strict_types=1);
 namespace OCA\Vinarium\Tests\Integration\Service;
 
 use DateTime;
+use OCA\Vinarium\Db\BottleMapper;
 use OCA\Vinarium\Db\ProducerMapper;
 use OCA\Vinarium\Db\PurchaseMapper;
 use OCA\Vinarium\Db\VintageMapper;
@@ -35,7 +36,7 @@ class PurchaseServiceTest extends IntegrationTestCase {
 		parent::setUp();
 		$this->producerService = new ProducerService(new ProducerMapper($this->db));
 		$this->wineService = new WineService(new WineMapper($this->db), $this->producerService);
-		$this->vintageService = new VintageService(new VintageMapper($this->db), $this->wineService);
+		$this->vintageService = new VintageService(new VintageMapper($this->db), $this->wineService, new BottleMapper($this->db));
 		$this->service = new PurchaseService(new PurchaseMapper($this->db), $this->vintageService, Server::get(UserClock::class));
 	}
 

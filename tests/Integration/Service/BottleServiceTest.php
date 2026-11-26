@@ -53,7 +53,7 @@ class BottleServiceTest extends IntegrationTestCase {
 
 		$this->producerService = new ProducerService(new ProducerMapper($this->db));
 		$this->wineService = new WineService(new WineMapper($this->db), $this->producerService);
-		$this->vintageService = new VintageService(new VintageMapper($this->db), $this->wineService);
+		$this->vintageService = new VintageService(new VintageMapper($this->db), $this->wineService, $bottleMapper);
 		$this->purchaseService = new PurchaseService(new PurchaseMapper($this->db), $this->vintageService, Server::get(UserClock::class));
 
 		$this->cellarService = new CellarService(

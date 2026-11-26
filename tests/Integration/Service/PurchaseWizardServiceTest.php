@@ -38,7 +38,7 @@ class PurchaseWizardServiceTest extends IntegrationTestCase {
 		parent::setUp();
 		$this->producerService = new ProducerService(new ProducerMapper($this->db));
 		$this->wineService = new WineService(new WineMapper($this->db), $this->producerService);
-		$vintageService = new VintageService(new VintageMapper($this->db), $this->wineService);
+		$vintageService = new VintageService(new VintageMapper($this->db), $this->wineService, new BottleMapper($this->db));
 		$purchaseService = new PurchaseService(new PurchaseMapper($this->db), $vintageService, Server::get(UserClock::class));
 		$bottleService = new BottleService(
 			new BottleMapper($this->db),
