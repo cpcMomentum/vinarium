@@ -1,5 +1,5 @@
 <template>
-	<NcModal v-if="open" :labelId="titleId" @keydown.esc="e => escCloses(e, () => $emit('close'))" @close="$emit('close')">
+	<NcModal v-if="open" :labelId="titleId" @keydown.esc="(e: KeyboardEvent) => escCloses(e, () => $emit('close'))" @close="$emit('close')">
 		<div class="tasting-dialog">
 			<h2 :id="titleId">{{ editMode ? t('vinarium', 'Verkostung bearbeiten') : t('vinarium', 'Flasche öffnen + Verkostung') }}</h2>
 			<p v-if="!editMode" class="muted">{{ t('vinarium', 'Die Flasche wird als „getrunken“ markiert und der Slot freigegeben.') }}</p>
@@ -90,6 +90,7 @@ import NcButton from '@nextcloud/vue/components/NcButton'
 import { consumeWithTasting, updateTasting, uploadTastingPhoto, deleteTastingPhoto, tastingPhotoThumbnailUrl } from '@/api/tastings'
 import type { TastingListItem } from '@/api/tastings'
 import { errorMessage } from '@/utils/errorMessage'
+import { localDateIso } from '@/utils/date'
 
 // NcModal :name baut eine Kopfzeile, die ueber der Nextcloud-Leiste schwebt (#314).
 const titleId = useId()
@@ -107,12 +108,7 @@ const emit = defineEmits<{
 }>()
 
 const editMode = computed(() => !!props.tasting)
-const todayIso = computed(() => {
-	const d = new Date()
-	const m = String(d.getMonth() + 1).padStart(2, '0')
-	const day = String(d.getDate()).padStart(2, '0')
-	return `${d.getFullYear()}-${m}-${day}`
-})
+const todayIso = computed(() => localDateIso())
 const saving = ref(false)
 const pendingPhotos = ref<File[]>([])
 const pendingUrls = ref<string[]>([])

@@ -1,5 +1,5 @@
 <template>
-	<NcModal v-if="open" :labelId="titleId" @keydown.esc="e => escCloses(e, cancel)" @close="cancel">
+	<NcModal v-if="open" :labelId="titleId" @keydown.esc="(e: KeyboardEvent) => escCloses(e, cancel)" @close="cancel">
 		<div class="wizard">
 			<h2 :id="titleId" class="wizard__title">{{ titles[step] }}</h2>
 			<div class="wizard__stepper">
@@ -192,6 +192,7 @@ import { uploadVintagePhoto } from '@/api/vintages'
 import CameraIcon from 'vue-material-design-icons/Camera.vue'
 import PhotoCropDialog from '@/components/PhotoCropDialog.vue'
 import { errorMessage } from '@/utils/errorMessage'
+import { localDateIso } from '@/utils/date'
 
 // NcModal :name baut eine Kopfzeile, die ueber der Nextcloud-Leiste schwebt (#314).
 const titleId = useId()
@@ -267,16 +268,16 @@ const form4 = ref<{
 	purchasedAt: string; vendor: string; unitPrice: number | null; currency: string
 	quantity: number; bottleSizeMl: BottleSizeMl; notes: string
 }>({
-	purchasedAt: new Date().toISOString().substring(0, 10),
+	purchasedAt: localDateIso(),
 	vendor: '', unitPrice: null, currency: 'EUR', quantity: 6, bottleSizeMl: 750, notes: '',
 })
 
-const titles = computed(() => ({
+const titles = computed<Record<number, string>>(() => ({
 	1: t('vinarium', 'Schritt 1: Weingut'),
 	2: t('vinarium', 'Schritt 2: Wein'),
 	3: t('vinarium', 'Schritt 3: Jahrgang'),
 	4: t('vinarium', 'Schritt 4: Kauf'),
-} as const))
+}))
 
 const winesForProducer = computed(() => (producerId.value ? store.winesByProducer(producerId.value) : []))
 const vintagesForWine = computed(() => (wineId.value ? store.vintagesByWine(wineId.value) : []))

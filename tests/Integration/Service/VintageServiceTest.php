@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace OCA\Vinarium\Tests\Integration\Service;
 
+use OCA\Vinarium\Db\BottleMapper;
 use OCA\Vinarium\Db\ProducerMapper;
 use OCA\Vinarium\Db\VintageMapper;
 use OCA\Vinarium\Db\Wine;
@@ -29,7 +30,7 @@ class VintageServiceTest extends IntegrationTestCase {
 		parent::setUp();
 		$this->producerService = new ProducerService(new ProducerMapper($this->db));
 		$this->wineService = new WineService(new WineMapper($this->db), $this->producerService);
-		$this->service = new VintageService(new VintageMapper($this->db), $this->wineService);
+		$this->service = new VintageService(new VintageMapper($this->db), $this->wineService, new BottleMapper($this->db));
 	}
 
 	public function testCreateAndGet(): void {

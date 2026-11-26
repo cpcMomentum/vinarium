@@ -16,6 +16,7 @@ class DashboardService {
 
 	public function __construct(
 		private readonly IDBConnection $db,
+		private readonly UserClock $clock,
 	) {
 	}
 
@@ -204,7 +205,7 @@ class DashboardService {
 
 	/** @return list<array<string, mixed>> vintages with drink_until_year approaching */
 	private function drinkSoon(string $userId): array {
-		$currentYear = (int)date('Y');
+		$currentYear = (int)$this->clock->now($userId)->format('Y');
 
 		// Group by wine + vintage + drink_until — slot_label kommt aus erstem Slot der Gruppe (per Aggregat)
 		$qb = $this->db->getQueryBuilder();

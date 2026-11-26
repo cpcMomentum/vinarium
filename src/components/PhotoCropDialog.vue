@@ -1,5 +1,5 @@
 <template>
-	<NcModal v-if="open" :labelId="titleId" @keydown.esc="e => escCloses(e, cancel)" @close="cancel">
+	<NcModal v-if="open" :labelId="titleId" @keydown.esc="(e: KeyboardEvent) => escCloses(e, cancel)" @close="cancel">
 		<div class="crop-dialog">
 			<h2 :id="titleId" class="crop-dialog__title">{{ t('vinarium', 'Foto zuschneiden') }}</h2>
 			<p v-if="imageSrc || !errorMsg" class="crop-dialog__hint">

@@ -23,9 +23,11 @@ use OCA\Vinarium\Service\BottleService;
 use OCA\Vinarium\Service\ProducerService;
 use OCA\Vinarium\Service\PurchaseService;
 use OCA\Vinarium\Service\PurchaseWizardService;
+use OCA\Vinarium\Service\UserClock;
 use OCA\Vinarium\Service\VintageService;
 use OCA\Vinarium\Service\WineService;
 use OCA\Vinarium\Tests\Integration\IntegrationTestCase;
+use OCP\Server;
 
 class PurchaseWizardServiceTest extends IntegrationTestCase {
 	private PurchaseWizardService $service;
@@ -36,8 +38,8 @@ class PurchaseWizardServiceTest extends IntegrationTestCase {
 		parent::setUp();
 		$this->producerService = new ProducerService(new ProducerMapper($this->db));
 		$this->wineService = new WineService(new WineMapper($this->db), $this->producerService);
-		$vintageService = new VintageService(new VintageMapper($this->db), $this->wineService);
-		$purchaseService = new PurchaseService(new PurchaseMapper($this->db), $vintageService);
+		$vintageService = new VintageService(new VintageMapper($this->db), $this->wineService, new BottleMapper($this->db));
+		$purchaseService = new PurchaseService(new PurchaseMapper($this->db), $vintageService, Server::get(UserClock::class));
 		$bottleService = new BottleService(
 			new BottleMapper($this->db),
 			new SlotMapper($this->db),
@@ -46,6 +48,7 @@ class PurchaseWizardServiceTest extends IntegrationTestCase {
 			new CellarMapper($this->db),
 			$purchaseService,
 			$this->db,
+			Server::get(UserClock::class),
 		);
 		$this->service = new PurchaseWizardService(
 			$this->producerService,

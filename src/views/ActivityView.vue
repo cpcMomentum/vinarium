@@ -55,7 +55,7 @@ import { translate as t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { ACTIVITY_TYPES, fetchActivity, type ActivityEvent, type ActivityType } from '@/api/activity'
 import { cssColorFor } from '@/utils/wineColors'
-import { formatDate } from '@/utils/date'
+import { formatDate, localDateIso } from '@/utils/date'
 import { errorMessage } from '@/utils/errorMessage'
 
 const PAGE_SIZE = 50
@@ -97,7 +97,7 @@ function fromDate(): string | undefined {
 	if (filterDays.value === 0) return undefined
 	const d = new Date()
 	d.setDate(d.getDate() - filterDays.value)
-	return d.toISOString().slice(0, 10)
+	return localDateIso(d)
 }
 
 async function load(offset: number) {

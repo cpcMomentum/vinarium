@@ -7,6 +7,26 @@ und dieses Projekt folgt [Semantic Versioning](https://semver.org/lang/de/).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-11-26
+
+### Added
+- Eigene Sprachkataloge für **„Deutsch (Förmlich: Sie)“** und **„English (UK)“**. Bisher fiel Nextcloud bei diesen Spracheinstellungen auf die Browsersprache zurück. Die Sie-Fassung spricht in allen Texten mit Anrede förmlich an (#334)
+
+### Fixed
+- Der **CSV-Export** (`GET /api/v1/export/csv`, bisher ohne Schaltfläche in der Oberfläche) bricht nicht mehr mit einem Serverfehler ab. Die Unterabfrage für die höchste Bewertung pro Flasche wurde wie ein Spaltenname behandelt und machte die Abfrage ungültig (#349)
+- Die Spaltenköpfe des CSV-Exports erscheinen in der Sprache des Nutzers statt immer auf Deutsch (#356)
+- „Heute“ ist jetzt der Kalendertag in der Zeitzone des Nutzers statt in UTC. Zwischen Mitternacht und 1 bzw. 2 Uhr wurde bisher der Vortag vorbelegt (Verschenken, Verloren, Kauf), und Verkostungsstatistik und „Bald trinken“ zählten zum falschen Monat oder Jahr (#339)
+- Der Typecheck prüft jetzt auch die `.vue`-Dateien (`vue-tsc`). 13 dabei gefundene Typfehler sind behoben, ohne sichtbare Änderung (#316)
+- Fünf Integrationstests übergaben `VintageService` einen Parameter zu wenig und scheiterten gegen eine echte Nextcloud (#354)
+
+### Changed
+- CI: Design-Check des gemeinsamen Design-Systems der App-Flotte (`npm run design:check`), dazu `docs/design-system.md` (#343)
+- CI: Kompatibilitätsprüfung über den geteilten Workflow aus nc-app-tooling v1.21.0; `nc-app-tooling` auf v1.25.0
+- Arbeitsdokumente und HTML-Mockups aus `docs/` sind nicht mehr im Repository
+
+### Security
+- Abhängigkeiten aktualisiert, alle hohen Dependabot-Warnungen geschlossen: `vue` 3.5.46, `vue-router` 4.6.5, `linkifyjs` 4.4.0, `cropperjs` 1.7.0; in der Entwicklung `vite` 8.4.0, `vitest` 4.1.12, `happy-dom` 21.0.4, `eslint` 10.15.0, `nextcloud/ocp` 34.0.6 sowie transitiv `follow-redirects`, `source-map-js`, `dompurify` und weitere (#360)
+
 ## [0.5.5] - 2026-10-04
 
 ### Added
@@ -275,7 +295,8 @@ Erste offizielle Veröffentlichung — Weinverwaltung End-to-End.
 - 88 PHPUnit-Tests + 24 Vitest-Tests (112 gesamt)
 - Pre-Commit-Hook für OCP-only API-Enforcement
 
-[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.5.5...HEAD
+[Unreleased]: https://github.com/cpcMomentum/vinarium/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/cpcMomentum/vinarium/compare/v0.5.5...v0.6.0
 [0.5.5]: https://github.com/cpcMomentum/vinarium/compare/v0.5.4...v0.5.5
 [0.5.4]: https://github.com/cpcMomentum/vinarium/compare/v0.5.3...v0.5.4
 [0.5.3]: https://github.com/cpcMomentum/vinarium/compare/v0.5.2...v0.5.3

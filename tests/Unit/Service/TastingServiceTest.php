@@ -29,7 +29,7 @@ class TastingServiceTest extends TestCase {
 		$this->tastingMapper = $this->createMock(TastingMapper::class);
 		$this->bottleService = $this->createMock(BottleService::class);
 		$this->db = $this->createMock(IDBConnection::class);
-		$this->service = new TastingService($this->tastingMapper, $this->bottleService, $this->db);
+		$this->service = new TastingService($this->tastingMapper, $this->bottleService, $this->db, UserClockTest::clock($this, '2026-01-15T12:00:00Z'));
 	}
 
 	public function testConsumeWithTastingCommitsOnSuccess(): void {
@@ -123,5 +123,15 @@ class TastingServiceTest extends TestCase {
 		$this->expectException(ValidationException::class);
 		$this->expectExceptionMessage('Tasting date cannot be in the future');
 		$this->service->update(7, 'alice', ['tastedAt' => $future]);
+	}
+
+	public function testStatsCountTheUserMonthShortlyAfterMidnight(): void {
+		$service = new TastingService($this->tastingMapper, $this->bottleService, $this->db, UserClockTest::clock($this, '2026-11-30T23:30:00Z'));
+		$this->tastingMapper->expects($this->once())->method('countByOwnerYear')->with('alice', 2026);
+		$this->tastingMapper->expects($this->once())->method('countByOwnerMonth')->with('alice', 2026, 12);
+
+		$stats = $service->getStats('alice');
+
+		$this->assertSame(12, $stats['month']);
 	}
 }

@@ -4,7 +4,7 @@
  * Tastatur-Events aus Inputs, waehrend der Focus-Trap beim Oeffnen das
  * erste Eingabefeld fokussiert (#176).
  *
- * Als `@keydown.esc="e => escCloses(e, ...)"` auf dem NcModal-Tag
+ * Als `@keydown.esc="(e: KeyboardEvent) => escCloses(e, ...)"` auf dem NcModal-Tag
  * registrieren. Offene Dropdowns (NcSelect) schliessen weiterhin nur
  * das Dropdown.
  */

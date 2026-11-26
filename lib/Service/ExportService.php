@@ -10,11 +10,13 @@ declare(strict_types=1);
 namespace OCA\Vinarium\Service;
 
 use OCP\IDBConnection;
+use OCP\IL10N;
 
 class ExportService {
 
 	public function __construct(
 		private readonly IDBConnection $db,
+		private readonly IL10N $l10n,
 	) {
 	}
 
@@ -22,12 +24,14 @@ class ExportService {
 		$rows = $this->fetchDenormalized($userId);
 
 		$out = "\xEF\xBB\xBF"; // UTF-8 BOM for Excel
-		$out .= implode(';', [
-			'Weingut', 'Wein', 'Farbe', 'Jahrgang', 'Rebsorten',
-			'Trinken ab', 'Trinken bis', 'Kaufdatum', 'Händler',
-			'Preis', 'Währung', 'Flaschengröße (ml)',
-			'Status', 'Bewertung', 'Notizen',
-		]) . "\n";
+		$out .= implode(';', array_map([$this, 'esc'], [
+			$this->l10n->t('Weingut'), $this->l10n->t('Wein'), $this->l10n->t('Farbe'),
+			$this->l10n->t('Jahrgang'), $this->l10n->t('Rebsorten'),
+			$this->l10n->t('Trinken ab'), $this->l10n->t('Trinken bis'),
+			$this->l10n->t('Kaufdatum'), $this->l10n->t('Händler'),
+			$this->l10n->t('Preis'), $this->l10n->t('Währung'), $this->l10n->t('Flaschengröße (ml)'),
+			$this->l10n->t('Status'), $this->l10n->t('Bewertung'), $this->l10n->t('Notizen'),
+		])) . "\n";
 
 		foreach ($rows as $row) {
 			$out .= implode(';', [
@@ -54,6 +58,11 @@ class ExportService {
 
 	/** @return list<array<string, mixed>> */
 	private function fetchDenormalized(string $userId): array {
+		$maxRating = $this->db->getQueryBuilder();
+		$maxRating->select($maxRating->func()->max('t2.rating'))
+			->from('vinarium_tasting', 't2')
+			->where($maxRating->expr()->eq('t2.bottle_id', 'b.id'));
+
 		$qb = $this->db->getQueryBuilder();
 		$qb->select(
 			'p.name AS producer_name',
@@ -62,10 +71,7 @@ class ExportService {
 			'pu.purchased_at', 'pu.vendor', 'pu.unit_price', 'pu.currency', 'pu.bottle_size_ml',
 			'b.status', 'b.notes AS bottle_notes',
 		)
-			->selectAlias(
-				'(SELECT MAX(t2.rating) FROM *PREFIX*vinarium_tasting t2 WHERE t2.bottle_id = b.id)',
-				'rating',
-			)
+			->selectAlias($qb->createFunction('(' . $maxRating->getSQL() . ')'), 'rating')
 			->from('vinarium_bottle', 'b')
 			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
 			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')

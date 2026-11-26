@@ -35,6 +35,7 @@ class BottleService {
 		private readonly CellarMapper $cellarMapper,
 		private readonly PurchaseService $purchaseService,
 		private readonly IDBConnection $db,
+		private readonly UserClock $clock,
 	) {
 	}
 
@@ -109,7 +110,7 @@ class BottleService {
 		$bottle->setStatus(Bottle::STATUS_GIFTED);
 		$bottle->setSlotId(null);
 		$bottle->setEventRecipient($recipient);
-		$bottle->setEventDate($this->parseDate($date));
+		$bottle->setEventDate($this->parseDate($date, $userId));
 		$bottle->setEventNote($occasion !== null && $occasion !== '' ? $occasion : null);
 		return $this->bottleMapper->update($bottle);
 	}
@@ -120,7 +121,7 @@ class BottleService {
 		$bottle->setStatus(Bottle::STATUS_LOST);
 		$bottle->setSlotId(null);
 		$bottle->setEventRecipient(null);
-		$bottle->setEventDate($this->parseDate($date));
+		$bottle->setEventDate($this->parseDate($date, $userId));
 		$bottle->setEventNote($reason !== null && $reason !== '' ? $reason : null);
 		return $this->bottleMapper->update($bottle);
 	}
@@ -136,7 +137,7 @@ class BottleService {
 		}
 	}
 
-	private function parseDate(?string $date): DateTime {
+	private function parseDate(?string $date, string $userId): DateTime {
 		if ($date !== null && $date !== '') {
 			$parsed = DateTime::createFromFormat('Y-m-d', $date);
 			if ($parsed !== false) {
@@ -144,7 +145,7 @@ class BottleService {
 				return $parsed;
 			}
 		}
-		return new DateTime('today');
+		return $this->clock->today($userId);
 	}
 
 	/**

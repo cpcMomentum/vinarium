@@ -28,9 +28,11 @@ use OCA\Vinarium\Service\BottleService;
 use OCA\Vinarium\Service\CellarService;
 use OCA\Vinarium\Service\ProducerService;
 use OCA\Vinarium\Service\PurchaseService;
+use OCA\Vinarium\Service\UserClock;
 use OCA\Vinarium\Service\VintageService;
 use OCA\Vinarium\Service\WineService;
 use OCA\Vinarium\Tests\Integration\IntegrationTestCase;
+use OCP\Server;
 
 class BottleServiceTest extends IntegrationTestCase {
 	private BottleService $service;
@@ -51,8 +53,8 @@ class BottleServiceTest extends IntegrationTestCase {
 
 		$this->producerService = new ProducerService(new ProducerMapper($this->db));
 		$this->wineService = new WineService(new WineMapper($this->db), $this->producerService);
-		$this->vintageService = new VintageService(new VintageMapper($this->db), $this->wineService);
-		$this->purchaseService = new PurchaseService(new PurchaseMapper($this->db), $this->vintageService);
+		$this->vintageService = new VintageService(new VintageMapper($this->db), $this->wineService, $bottleMapper);
+		$this->purchaseService = new PurchaseService(new PurchaseMapper($this->db), $this->vintageService, Server::get(UserClock::class));
 
 		$this->cellarService = new CellarService(
 			$cellarMapper, $shelfMapper, $compartmentMapper,
@@ -61,7 +63,7 @@ class BottleServiceTest extends IntegrationTestCase {
 		$this->service = new BottleService(
 			$bottleMapper, $this->slotMapper, $compartmentMapper,
 			$shelfMapper, $cellarMapper,
-			$this->purchaseService, $this->db,
+			$this->purchaseService, $this->db, Server::get(UserClock::class),
 		);
 	}
 

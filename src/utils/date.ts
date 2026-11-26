@@ -50,3 +50,10 @@ export function formatDate(iso: string): string {
 
 	return `${tag}.${monat}.${jahr}`
 }
+
+/** Kalendertag von `d` in der Zeitzone des Browsers als YYYY-MM-DD. */
+export function localDateIso(d: Date = new Date()): string {
+	const month = String(d.getMonth() + 1).padStart(2, '0')
+	const day = String(d.getDate()).padStart(2, '0')
+	return `${d.getFullYear()}-${month}-${day}`
+}

@@ -23,6 +23,7 @@ class PurchaseService {
 	public function __construct(
 		private readonly PurchaseMapper $purchaseMapper,
 		private readonly VintageService $vintageService,
+		private readonly UserClock $clock,
 	) {
 	}
 
@@ -54,7 +55,7 @@ class PurchaseService {
 
 		$purchase = new Purchase();
 		$purchase->setVintageId($vintageId);
-		$purchase->setPurchasedAt($this->parseDate($data['purchasedAt'] ?? null) ?? new DateTime());
+		$purchase->setPurchasedAt($this->parseDate($data['purchasedAt'] ?? null) ?? $this->clock->today($userId));
 		$purchase->setVendor(isset($data['vendor']) ? (string)$data['vendor'] : null);
 		$purchase->setUnitPrice(isset($data['unitPrice']) && $data['unitPrice'] !== null ? (float)$data['unitPrice'] : null);
 		$purchase->setCurrency(isset($data['currency']) ? (string)$data['currency'] : 'EUR');
