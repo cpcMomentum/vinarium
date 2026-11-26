@@ -7,6 +7,12 @@
 			</span>
 			<div class="inventory-view__sp"></div>
 			<NcButton variant="primary" @click="wizardOpen = true">{{ t('vinarium', '+ Kauf erfassen') }}</NcButton>
+			<NcActions :aria-label="t('vinarium', 'Weitere Aktionen')">
+				<NcActionLink :href="csvUrl">
+					<template #icon><DownloadIcon :size="20" /></template>
+					{{ t('vinarium', 'CSV-Export herunterladen') }}
+				</NcActionLink>
+			</NcActions>
 		</header>
 
 		<!-- 5 flache Sub-Tabs (v4 .subtabs) -->
@@ -206,6 +212,8 @@ import { translate as t } from '@nextcloud/l10n'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import NcActions from '@nextcloud/vue/components/NcActions'
 import NcActionButton from '@nextcloud/vue/components/NcActionButton'
+import NcActionLink from '@nextcloud/vue/components/NcActionLink'
+import DownloadIcon from 'vue-material-design-icons/Download.vue'
 import Gift from 'vue-material-design-icons/Gift.vue'
 import CloseCircleOutline from 'vue-material-design-icons/CloseCircleOutline.vue'
 import GlassCorkIcon from 'vue-material-design-icons/BottleWine.vue'
@@ -219,7 +227,7 @@ import BottleDetailPanel from '@/components/BottleDetailPanel.vue'
 import { BOTTLE_STATUS_LABELS, SWEETNESS_LABELS, SWEETNESS_VALUES, WINE_COLORS, WINE_COLOR_LABELS, type BottleFilter, type BottleListItem, type BottleStatus, type Sweetness, type WineColor } from '@/types/api'
 import { useBottleStore } from '@/stores/bottleStore'
 import { useWineStore } from '@/stores/wineStore'
-import { fetchStats, type DashboardStats } from '@/api/dashboard'
+import { exportCsvUrl, fetchStats, type DashboardStats } from '@/api/dashboard'
 import { errorMessage } from '@/utils/errorMessage'
 
 type SubTab = 'bottles' | 'producers' | 'wines' | 'purchases'
@@ -245,6 +253,7 @@ const QUERY_TO_TAB: Record<string, SubTab> = {
 
 const route = useRoute()
 const router = useRouter()
+const csvUrl = exportCsvUrl()
 const store = useBottleStore()
 const wineStore = useWineStore()
 
