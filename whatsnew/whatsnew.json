@@ -1,4 +1,36 @@
 {
+	"0.6.0": [
+		{
+			"title": {
+				"de": "Förmliche Anrede und britisches Englisch",
+				"en": "Formal German and British English"
+			},
+			"text": {
+				"de": "Mit „Deutsch (Förmlich: Sie)“ verwendet Vinarium jetzt die förmliche Anrede, mit „English (UK)“ Englisch statt der Browsersprache.",
+				"en": "With “Deutsch (Förmlich: Sie)” Vinarium now uses the formal German address, and with “English (UK)” it shows English instead of the browser language."
+			},
+			"icon": "translate",
+			"where": {
+				"de": "Persönliche Einstellungen, Sprache",
+				"en": "Personal settings, language"
+			}
+		},
+		{
+			"title": {
+				"de": "Das richtige Datum nach Mitternacht",
+				"en": "The right date after midnight"
+			},
+			"text": {
+				"de": "„Heute“ richtet sich jetzt nach der eingestellten Zeitzone. Kurz nach Mitternacht wurde bisher noch der Vortag eingetragen.",
+				"en": "“Today” now follows your time zone. Shortly after midnight, the previous day used to be filled in."
+			},
+			"icon": "glass-wine",
+			"where": {
+				"de": "Kauf, Verkostung, Verschenken",
+				"en": "Purchase, tasting, gift"
+			}
+		}
+	],
 	"0.5.5": [
 		{
 			"title": {
