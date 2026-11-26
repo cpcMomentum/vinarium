@@ -23,6 +23,7 @@ class TastingService {
 		private readonly TastingMapper $tastingMapper,
 		private readonly BottleService $bottleService,
 		private readonly IDBConnection $db,
+		private readonly UserClock $clock,
 	) {
 	}
 
@@ -215,7 +216,7 @@ class TastingService {
 
 	/** @return array{year: int, month: int, count_year: int, count_current_month: int, total_count: int, avg_rating: float|null, best_wine: array{wine_name:string,producer_name:string,year:int,rating:float}|null, with_photos_count: int} */
 	public function getStats(string $userId): array {
-		$now = new DateTime('now', new \DateTimeZone('UTC'));
+		$now = $this->clock->now($userId);
 		$year = (int)$now->format('Y');
 		$month = (int)$now->format('m');
 		return [
@@ -235,6 +236,7 @@ class TastingService {
 	 * up to the start of tomorrow (UTC) — covers any client timezone up to UTC-12.
 	 */
 	private function assertTastedAtNotInFuture(DateTime $tastedAt): void {
+		// tz-ok: bewusst tolerante Obergrenze, deckt jede Zeitzone bis UTC+14 ab
 		$limit = new DateTime('tomorrow 00:00:00', new \DateTimeZone('UTC'));
 		if ($tastedAt > $limit) {
 			throw new ValidationException('Tasting date cannot be in the future');

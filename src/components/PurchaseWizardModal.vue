@@ -192,6 +192,7 @@ import { uploadVintagePhoto } from '@/api/vintages'
 import CameraIcon from 'vue-material-design-icons/Camera.vue'
 import PhotoCropDialog from '@/components/PhotoCropDialog.vue'
 import { errorMessage } from '@/utils/errorMessage'
+import { localDateIso } from '@/utils/date'
 
 // NcModal :name baut eine Kopfzeile, die ueber der Nextcloud-Leiste schwebt (#314).
 const titleId = useId()
@@ -267,7 +268,7 @@ const form4 = ref<{
 	purchasedAt: string; vendor: string; unitPrice: number | null; currency: string
 	quantity: number; bottleSizeMl: BottleSizeMl; notes: string
 }>({
-	purchasedAt: new Date().toISOString().substring(0, 10),
+	purchasedAt: localDateIso(),
 	vendor: '', unitPrice: null, currency: 'EUR', quantity: 6, bottleSizeMl: 750, notes: '',
 })
 

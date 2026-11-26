@@ -204,6 +204,7 @@ class VintageService {
 			throw new ValidationException('Invalid year: ' . print_r($value, true));
 		}
 		$year = (int)$value;
+		// tz-ok: grobe Obergrenze, ein Tag Versatz ist bei +50 Jahren ohne Belang
 		$maxYear = (int)date('Y') + 50;
 		if ($year < self::MIN_YEAR || $year > $maxYear) {
 			throw new ValidationException(sprintf('Year %d out of range (%d..%d)', $year, self::MIN_YEAR, $maxYear));
@@ -220,6 +221,7 @@ class VintageService {
 	}
 
 	private function assertValidYear(int $year): void {
+		// tz-ok: Obergrenze fuer Jahrgaenge, ein Tag Versatz zum Jahreswechsel ist hier ohne Belang
 		$maxYear = (int)date('Y') + self::MAX_YEAR_OFFSET;
 		if ($year < self::MIN_YEAR || $year > $maxYear) {
 			throw new ValidationException(sprintf('Invalid year: %d (expected %d..%d)', $year, self::MIN_YEAR, $maxYear));
