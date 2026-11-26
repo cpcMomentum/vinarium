@@ -12,6 +12,7 @@ namespace OCA\Vinarium\Controller;
 use OCA\Vinarium\AppInfo\Application;
 use OCA\Vinarium\Service\DashboardService;
 use OCA\Vinarium\Service\ExportService;
+use OCA\Vinarium\Service\UserClock;
 use OCP\AppFramework\Controller;
 use OCP\AppFramework\Http;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
@@ -28,6 +29,7 @@ class DashboardController extends Controller {
 		private readonly ?string $userId,
 		private readonly DashboardService $dashboardService,
 		private readonly ExportService $exportService,
+		private readonly UserClock $clock,
 	) {
 		parent::__construct(Application::APP_ID, $request);
 	}
@@ -49,7 +51,7 @@ class DashboardController extends Controller {
 		$csv = $this->exportService->exportCsv($this->userId);
 		return new DataDownloadResponse(
 			$csv,
-			'vinarium-export-' . date('Y-m-d') . '.csv',
+			'vinarium-export-' . $this->clock->now($this->userId)->format('Y-m-d') . '.csv',
 			'text/csv; charset=utf-8',
 		);
 	}

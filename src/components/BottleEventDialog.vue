@@ -55,6 +55,7 @@ import NcModal from '@nextcloud/vue/components/NcModal'
 import NcButton from '@nextcloud/vue/components/NcButton'
 import { giftBottle, loseBottle, fetchGiftRecipients } from '@/api/bottles'
 import { errorMessage } from '@/utils/errorMessage'
+import { localDateIso } from '@/utils/date'
 
 // NcModal :name baut eine Kopfzeile, die ueber der Nextcloud-Leiste schwebt (#314).
 const titleId = useId()
@@ -76,7 +77,7 @@ const recipients = ref<string[]>([])
 
 const form = ref({
 	recipient: '',
-	date: new Date().toISOString().substring(0, 10),
+	date: localDateIso(),
 	note: '',
 })
 
@@ -89,7 +90,7 @@ watch(() => props.open, async (isOpen) => {
 	submitError.value = null
 	form.value = {
 		recipient: '',
-		date: new Date().toISOString().substring(0, 10),
+		date: localDateIso(),
 		note: '',
 	}
 	if (props.mode === 'gift') {
