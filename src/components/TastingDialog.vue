@@ -1,5 +1,5 @@
 <template>
-	<NcModal v-if="open" :labelId="titleId" @keydown.esc="e => escCloses(e, () => $emit('close'))" @close="$emit('close')">
+	<NcModal v-if="open" :labelId="titleId" @keydown.esc="(e: KeyboardEvent) => escCloses(e, () => $emit('close'))" @close="$emit('close')">
 		<div class="tasting-dialog">
 			<h2 :id="titleId">{{ editMode ? t('vinarium', 'Verkostung bearbeiten') : t('vinarium', 'Flasche öffnen + Verkostung') }}</h2>
 			<p v-if="!editMode" class="muted">{{ t('vinarium', 'Die Flasche wird als „getrunken“ markiert und der Slot freigegeben.') }}</p>

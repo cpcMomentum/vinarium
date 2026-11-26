@@ -1,7 +1,7 @@
 <template>
 	<NcModal v-if="open"
 		:labelId="TITLE_ID"
-		@keydown.esc="e => escCloses(e, dismiss)"
+		@keydown.esc="(e: KeyboardEvent) => escCloses(e, dismiss)"
 		@close="dismiss">
 		<div class="whatsnew">
 			<h2 :id="TITLE_ID">{{ title }}</h2>

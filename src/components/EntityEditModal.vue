@@ -1,5 +1,5 @@
 <template>
-	<NcModal v-if="open" :labelId="titleId" @keydown.esc="e => escCloses(e, () => $emit('close'))" @close="$emit('close')">
+	<NcModal v-if="open" :labelId="titleId" @keydown.esc="(e: KeyboardEvent) => escCloses(e, () => $emit('close'))" @close="$emit('close')">
 		<div class="edit-modal">
 			<h2 :id="titleId">{{ title }}</h2>
 

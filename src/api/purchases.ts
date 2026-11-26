@@ -11,7 +11,7 @@ export interface PurchaseCreate {
 	purchasedAt?: string
 	vendor?: string | null
 	unitPrice?: number | null
-	currency?: string
+	currency?: string | null
 	quantity: number
 	bottleSizeMl: BottleSizeMl
 	notes?: string | null
