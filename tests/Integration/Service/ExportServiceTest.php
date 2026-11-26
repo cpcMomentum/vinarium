@@ -26,17 +26,34 @@ use OCA\Vinarium\Service\UserClock;
 use OCA\Vinarium\Service\VintageService;
 use OCA\Vinarium\Service\WineService;
 use OCA\Vinarium\Tests\Integration\IntegrationTestCase;
+use OCP\IL10N;
 use OCP\Server;
 
 class ExportServiceTest extends IntegrationTestCase {
 	private const COL_RATING = 13;
 	private const COL_NOTES = 14;
 
+	private const EN = [
+		'Weingut' => 'Producer', 'Wein' => 'Wine', 'Farbe' => 'Color', 'Jahrgang' => 'Vintage',
+		'Rebsorten' => 'Grape Varieties', 'Trinken ab' => 'Drink from', 'Trinken bis' => 'Drink until',
+		'Kaufdatum' => 'Purchase date', 'Händler' => 'Vendor', 'Preis' => 'Price', 'Währung' => 'Currency',
+		'Flaschengröße (ml)' => 'Bottle size (ml)', 'Status' => 'Status', 'Bewertung' => 'Rating', 'Notizen' => 'Notes',
+	];
+
 	private ExportService $service;
 
 	protected function setUp(): void {
 		parent::setUp();
-		$this->service = new ExportService($this->db);
+		$l10n = $this->createMock(IL10N::class);
+		$l10n->method('t')->willReturnCallback(static fn (string $text): string => self::EN[$text] ?? $text);
+		$this->service = new ExportService($this->db, $l10n);
+	}
+
+	public function testHeaderIsTranslated(): void {
+		$csv = $this->service->exportCsv($this->uniqueId('user'));
+
+		$header = explode("\n", substr($csv, 3), 2)[0];
+		$this->assertSame(implode(';', array_values(self::EN)), $header);
 	}
 
 	public function testExportContainsHighestRatingPerBottle(): void {
