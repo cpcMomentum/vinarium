@@ -54,6 +54,11 @@ class ExportService {
 
 	/** @return list<array<string, mixed>> */
 	private function fetchDenormalized(string $userId): array {
+		$maxRating = $this->db->getQueryBuilder();
+		$maxRating->select($maxRating->func()->max('t2.rating'))
+			->from('vinarium_tasting', 't2')
+			->where($maxRating->expr()->eq('t2.bottle_id', 'b.id'));
+
 		$qb = $this->db->getQueryBuilder();
 		$qb->select(
 			'p.name AS producer_name',
@@ -62,10 +67,7 @@ class ExportService {
 			'pu.purchased_at', 'pu.vendor', 'pu.unit_price', 'pu.currency', 'pu.bottle_size_ml',
 			'b.status', 'b.notes AS bottle_notes',
 		)
-			->selectAlias(
-				'(SELECT MAX(t2.rating) FROM *PREFIX*vinarium_tasting t2 WHERE t2.bottle_id = b.id)',
-				'rating',
-			)
+			->selectAlias($qb->createFunction('(' . $maxRating->getSQL() . ')'), 'rating')
 			->from('vinarium_bottle', 'b')
 			->innerJoin('b', 'vinarium_purchase', 'pu', 'b.purchase_id = pu.id')
 			->innerJoin('pu', 'vinarium_vintage', 'v', 'pu.vintage_id = v.id')
