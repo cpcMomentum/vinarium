@@ -1,5 +1,5 @@
 <template>
-	<NcModal v-if="open" :labelId="titleId" @keydown.esc="e => escCloses(e, () => $emit('close'))" @close="$emit('close')">
+	<NcModal v-if="open" :labelId="titleId" @keydown.esc="(e: KeyboardEvent) => escCloses(e, () => $emit('close'))" @close="$emit('close')">
 		<div v-if="loading" class="detail-modal detail-modal--loading">
 			<p :id="titleId" class="muted">{{ t('vinarium', 'Laden…') }}</p>
 		</div>

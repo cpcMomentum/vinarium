@@ -1,5 +1,5 @@
 <template>
-	<NcModal v-if="open" :labelId="titleId" @keydown.esc="e => escCloses(e, cancel)" @close="cancel">
+	<NcModal v-if="open" :labelId="titleId" @keydown.esc="(e: KeyboardEvent) => escCloses(e, cancel)" @close="cancel">
 		<div class="wizard">
 			<h2 :id="titleId" class="wizard__title">{{ titles[step] }}</h2>
 			<div class="wizard__stepper">
@@ -272,12 +272,12 @@ const form4 = ref<{
 	vendor: '', unitPrice: null, currency: 'EUR', quantity: 6, bottleSizeMl: 750, notes: '',
 })
 
-const titles = computed(() => ({
+const titles = computed<Record<number, string>>(() => ({
 	1: t('vinarium', 'Schritt 1: Weingut'),
 	2: t('vinarium', 'Schritt 2: Wein'),
 	3: t('vinarium', 'Schritt 3: Jahrgang'),
 	4: t('vinarium', 'Schritt 4: Kauf'),
-} as const))
+}))
 
 const winesForProducer = computed(() => (producerId.value ? store.winesByProducer(producerId.value) : []))
 const vintagesForWine = computed(() => (wineId.value ? store.vintagesByWine(wineId.value) : []))

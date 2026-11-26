@@ -3,7 +3,7 @@
   - SPDX-License-Identifier: AGPL-3.0-or-later
   -->
 <template>
-	<NcModal v-if="open" :labelId="titleId" @keydown.esc="e => escCloses(e, cancel)" @close="cancel">
+	<NcModal v-if="open" :labelId="titleId" @keydown.esc="(e: KeyboardEvent) => escCloses(e, cancel)" @close="cancel">
 		<div class="wizard">
 			<h2 :id="titleId" class="wizard__title">{{ titles[step] }}</h2>
 			<div class="wizard__stepper">

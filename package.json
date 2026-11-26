@@ -17,7 +17,7 @@
     "build": "vite build && mkdir -p js css && cp -r dist/js/* js/ && cp -r dist/css/* css/",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "vue-tsc --noEmit",
     "l10n:check": "nc-l10n-check",
     "l10n:fix": "nc-l10n-check --fix",
     "whatsnew:check": "nc-whatsnew-check",
@@ -50,7 +50,8 @@
     "sass": "^1.105.0",
     "typescript": "^5.7.2",
     "vite": "^8.3.1",
-    "vitest": "^4.1.11"
+    "vitest": "^4.1.11",
+    "vue-tsc": "^3.3.14"
   },
   "engines": {
     "node": "^22.14.0 || ^24.0.0 || >=26.0.0"

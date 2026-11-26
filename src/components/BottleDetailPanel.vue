@@ -3,7 +3,7 @@
 		v-if="open"
 		:labelId="titleId"
 		size="large"
-		@keydown.esc="e => escCloses(e, () => $emit('close'))"
+		@keydown.esc="(e: KeyboardEvent) => escCloses(e, () => $emit('close'))"
 		@close="$emit('close')"
 	>
 		<div class="bd-modal">
